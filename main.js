@@ -26,7 +26,7 @@ function(
     }
     var item = specifier[1];
     var filename = specifier[2];
-    var xhr = new XmlHttpRequest;
+    var xhr = new XMLHttpRequest;
     xhr.open('GET', '//cors.archive.org/cors/' + item + '/' + filename);
     xhr.responseType = 'blob';
     xhr.onload = function(e) {
