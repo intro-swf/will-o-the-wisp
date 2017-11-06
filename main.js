@@ -38,7 +38,7 @@ function(
       var chunkType = shortHeader >>> 6;
       var chunkLength = shortHeader & 0x3F;
       if (chunkLength === 0x3F) {
-        chunkLength = body.getUint32(offset, true);
+        chunkLength = dv.getUint32(offset, true);
         offset += 4;
       }
       var chunk = body.subarray(offset, offset + chunkLength);
