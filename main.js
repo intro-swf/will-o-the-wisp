@@ -91,8 +91,8 @@ function(
             stroke.color = read_rgb(chunk, chunkOffset); // RGBA in Shape3+
             chunkOffset += 3;
           }
-          var fillIndexBits = chunk[chunkOffset >>> 4];
-          var lineIndexBits = chunk[chunkOffset & 0xf];
+          var fillIndexBits = chunk[chunkOffset] >>> 4;
+          var lineIndexBits = chunk[chunkOffset] & 0xf;
           chunkOffset++;
           var path = read_path(chunk, chunkOffset, fillIndexBits, lineIndexBits);
           if (path.endOffset !== chunk.length) {
