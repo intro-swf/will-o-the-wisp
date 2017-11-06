@@ -87,17 +87,16 @@ function(
     function bits(n, signed) {
       if (n === 0) return 0;
       while (bit_count < n) {
-        bit_buf |= bytes[offset++] << bit_count;
+        bit_buf = (bit_buf << 8) | bytes[offset++];
         bit_count += 8;
       }
       var value;
       if (signed) {
-        value = bit_buf << (32-n) >> (32-n);
+        value = bit_buf << (32-bit_count) >> (32-n);
       }
       else {
-        value = bit_buf & ((1 << n)-1);
+        value = bit_buf << (32-bit_count) >>> (32-n);
       }
-      bit_buf >>>= n;
       bit_count -= n;
       return value;
     }
