@@ -26,7 +26,25 @@ function(
       throw new Error('TODO: zlib compression');
     }
     var frameRect = read_twip_rect(body, 0);
-    console.log(frameRect);
+    var dv = new DataView(body.buffer, body.byteOffset, body.byteLength);
+    var offset = frameRect.endOffset;
+    var framesPerSecond = dv.getUint16(offset, true) / 256;
+    offset += 2;
+    var frameCount = dv.getUint16(offset, true);
+    offset += 2;
+    while (offset < body.length) {
+      var shortHeader = body.getUint16(offset, true);
+      offset += 2;
+      var chunkType = shortHeader >>> 6;
+      var chunkLength = shortHeader & 0x3F;
+      if (chunkLength === 0x3F) {
+        chunkLength = body.getUint32(offset, true);
+        offset += 4;
+      }
+      var chunk = body.subarray(offset, offset + chunkLength);
+      offset += chunkLength;
+      console.log(chunkType, chunk);
+    }
   }
   
   // function called on a blob containing swf data
