@@ -18,7 +18,7 @@ function(
     if (header.mode === 'invalid') {
       throw new Error('invalid data header');
     }
-    if (header.fileSize < bytes.length) {
+    if (header.fileSize > bytes.length) {
       throw new Error('unexpected end of data');
     }
     var body = bytes.subarray(header.usedByteLength, header.fileSize);
