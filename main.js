@@ -20,7 +20,7 @@ function(
   // function called when it's time to look at the location hash
   // i.e. on page load and if/when the hash changes
   function init_hash() {
-    var specifier = location.hash.match(/^#/?([^/]+)/([^/]+)$/);
+    var specifier = location.hash.match(/^#\/?([^\/]+)\/([^\/]+)$/);
     if (!specifier) {
       return;
     }
