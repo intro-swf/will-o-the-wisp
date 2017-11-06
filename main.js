@@ -87,7 +87,7 @@ function(
     function bits(n, signed) {
       if (n === 0) return 0;
       while (bit_count < n) {
-        bit_buf |= bytes[offset++] << 8;
+        bit_buf |= bytes[offset++] << bit_count;
         bit_count += 8;
       }
       var value;
