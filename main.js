@@ -33,7 +33,7 @@ function(
     var frameCount = dv.getUint16(offset, true);
     offset += 2;
     while (offset < body.length) {
-      var shortHeader = body.getUint16(offset, true);
+      var shortHeader = dv.getUint16(offset, true);
       offset += 2;
       var chunkType = shortHeader >>> 6;
       var chunkLength = shortHeader & 0x3F;
