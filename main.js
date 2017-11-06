@@ -30,7 +30,7 @@ function(
     xhr.open('GET', '//cors.archive.org/cors/' + item + '/' + filename);
     xhr.responseType = 'blob';
     xhr.onload = function(e) {
-      init_blob(this.result);
+      init_blob(this.response);
     };
     xhr.send();
   }
