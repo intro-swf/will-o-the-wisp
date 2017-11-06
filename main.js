@@ -102,7 +102,7 @@ function(
           break;
         case 9:
           var rgb = read_rgb(chunk, 0);
-          console.log('SetBackgroundColor', style);
+          console.log('SetBackgroundColor', rgb);
           break;
         default:
           console.log(chunkType, chunk);
