@@ -25,7 +25,8 @@ function(
     if (header.mode === 'compressed') {
       throw new Error('TODO: zlib compression');
     }
-    console.log(body.length);
+    var frameRect = read_twip_rect(body, 0);
+    console.log(frameRect);
   }
   
   // function called on a blob containing swf data
@@ -80,5 +81,33 @@ function(
       return 8;
     },
   };
+  
+  function read_twip_rect(bytes, offset) {
+    var bit_buf = 0, bit_count = 0;
+    function bits(n, signed) {
+      if (n === 0) return 0;
+      while (bit_count < n) {
+        bit_buf |= bytes[offset++] << 8;
+      }
+      var value;
+      if (signed) {
+        value = bit_buf << (32-n) >> (32-n);
+      }
+      else {
+        value = bit_buf & ((1 << n)-1);
+      }
+      bit_buf >>>= n;
+      bit_count -= n;
+      return value;
+    }
+    var coordBits = bits(5, false);
+    var rect = {};
+    rect.left = bits(coordBits, true);
+    rect.right = bits(coordBits, true);
+    rect.top = bits(coordBits, true);
+    rect.bottom = bits(coordBits, true);
+    rect.endOffset = offset;
+    return rect;
+  }
   
 });
