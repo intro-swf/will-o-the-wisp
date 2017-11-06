@@ -12,9 +12,29 @@ function(
   
   'use strict';
   
+  // function called on a Uint8Array containing swf data
+  function init_bytes(bytes) {
+    var header = new ContainerHeaderBlock(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (header.mode === 'invalid') {
+      throw new Error('invalid data header');
+    }
+    if (header.fileSize < bytes.length) {
+      throw new Error('unexpected end of data');
+    }
+    var body = bytes.subarray(header.usedByteLength, header.fileSize);
+    if (header.mode === 'compressed') {
+      throw new Error('TODO: zlib compression');
+    }
+    console.log(body.length);
+  }
+  
   // function called on a blob containing swf data
   function init_blob(blob) {
-    console.log(blob.size);
+    var fr = new FileReader;
+    fr.onload = function(e) {
+      init_bytes(new Uint8Array(e.result));
+    };
+    fr.readAsArrayBuffer(blob);
   }
   
   // function called when it's time to look at the location hash
@@ -37,5 +57,28 @@ function(
   
   init_hash();
   window.addEventListener('hashchange', init_hash);
+  
+  function ContainerHeaderBlock(buffer, byteOffset, byteLength) {
+    this.bytes = new Uint8Array(buffer, byteOffset, byteLength);
+    this.dv = new DataView(buffer, byteOffset, byteLength);
+  }
+  ContainerHeaderBlock.prototype = {
+    get mode() {
+      switch (String.fromCharCode(this.bytes[2], this.bytes[1], this.bytes[0])) {
+        case 'SWF': return 'uncompressed';
+        case 'CWF': return 'compressed';
+        default: return 'invalid';
+      }
+    },
+    get version() {
+      return this.bytes[3];
+    },
+    get fileSize() {
+      return this.dv.getUint32(4, true);
+    },
+    get usedByteLength() {
+      return 8;
+    },
+  };
   
 });
