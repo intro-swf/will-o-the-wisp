@@ -32,7 +32,7 @@ function(
   function init_blob(blob) {
     var fr = new FileReader;
     fr.onload = function(e) {
-      init_bytes(new Uint8Array(e.result));
+      init_bytes(new Uint8Array(this.result));
     };
     fr.readAsArrayBuffer(blob);
   }
