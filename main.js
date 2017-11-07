@@ -159,10 +159,11 @@ function(
               var readBits = bitreader(chunk, chunkOffset);
               record.glyphs = new Array(count);
               for (var i_glyph = 0; i_glyph < count; i_glyph++) {
-                var index = readBits(glyphBits);
+                var index = readBits(glyphBits, false);
                 var advance = readBits(advanceBits, true);
                 record.glyphs[i_glyph] = {index:index, advance:advance};
               }
+              chunkOffset = readBits.getOffset();
             }
           }
           console.log('DefineText', def);
