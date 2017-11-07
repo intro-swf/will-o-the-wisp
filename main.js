@@ -146,7 +146,7 @@ function(
                 chunkOffset += 2;
               }
               if (hasFont) {
-                record.xOffset = chunkDV.getUint16(chunkOffset, true);
+                record.textHeight = chunkDV.getUint16(chunkOffset, true);
                 chunkOffset += 2;
               }
               def.records.push(record);
