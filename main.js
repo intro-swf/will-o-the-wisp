@@ -167,9 +167,9 @@ function(
         case 13:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontInfo = {id: chunkDV.getUint16(0, true)};
-          fontInfo.nameRaw = chunk.subarray(2, 2 + chunk[1]);
-          var flags = chunk[2 + chunk[1]];
-          var codeTable = chunk.subarray(2 + chunk[1] + 1);
+          fontInfo.nameRaw = chunk.subarray(3, 3 + chunk[2]);
+          var flags = chunk[3 + chunk[2]];
+          var codeTable = chunk.subarray(3 + chunk[2] + 1);
           fontInfo.wideChar = flags & 1;
           fontInfo.bold = flags & 2;
           fontInfo.italic = flags & 4;
