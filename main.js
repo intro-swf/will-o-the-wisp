@@ -91,10 +91,7 @@ function(
             stroke.color = read_rgb(chunk, chunkOffset); // RGBA in Shape3+
             chunkOffset += 3;
           }
-          var fillIndexBits = chunk[chunkOffset] >>> 4;
-          var lineIndexBits = chunk[chunkOffset] & 0xf;
-          chunkOffset++;
-          var path = read_path(chunk, chunkOffset, fillIndexBits, lineIndexBits);
+          var path = read_path(chunk, chunkOffset);
           if (path.endOffset !== chunk.length) {
             throw new Error('unexpected data after shape path');
           }
@@ -110,7 +107,7 @@ function(
           var glyphs = new Array(chunkDV.getUint16(2, true) / 2);
           for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
             var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
-            glyphs[i_glyph] = read_path(chunk, pathOffset, 0, 0);
+            glyphs[i_glyph] = read_path(chunk, pathOffset);
           }
           console.log('DefineFont', font);
           break;
@@ -312,7 +309,10 @@ function(
     return str;
   }
   
-  function read_path(bytes, offset, fillIndexBits, lineIndexBits) {
+  function read_path(bytes, offset) {
+    var fillIndexBits = bytes[offset] >>> 4;
+    var lineIndexBits = bytes[offset] & 0xf;
+    offset++;
     var path = [];
     var bits = bitreader(bytes, offset);
     while (1) {
