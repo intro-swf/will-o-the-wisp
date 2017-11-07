@@ -104,6 +104,46 @@ function(
           var rgb = read_rgb(chunk, 0);
           console.log('SetBackgroundColor', rgb);
           break;
+        case 26:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var flags = chunk[0];
+          var place = {depth: chunkDV.getUint16(1, true)};
+          var chunkOffset = 3;
+          if (flags & 1) place.move = true;
+          if (flags & 2) {
+            place.characterID = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          if (flags & 4) {
+            place.matrix = read_matrix(chunk, chunkOffset);
+            chunkOffset = place.matrix.endOffset;
+          }
+          if (flags & 8) {
+            place.colorTransform = read_color_transform(chunk, chunkOffset);
+            chunkOffset = place.colorTransform.endOffset;
+          }
+          if (flags & 0x10) {
+            place.ratio = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          if (flags & 0x20) {
+            var name = read_string(chunk, chunkOffset);
+            place.name = name.text;
+            // TODO: UTF-8 in v5+, Shift-JIS
+            chunkOffset = name.length + 1;
+          }
+          if (flags & 0x40) {
+            place.clipDepth = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          if (flags & 0x80) {
+            throw new Error('NYI: clip actions'); // v5+
+          }
+          if (chunkOffset !== chunk.length) {
+            throw new Error('unexpected data after PlaceObject2');
+          }
+          console.log('PlaceObject2', place);
+          break;
         default:
           console.log(chunkType, chunk);
       }
@@ -232,6 +272,34 @@ function(
     else matrix.e = matrix.f = 0;
     matrix.endOffset = bits.getOffset();
     return matrix;
+  }
+  
+  function read_color_transform(bytes, offset) {
+    var bits = bitreader(bytes, offset);
+    var transform = {};
+    var withAdd = bits(1, false);
+    var withMultiply = bits(1, false);
+    var valueBits = bits(5, false);
+    if (withMultiply) {
+      var r = bits(valueBits, true) / 0x100;
+      var g = bits(valueBits, true) / 0x100;
+      var b = bits(valueBits, true) / 0x100;
+      transform.multiply = {r:r, g:g, b:b};
+    }
+    if (withAdd) {
+      var r = bits(valueBits, true);
+      var g = bits(valueBits, true);
+      var b = bits(valueBits, true);
+      transform.add = {r:r, g:g, b:b};
+    }
+    transform.endOffset = bits.getOffset();
+    return transform;
+  }
+  
+  function read_string(bytes, offset) {
+    var str = '';
+    while (bytes[offset]) str += String.fromCharCode(bytes[offset++]);
+    return str;
   }
   
   function read_path(bytes, offset, fillIndexBits, lineIndexBits) {
