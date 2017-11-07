@@ -104,6 +104,16 @@ function(
           var rgb = read_rgb(chunk, 0);
           console.log('SetBackgroundColor', rgb);
           break;
+        case 10:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var font = {id: chunkDV.getUint16(0, true)};
+          var glyphs = new Array(chunkDV.getUint16(2, true) / 2);
+          for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
+            var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
+            glyphs[i_glyph] = read_path(chunk, pathOffset, 0, 0);
+          }
+          console.log('DefineFont', font);
+          break;
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var flags = chunk[0];
