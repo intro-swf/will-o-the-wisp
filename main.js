@@ -119,41 +119,44 @@ function(
           var chunkOffset = def.matrix.endOffset;
           var glyphBits = chunk[chunkOffset++];
           var advanceBits = chunk[chunkOffset++];
-          var readBits = bitreader(chunk, chunkOffset);
           def.records = [];
           while (1) {
-            if (readBits(1)) {
+            var b = chunk[chunkOffset++];
+            if (b & 0x80) {
               // text style record
               var record = {type:'style'};
-              readBits(3); // reserved
-              var hasFont = readBits(1);
-              var hasColor = readBits(1);
-              var hasY = readBits(1);
-              var hasX = readBits(1);
+              var hasX = b & 1;
+              var hasY = b & 2;
+              var hasColor = b & 4;
+              var hasFont = b & 8;
               if (hasFont) {
-                record.fontID = readBits(16);
+                record.fontID = chunkDV.getUint16(chunkOffset, true);
+                chunkOffset += 2;
               }
               if (hasColor) {
-                var r = readBits(8);
-                var g = readBits(8);
-                var b = readBits(8);
-                record.color = {r:r, g:g, b:b};
+                record.color = read_rgb(chunk, chunkOffset);
+                chunkOffset += 3;
               }
               if (hasX) {
-                record.xOffset = readBits(16, true);
+                record.xOffset = chunkDV.getInt16(chunkOffset, true);
+                chunkOffset += 2;
               }
               if (hasY) {
-                record.yOffset = readBits(16, true);
+                record.xOffset = chunkDV.getInt16(chunkOffset, true);
+                chunkOffset += 2;
               }
               if (hasFont) {
-                record.height = readBits(16);
+                record.xOffset = chunkDV.getUint16(chunkOffset, true);
+                chunkOffset += 2;
               }
               def.records.push(record);
             }
+            else if (b === 0) break;
             else {
-              var count = readBits(7);
-              if (count === 0) break;
+              // glyph record
               var record = {type:'glyph'};
+              var count = b & 0x7F;
+              var readBits = bitreader(chunk, chunkOffset);
               record.glyphs = new Array(count);
               for (var i_glyph = 0; i_glyph < count; i_glyph++) {
                 var index = readBits(glyphBits);
