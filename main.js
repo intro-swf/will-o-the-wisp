@@ -111,6 +111,59 @@ function(
           }
           console.log('DefineFont', font);
           break;
+        case 11:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var def = {characterID: chunkDV.getUint16(0, true)};
+          def.bounds = read_twip_rect(chunk, 2);
+          def.matrix = read_matrix(chunk, def.bounds.endOffset);
+          var chunkOffset = def.matrix.endOffset;
+          var glyphBits = chunk[chunkOffset++];
+          var advanceBits = chunk[chunkOffset++];
+          var readBits = bitreader(chunk, chunkOffset);
+          def.records = [];
+          while (1) {
+            if (readBits(1)) {
+              // text style record
+              var record = {type:'style'};
+              readBits(3); // reserved
+              var hasFont = readBits(1);
+              var hasColor = readBits(1);
+              var hasY = readBits(1);
+              var hasX = readBits(1);
+              if (hasFont) {
+                record.fontID = readBits(16);
+              }
+              if (hasColor) {
+                var r = readBits(8);
+                var g = readBits(8);
+                var b = readBits(8);
+                record.color = {r:r, g:g, b:b};
+              }
+              if (hasX) {
+                record.xOffset = readBits(16, true);
+              }
+              if (hasY) {
+                record.yOffset = readBits(16, true);
+              }
+              if (hasFont) {
+                record.height = readBits(16);
+              }
+              def.records.push(record);
+            }
+            else {
+              var count = readBits(7);
+              if (count === 0) break;
+              var record = {type:'glyph'};
+              record.glyphs = new Array(count);
+              for (var i_glyph = 0; i_glyph < count; i_glyph++) {
+                var index = readBits(glyphBits);
+                var advance = readBits(advanceBits, true);
+                record.glyphs[i_glyph] = {index:index, advance:advance};
+              }
+            }
+          }
+          console.log('DefineText', def);
+          break;
         case 13:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontInfo = {id: chunkDV.getUint16(0, true)};
