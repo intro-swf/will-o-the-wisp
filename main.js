@@ -353,8 +353,8 @@ function(
       matrix.c = bits(rotSkewBits, true) / 0x10000;
     }
     matrix.b = matrix.c = 0;
-    if (bits(1, false)) {
-      var translateBits = bits(5, false);
+    var translateBits = bits(5, false);
+    if (translateBits) {
       matrix.e = bits(translateBits, true) / 20;
       matrix.f = bits(translateBits, true) / 20;
     }
