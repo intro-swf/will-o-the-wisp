@@ -355,8 +355,9 @@ function(
     matrix.b = matrix.c = 0;
     var translateBits = bits(5, false);
     if (translateBits) {
-      matrix.e = bits(translateBits, true) / 20;
-      matrix.f = bits(translateBits, true) / 20;
+      // in twips
+      matrix.e = bits(translateBits, true);
+      matrix.f = bits(translateBits, true);
     }
     else matrix.e = matrix.f = 0;
     matrix.endOffset = bits.getOffset();
