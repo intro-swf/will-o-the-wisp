@@ -107,7 +107,7 @@ function(
           var glyphs = new Array(chunkDV.getUint16(2, true) / 2);
           for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
             var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
-            glyphs[i_glyph] = read_path(chunk, pathOffset);
+            //glyphs[i_glyph] = read_path(chunk, pathOffset);
           }
           console.log('DefineFont', font);
           break;
