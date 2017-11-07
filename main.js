@@ -111,6 +111,31 @@ function(
           }
           console.log('DefineFont', font);
           break;
+        case 13:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var fontInfo = {id: chunkDV.getUint16(0, true)};
+          fontInfo.nameRaw = chunk.subarray(2, 2 + chunk[1]);
+          var flags = chunk[2 + chunk[1]];
+          var codeTable = chunk.subarray(2 + chunk[1] + 1);
+          fontInfo.wideChar = flags & 1;
+          fontInfo.bold = flags & 2;
+          fontInfo.italic = flags & 4;
+          fontInfo.ansi = flags & 8;
+          fontInfo.shiftJIS = flags & 0x10;
+          if (fontInfo.wideChar) {
+            var codeTableDV = new DataView(
+              codeTable.buffer,
+              codeTable.byteOffset,
+              codeTable.byteLength);
+            codeTable = new Uint16Array(codeTable.length/2);
+            for (var i_code = 0; i_code < codeTable.length; i_code++) {
+              codeTable[i_code] = codeTableDV.getUint16(i_code * 2, true);
+            }
+            fontInfo.codeTable = codeTable;
+          }
+          else fontInfo.codeTable = codeTable;
+          console.log('DefineFontInfo', fontInfo);
+          break;
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var flags = chunk[0];
