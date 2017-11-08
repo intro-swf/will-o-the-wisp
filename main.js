@@ -277,13 +277,14 @@ function(
               record.colorTransform = read_color_transform(chunk, chunkOffset, true);
               chunkOffset = record.colorTransform.endOffset;
             }
+            def.records.push(record);
           }
           if (chunkOffset < actionOffset) {
             throw new Error('unexpected data');
           }
           def.actions = [];
           while (chunkOffset < chunk.length) {
-            var nextActionOffset = chunkOffset + chunkDV.getUint16(chunkOffset, 2);
+            var nextActionOffset = chunkOffset + chunkDV.getUint16(chunkOffset, true);
             if (nextActionOffset === chunkOffset) {
               chunkOffset += 2;
               break;
