@@ -545,6 +545,7 @@ function(
   
   function read_string(bytes, offset) {
     var str = '';
+    offset = offset || 0;
     while (bytes[offset]) str += String.fromCharCode(bytes[offset++]);
     return str;
   }
@@ -639,16 +640,15 @@ function(
         data = bytes.subarray(offset, offset + len);
         offset += len;
       }
-      b &= 0x7F;
       switch (b) {
-        case 1:
+        case 0x81:
           if (data.length !== 2) throw new Error('ActionGotoFrame: invalid data');
           actions.push({
             action: 'GotoFrame',
             frame: data[0] | (data[1] << 8),
           });
           break;
-        case 3:
+        case 0x83:
           var url = read_string(data, 0);
           var target = read_string(data, url.length + 1);
           actions.push({
@@ -657,25 +657,25 @@ function(
             target: target,
           });
           break;
-        case 4:
+        case 0x04:
           actions.push({action:'NextFrame'});
           break;
-        case 5:
+        case 0x05:
           actions.push({action:'PreviousFrame'});
           break;
-        case 6:
+        case 0x06:
           actions.push({action:'Play'});
           break;
-        case 7:
+        case 0x07:
           actions.push({action:'Stop'});
           break;
-        case 8:
+        case 0x08:
           actions.push({action:'ToggleQuality'});
           break;
-        case 9:
+        case 0x09:
           actions.push({action:'StopSounds'});
           break;
-        case 10:
+        case 0x8A:
           if (data.length !== 3) {
             throw new Error('WaitForFrame: invalid data');
           }
@@ -687,20 +687,149 @@ function(
             skipCount: skipCount,
           });
           break;
-        case 11:
+        case 0x8B:
           var target = read_string(data);
           actions.push({
             action: 'SetTarget',
             target: target,
           });
           break;
-        case 12:
+        case 0x8C:
           var label = read_string(data);
           actions.push({
             action: 'GoToLabel',
             label: label,
           });
           break;
+        case 0x96:
+          switch (data[0]) {
+            case 0:
+              actions.push({
+                action: 'push',
+                value: read_string(data, 1),
+              });
+              break;
+            case 1:
+              actions.push({
+                action: 'push',
+                value: new DataView(data.buffer, data.byteOffset + 1, 4).getFloat32(0, true),
+              });
+              break;
+          }
+          break;
+        case 0x17: actions.push({action:'pop'}); break;
+        case 0x0A: actions.push({action:'add'}); break;
+        case 0x0B: actions.push({action:'subtract'}); break;
+        case 0x0C: actions.push({action:'multiply'}); break;
+        case 0x0D: actions.push({action:'divide'}); break;
+        case 0x0E: actions.push({action:'equals'}); break;
+        case 0x0F: actions.push({action:'less'}); break;
+        case 0x10: actions.push({action:'and'}); break;
+        case 0x11: actions.push({action:'or'}); break;
+        case 0x12: actions.push({action:'not'}); break;
+        case 0x13: actions.push({action:'string-equals'}); break;
+        case 0x14: actions.push({action:'string-length'}); break;
+        case 0x21: actions.push({action:'string-concat'}); break;
+        case 0x15: actions.push({action:'string-extract'}); break;          
+        case 0x29: actions.push({action:'string-less'}); break;
+        case 0x31: actions.push({action:'mb-string-length'}); break;
+        case 0x35: actions.push({action:'mb-string-extract'}); break;
+        case 0x18: actions.push({action:'to-integer'}); break;
+        case 0x32: actions.push({action:'char-to-ascii'}); break;
+        case 0x33: actions.push({action:'ascii-to-char'}); break;
+        case 0x36: actions.push({action:'mb-char-to-ascii'}); break;
+        case 0x37: actions.push({action:'mb-ascii-to-char'}); break;
+        case 0x99:
+        case 0x9A:
+          var dv = new DataView(data.buffer, 0, 2);
+          var offset = dv.getInt16(0, true);
+          actions.push({action:b === 0x9A ? 'jump' : 'if', offset:offset});
+          break;
+        case 0x9E: actions.push({action:'call'}); break;
+        case 0x1C: actions.push({action:'get-variable'}); break;
+        case 0x1D: actions.push({action:'set-variable'}); break;
+        case 0x9A:
+          var formSubmission;
+          switch (data[0]) {
+            case 0: formSubmission = 'none'; break;
+            case 1: formSubmission = 'url-parameters'; break;
+            case 2: formSubmission = 'post-data'; break;
+            default: throw new Error('unknown ActionGetURL2 mode');
+          }
+          actions.push({action:'get-url-stack', formSubmission:formSubmission});
+          break;
+        case 0x9F:
+          actions.push({action:'goto-frame-stack', andPlay:!!data[0]});
+          break;
+        case 0x20: actions.push({action:'set-frame-stack'}); break;
+        case 0x22: actions.push({action:'movie-get-property'}); break;
+        case 0x23: actions.push({action:'movie-set-property'}); break;
+        case 0x24: actions.push({action:'clone-sprite'}); break;
+        case 0x25: actions.push({action:'remove-sprite'}); break;
+        case 0x27: actions.push({action:'start-drag'}); break;
+        case 0x28: actions.push({action:'end-drag'}); break;
+        case 0x8D: actions.push({action:'wait-for-frame-2', skipCount: data[0]}); break;
+        case 0x26: actions.push({action:'trace'}); break;
+        case 0x34: actions.push({action:'get-time'}); break;
+        case 0x30: actions.push({action:'random-number'}); break;
+        case 0x3D: actions.push({action:'call-function'}); break;
+        case 0x52: actions.push({action:'call-method'}); break;
+        case 0x88: actions.push({action:'constant-pool', pool: read_string(data)}); break;
+        case 0x9B:
+          var name = read_string(data);
+          var offset = name.length + 1;
+          var paramNames = new Array(data[offset] | (data[offset+1] << 8));
+          offset += 2;
+          for (var i = 0; i < paramNames.length; i++) {
+            paramNames[i] = read_string(data, offset);
+            offset += paramNames[i].length + 1;
+          }
+          var codeSize = data[offset] | (data[offset+1] << 8);
+          actions.push({action:'define-function', name:name, paramNames:paramNames, codeSize:codeSize});
+          break;
+        case 0x3C: actions.push({action:'define-local'}); break;
+        case 0x41: actions.push({action:'declare-local'}); break; // no initial value
+        case 0x3A: actions.push({action:'delete-named-property'}); break;
+        case 0x3B: actions.push({action:'delete-variable'}); break;
+        case 0x46: actions.push({action:'enumerate'}); break;
+        case 0x49: actions.push({action:'typed-equals'}); break;
+        case 0x4E: actions.push({action:'get-member'}); break;
+        case 0x42: actions.push({action:'init-array'}); break;
+        case 0x43: actions.push({action:'init-object'}); break;
+        case 0x53: actions.push({action:'new-method'}); break;
+        case 0x40: actions.push({action:'new-object'}); break;
+        case 0x4F: actions.push({action:'set-member'}); break;
+        case 0x45: actions.push({action:'target-path'}); break;
+        case 0x94:
+          actions.push({
+            action: 'with',
+            size: data[0] | (data[1] << 8),
+            block: read_string(data, 2),
+          });
+          break;
+        case 0x4A: actions.push({action:'to-number'}); break;
+        case 0x4B: actions.push({action:'to-string'}); break;
+        case 0x44: actions.push({action:'typeof'}); break;
+        case 0x47: actions.push({action:'ecma-add'}); break;
+        case 0x48: actions.push({action:'ecma-less'}); break;
+        case 0x3F: actions.push({action:'modulo'}); break;
+        case 0x60: actions.push({action:'bit-and'}); break;
+        case 0x63: actions.push({action:'bit-lshift'}); break;
+        case 0x61: actions.push({action:'bit-or'}); break;
+        case 0x64: actions.push({action:'bit-arshift'}); break;
+        case 0x65: actions.push({action:'bit-rshift'}); break;
+        case 0x62: actions.push({action:'bit-xor'}); break;
+        case 0x51: actions.push({action:'decrement'}); break;
+        case 0x50: actions.push({action:'increment'}); break;
+        case 0x4C: actions.push({action:'duplicate'}); break;
+        case 0x3E: actions.push({action:'return'}); break;
+        case 0x4D: actions.push({action:'stack-swap'}); break;
+        case 0x87: actions.push({action:'store-register', register:data[0]}); break;
+        case 0x54: actions.push({action:'instance-of'}); break;
+        case 0x55: actions.push({action:'enumerate-object'}); break;
+        case 0x66: actions.push({action:'strict-equals'}); break;
+        case 0x67: actions.push({action:'greater'}); break;
+        case 0x68: actions.push({action:'string-greater'}); break;
         default:
           console.warn('unknown action code: ' + b);
           actions.push({
