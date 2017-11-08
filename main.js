@@ -180,6 +180,48 @@ function(
           else fontInfo.codeTable = codeTable;
           console.log('DefineFontInfo', fontInfo);
           break;
+        case 18:
+          if (chunk.length !== 4) throw new Error('invalid data length');
+          var playback = {}, stream = {};
+          if (chunk[0] >>> 4) throw new Error('reserved flags not zero');
+          switch ((chunk[0] >> 2) & 0x3) {
+            case 0: playback.hz = 5500; break;
+            case 1: playback.hz = 11000; break;
+            case 2: playback.hz = 22000; break;
+            case 3: playback.hz = 44000; break;
+            default: throw new Error('unknown rate value');
+          }
+          switch (chunk[0] & 2) {
+            case 1: playback.bits = 16; break;
+            default: throw new Error('unknown sample size value');
+          }
+          playback.channels = 1 + (chunk[0] & 1);
+          switch (chunk[1] >>> 4) {
+            case 1: stream.compression = 'adpcm'; break;
+            default: throw new Error('unknown compression value');
+          }
+          switch ((chunk[1] >> 2) & 3) {
+            case 0: stream.hz = 5500; break;
+            case 1: stream.hz = 11000; break;
+            case 2: stream.hz = 22000; break;
+            case 3: stream.hz = 44000; break;
+            default: throw new Error('unknown rate value');
+          }
+          switch (chunk[1] & 2) {
+            case 1: stream.bits = 16; break;
+            default: throw new Error('unknown sample size value');
+          }
+          stream.channels = 1 + (chunk[1] & 1);
+          stream.soundSampleCount = chunk[2] | (chunk[3] << 8);
+          context.push('<swf:SoundStreamHead>'
+                       + '<swf:playback hz="' + playback.hz + '" bits="' + playback.bits + '" channels="' + playback.channels + '"/>'
+                       + '<swf:stream compression="' + stream.compression
+                        + '" hz="' + stream.hz
+                        + '" bits="' + stream.bits
+                        + '" channels="' + stream.channels
+                        + '" samples-per-block="' + stream.soundSampleCount+ '"/>'
+                       + '</swf:SoundStreamHead>');
+          break;
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var flags = chunk[0];
