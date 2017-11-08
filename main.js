@@ -742,8 +742,8 @@ function(
         case 0x99:
         case 0x9D:
           var dv = new DataView(data.buffer, 0, 2);
-          var offset = dv.getInt16(0, true);
-          actions.push({action:b === 0x9A ? 'jump' : 'if', offset:offset});
+          var jumpOffset = dv.getInt16(0, true);
+          actions.push({action:b === 0x9A ? 'jump' : 'if', offset:jumpOffset});
           break;
         case 0x9E: actions.push({action:'call'}); break;
         case 0x1C: actions.push({action:'get-variable'}); break;
