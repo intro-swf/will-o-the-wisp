@@ -30,13 +30,13 @@ function(
           if (chunk.length !== 0) {
             console.warn('unexpected data: End');
           }
-          console.log('End');
+          context.push('<swf:End/>');
           break;
         case 1:
           if (chunk.length !== 0) {
             console.warn('unexpected data: ShowFrame');
           }
-          console.log('ShowFrame');
+          context.push('<swf:ShowFrame/>');
           break;
         case 2:
         case 22:
@@ -79,7 +79,7 @@ function(
           break;
         case 9:
           var rgb = read_rgb(chunk, 0);
-          console.log('SetBackgroundColor', rgb);
+          context.push('<swf:SetBackgroundColor color="' + rgb + '"/>');
           break;
         case 10:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -225,7 +225,7 @@ function(
             throw new Error('RemoveObject2: not enough data');
           }
           var depth = chunk[0] | (chunk[1] << 8);
-          console.log('RemoveObject2', depth);
+          context.push('<swf:RemoveObject2 depth="' + depth + '"'/>');
           break;
         case 34:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
