@@ -550,10 +550,6 @@ function(
         // not edge record flag
         var flags = bits(5, false);
         if (flags === 0) break; // end of shape data;
-        var newStylesFlag = flags >>> 4; // DefineShape 2+ only
-        var lineStyleChangeFlag = (flags >>> 3) & 1;
-        var fillStyle1ChangeFlag = (flags >>> 2) & 1;
-        var fillStyle0ChangeFlag = (flags >>> 1) & 1;
         if (flags & 1) {
           // move-to flag
           var coordBitCount = bits(5, false);
@@ -561,16 +557,20 @@ function(
           var y = bits(coordBitCount, true);
           path.push({type:'m', values:[x, y]});
         }
-        if (fillStyle0ChangeFlag) {
+        if (flags & 2) {
+          // fillStyle0ChangeFlag
           path.push({type:'fill', values:[0, bits(fillIndexBits, false)]});
         }
-        if (fillStyle1ChangeFlag) {
+        if (flags & 4) {
+          // fillStyle1ChangeFlag
           path.push({type:'fill', values:[1, bits(fillIndexBits, false)]});
         }
-        if (lineStyleChangeFlag) {
+        if (flags & 8) {
+          // lineStyleChangeFlag
           path.push({type:'stroke', values:[bits(lineIndexBits, false)]});
         }
-        if (newStylesFlag) {
+        if (flags & 0x10) {
+          // newStylesFlag
           throw new Error('NYI: newStylesFlag'); // DefineShape 2+
         }
       }
