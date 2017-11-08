@@ -44,57 +44,12 @@ function(
           var shapeID = chunkDV.getUint16(0, true);
           var bounds = read_twip_rect(chunk, 2);
           var chunkOffset = bounds.endOffset;
-          var count = chunk[chunkOffset++];
-          if (count === 255 && chunkType !== 2) {
-            count = chunkDV.getUint16(chunkOffset, true);
-            chunkOffset += 2;
-          }
-          var fillStyles = new Array(1 + count);
-          for (var i_fill = 1; i_fill < fillStyles.length; i_fill++) {
-            var fillStyle = chunk[chunkOffset++];
-            switch (fillStyle) {
-              case 0x00:
-                // RGBA in Shape3+
-                var rgb = read_rgb(chunk, chunkOffset);
-                chunkOffset += 3;
-                fillStyles[i_fill] = rgb;
-                break;
-              case 0x10:
-              case 0x12:
-                var matrix = read_matrix(chunk, chunkOffset);
-                chunkOffset = matrix.endOffset;
-                var gradients = new Array(chunk[chunkOffset++]);
-                for (var i = 0; i < gradients.length; i++) {
-                  var gradient = gradients[i] = read_gradient(chunk, chunkOffset, false); // RGBA in Shape3+
-                  chunkOffset = gradient.endOffset;
-                }
-                fillStyles[i_fill] = {matrix:matrix, gradients:gradients};
-                break;
-              case 0x40:
-              case 0x41:
-                var bitmapID = chunkDV.getUint16(chunkOffset, true);
-                chunkOffset += 2;
-                var matrix = read_matrix(chunk, chunkOffset);
-                chunkOffset = matrix.endOffset;
-                fillStyles[i_fill] = {matrix:matrix, bitmapID:bitmapID};
-                break;
-              default:
-                throw new Error('unknown fill mode');
-            }
-          }
-          var count = chunk[chunkOffset++];
-          if (count === 255 && chunkType !== 2) {
-            count = chunkDV.getUint16(chunkOffset, true);
-            chunkOffset += 2;
-          }
-          var strokeStyles = new Array(1 + count);
-          for (var i_stroke = 1; i_stroke < strokeStyles.length; i_stroke++) {
-            var stroke = strokeStyles[i_stroke] = {widthTwips: chunkDV.getUint16(chunkOffset, true)};
-            chunkOffset += 2;
-            stroke.color = read_rgb(chunk, chunkOffset); // RGBA in Shape3+
-            chunkOffset += 3;
-          }
-          var path = read_path(chunk, chunkOffset);
+          var supportExtendedLength = chunkType !== 2;
+          var withAlpha = chunkType !== 2 && chunkType !== 22;
+          var fillStyles = read_fill_styles(chunk, bounds.endOffset, supportExtendedLength, withAlpha);
+          var strokeStyles = read_stroke_styles(chunk, fillStyles.endOffset, supportExtendedLength, withAlpha);
+          chunkOffset = strokeStyles.endOffset;
+          var path = read_path(chunk, chunkOffset, supportExtendedLength, withAlpha);
           if (path.endOffset !== chunk.length) {
             console.warn('unexpected data after shape path');
           }
@@ -510,7 +465,7 @@ function(
     return str;
   }
   
-  function read_path(bytes, offset) {
+  function read_path(bytes, offset, allowExtendedLength, withAlpha) {
     var fillIndexBits = bytes[offset] >>> 4;
     var lineIndexBits = bytes[offset] & 0xf;
     offset++;
@@ -572,7 +527,14 @@ function(
         }
         if (flags & 0x10) {
           // newStylesFlag
-          throw new Error('NYI: newStylesFlag'); // DefineShape 2+
+          var fillStyles = read_fill_styles(bytes, offset, allowExtendedLength, withAlpha);
+          var strokeStyles = read_stroke_styles(bytes, fillStyles.endOffset, allowExtendedLength, withAlpha);
+          offset = strokeStyles.endOffset;
+          fillIndexBits = bytes[offset] >>> 4;
+          lineIndexBits = bytes[offset] & 0xf;
+          offset++;
+          bits = bitreader(bytes, offset);
+          path.push({type:'styles', fill:fillStyles, stroke:strokeStyles});
         }
       }
     }
@@ -667,6 +629,80 @@ function(
     }
     actions.endOffset = offset;
     return actions;
+  }
+  
+  function read_fill_styles(bytes, offset, allowExtendedLength, withAlpha) {
+    var count = bytes[offset++];
+    if (count === 255 && allowExtendedLength) {
+      count = bytes[offset] | (bytes[offset+1] << 8);
+      offset += 2;
+    }
+    var fillStyles = new Array(1 + count);
+    for (var i_fill = 1; i_fill < fillStyles.length; i_fill++) {
+      var fillStyle = bytes[offset++];
+      switch (fillStyle) {
+        case 0x00:
+          if (withAlpha) {
+            var rgba = read_rgba(bytes, offset);
+            offset += 4;
+            fillStyles[i_fill] = rgba;
+          }
+          else {
+            var rgb = read_rgb(bytes, offset);
+            offset += 3;
+            fillStyles[i_fill] = rgb;
+          }
+          break;
+        case 0x10:
+        case 0x12:
+          var matrix = read_matrix(bytes, offset);
+          offset = matrix.endOffset;
+          var gradients = new Array(bytes[offset++]);
+          for (var i = 0; i < gradients.length; i++) {
+            var gradient = gradients[i] = read_gradient(bytes, offset, withAlpha);
+            offset = gradient.endOffset;
+          }
+          fillStyles[i_fill] = {matrix:matrix, gradients:gradients};
+          break;
+        case 0x40:
+        case 0x41:
+          var bitmapID = bytes[offset] | (bytes[offset+1] << 8);
+          var matrix = read_matrix(bytes, offset + 2);
+          offset = matrix.endOffset;
+          fillStyles[i_fill] = {matrix:matrix, bitmapID:bitmapID};
+          break;
+        default:
+          throw new Error('unknown fill mode');
+      }
+    }
+    fillStyles.endOffset = offset;
+    return fillStyles;
+  }
+  
+  function read_stroke_styles(bytes, offset, allowExtendedLength, withAlpha) {
+    var count = bytes[offset++];
+    if (count === 255 && allowExtendedLength) {
+      count = bytes[offset] | (bytes[offset+1] << 8);
+      offset += 2;
+    }
+    var strokeStyles = new Array(1 + count);
+    for (var i_stroke = 1; i_stroke < strokeStyles.length; i_stroke++) {
+      var widthTwips = bytes[offset] | (bytes[offset+1] << 8);
+      offset += 2;
+      var style;
+      if (withAlpha) {
+        style = read_rgba(bytes, offset);
+        offset += 4;
+      }
+      else {
+        style = read_rgb(bytes, offset);
+        offset += 3;
+      }
+      strokeStyles[i_stroke] = {widthTwips:widthTwips, style:style};
+      chunkOffset += 2;
+    }
+    strokeStyles.endOffset = offset;
+    return strokeStyles;
   }
   
   function bitreader(bytes, offset) {
