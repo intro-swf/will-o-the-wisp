@@ -12,26 +12,8 @@ function(
   
   'use strict';
   
-  // function called on a Uint8Array containing swf data
-  function init_bytes(bytes) {
-    var header = new ContainerHeaderBlock(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    if (header.mode === 'invalid') {
-      throw new Error('invalid data header');
-    }
-    if (header.fileSize > bytes.length) {
-      throw new Error('unexpected end of data');
-    }
-    var body = bytes.subarray(header.usedByteLength, header.fileSize);
-    if (header.mode === 'compressed') {
-      throw new Error('TODO: zlib compression');
-    }
-    var frameRect = read_twip_rect(body, 0);
+  function read_chunks(body, offset) {
     var dv = new DataView(body.buffer, body.byteOffset, body.byteLength);
-    var offset = frameRect.endOffset;
-    var framesPerSecond = dv.getUint16(offset, true) / 256;
-    offset += 2;
-    var frameCount = dv.getUint16(offset, true);
-    offset += 2;
     while (offset < body.length) {
       var shortHeader = dv.getUint16(offset, true);
       offset += 2;
@@ -44,6 +26,12 @@ function(
       var chunk = body.subarray(offset, offset + chunkLength);
       offset += chunkLength;
       switch (chunkType) {
+        case 0:
+          console.log('End');
+          break;
+        case 1:
+          console.log('ShowFrame');
+          break;
         case 2:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var shapeID = chunkDV.getUint16(0, true);
@@ -233,10 +221,40 @@ function(
           }
           console.log('PlaceObject2', place);
           break;
+        case 39:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var def = {characterID: chunkDV.getUint16(0, true)};
+          def.frameCount = chunkDV.getUint16(2, true);
+          console.log('DefineSprite', def);
+          read_chunks(chunk, 4);
+          break;
         default:
           console.log(chunkType, chunk);
       }
     }
+  }
+  
+  // function called on a Uint8Array containing swf data
+  function init_bytes(bytes) {
+    var header = new ContainerHeaderBlock(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (header.mode === 'invalid') {
+      throw new Error('invalid data header');
+    }
+    if (header.fileSize > bytes.length) {
+      throw new Error('unexpected end of data');
+    }
+    var body = bytes.subarray(header.usedByteLength, header.fileSize);
+    if (header.mode === 'compressed') {
+      throw new Error('TODO: zlib compression');
+    }
+    var frameRect = read_twip_rect(body, 0);
+    var dv = new DataView(body.buffer, body.byteOffset, body.byteLength);
+    var offset = frameRect.endOffset;
+    var framesPerSecond = dv.getUint16(offset, true) / 256;
+    offset += 2;
+    var frameCount = dv.getUint16(offset, true);
+    offset += 2;
+    read_chunks(body, offset);
   }
   
   // function called on a blob containing swf data
