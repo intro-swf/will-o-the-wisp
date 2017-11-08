@@ -527,7 +527,7 @@ function(
         }
         if (flags & 0x10) {
           // newStylesFlag
-          var fillStyles = read_fill_styles(bytes, offset, allowExtendedLength, withAlpha);
+          var fillStyles = read_fill_styles(bytes, bits.getOffset(), allowExtendedLength, withAlpha);
           var strokeStyles = read_stroke_styles(bytes, fillStyles.endOffset, allowExtendedLength, withAlpha);
           offset = strokeStyles.endOffset;
           fillIndexBits = bytes[offset] >>> 4;
