@@ -225,7 +225,7 @@ function(
             throw new Error('RemoveObject2: not enough data');
           }
           var depth = chunk[0] | (chunk[1] << 8);
-          context.push('<swf:RemoveObject2 depth="' + depth + '"'/>');
+          context.push('<swf:RemoveObject2 depth="' + depth + '"/>');
           break;
         case 34:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
