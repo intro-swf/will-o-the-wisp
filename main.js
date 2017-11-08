@@ -186,10 +186,7 @@ function(
           var playback = {}, stream = {};
           if (chunk[0] >>> 4) throw new Error('reserved flags not zero');
           playback.hz = 5512.5 * (1 << ((chunk[0] >> 2) & 0x3));
-          switch (chunk[0] & 2) {
-            case 2: playback.bits = 16; break;
-            default: throw new Error('unknown sample size value');
-          }
+          playback.bits = (chunk[0] & 2) ? 16 : 8;
           playback.channels = 1 + (chunk[0] & 1);
           switch (chunk[1] >>> 4) {
             case 0: stream.compression = 'none-native-endian'; break; // !!!
@@ -200,10 +197,7 @@ function(
             default: throw new Error('unknown compression value');
           }
           stream.hz = 5512.5 * (1 << ((chunk[1] >> 2) & 0x3));
-          switch (chunk[1] & 2) {
-            case 2: stream.bits = 16; break;
-            default: throw new Error('unknown sample size value');
-          }
+          stream.bits = (chunk[1] & 2) ? 16 : 8;
           stream.channels = 1 + (chunk[1] & 1);
           stream.soundSampleCount = chunk[2] | (chunk[3] << 8);
           if (stream.compression === 'mp3') {
