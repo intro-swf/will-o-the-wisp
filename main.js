@@ -226,11 +226,11 @@ function(
                        + '</swf:SoundStreamHead>');
           break;
         case 24:
-          if (data.length === 0) {
+          if (chunk.length === 0) {
             context.push('<swf:Protect/>');
           }
           else {
-            context.push('<swf:Protect password-md5="' + String.fromCharCode.apply(null, data).replace(/\0.*/, '') + '"/>');
+            context.push('<swf:Protect password-md5="' + read_string(chunk) + '"/>');
           }
           break;
         case 26:
@@ -350,7 +350,7 @@ function(
           read_chunks(chunk, 4, context);
           break;
         case 43:
-          var frameLabel = read_string(data);
+          var frameLabel = read_string(chunk);
           context.push('<swf:FrameLabel>' + frameLabel.replace('&','&amp;').replace(/</, '&lt;') + '</swf:FrameLabel>');
           break;
         default:
