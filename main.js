@@ -56,7 +56,7 @@ function(
           }
           console.log(
             chunkType === 22 ? 'DefineShape2'
-            chunkType === 32 ? 'DefineShape3'
+            : chunkType === 32 ? 'DefineShape3'
             : 'DefineShape',
             shapeID, bounds, fillStyles, strokeStyles, path);
           break;
