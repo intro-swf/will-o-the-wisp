@@ -39,11 +39,16 @@ function(
           console.log('ShowFrame');
           break;
         case 2:
+        case 22:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var shapeID = chunkDV.getUint16(0, true);
           var bounds = read_twip_rect(chunk, 2);
           var chunkOffset = bounds.endOffset;
-          var count = chunk[chunkOffset++]; // 255=extended length in Shape2+
+          var count = chunk[chunkOffset++];
+          if (count === 255 && chunkType !== 2) {
+            count = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
           var fillStyles = new Array(1 + count);
           for (var i_fill = 1; i_fill < fillStyles.length; i_fill++) {
             var fillStyle = chunk[chunkOffset++];
@@ -77,7 +82,11 @@ function(
                 throw new Error('unknown fill mode');
             }
           }
-          var count = chunk[chunkOffset++]; // 255=extended length in Shape2+
+          var count = chunk[chunkOffset++];
+          if (count === 255 && chunkType !== 2) {
+            count = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
           var strokeStyles = new Array(1 + count);
           for (var i_stroke = 1; i_stroke < strokeStyles.length; i_stroke++) {
             var stroke = strokeStyles[i_stroke] = {widthTwips: chunkDV.getUint16(chunkOffset, true)};
@@ -89,7 +98,10 @@ function(
           if (path.endOffset !== chunk.length) {
             console.warn('unexpected data after shape path');
           }
-          console.log('DefineShape', shapeID, bounds, fillStyles, strokeStyles, path);
+          console.log(
+            chunkType === 22 ? 'DefineShape2'
+            : 'DefineShape',
+            shapeID, bounds, fillStyles, strokeStyles, path);
           break;
         case 9:
           var rgb = read_rgb(chunk, 0);
