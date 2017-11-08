@@ -181,6 +181,7 @@ function(
           console.log('DefineFontInfo', fontInfo);
           break;
         case 18:
+        case 45:
           if (chunk.length < 4) throw new Error('invalid data length');
           var playback = {}, stream = {};
           if (chunk[0] >>> 4) throw new Error('reserved flags not zero');
