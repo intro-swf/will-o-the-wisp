@@ -71,7 +71,7 @@ function(
             {type:'image/jpeg'});
           break;
         case 8:
-          files['tables.jpg'] = new File(
+          context.files['tables.jpg'] = new File(
             [chunk],
             'tables.jpg',
             {type:'image/jpeg'});
