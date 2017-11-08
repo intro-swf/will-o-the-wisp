@@ -181,7 +181,10 @@ function(
           console.log('DefineFontInfo', fontInfo);
           break;
         case 18:
-          if (chunk.length !== 4) throw new Error('invalid data length');
+          if (chunk.length < 4) throw new Error('invalid data length');
+          else if (chunk.length > 4) {
+            console.warn('unexpected data after SoundStreamHead');
+          }
           var playback = {}, stream = {};
           if (chunk[0] >>> 4) throw new Error('reserved flags not zero');
           switch ((chunk[0] >> 2) & 0x3) {
