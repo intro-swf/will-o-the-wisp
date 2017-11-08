@@ -175,92 +175,8 @@ function(
           console.log('DefineText', def);
           break;
         case 12:
-          var actions = [];
-          var chunkOffset = 0;
-          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          while (chunkOffset < chunk.length) {
-            var b = chunk[chunkOffset++];
-            if (b === 0) break;
-            var data = '';
-            if (b & 0x80) {
-              var len = chunkDV.getUint16(chunkOffset, true);
-              chunkOffset += 2;
-              data = chunk.subarray(chunkOffset, chunkOffset + len);
-              chunkOffset += len;
-            }
-            b &= 0x7F;
-            switch (b) {
-              case 1:
-                if (data.length !== 2) throw new Error('ActionGotoFrame: invalid data');
-                actions.push({
-                  action: 'GotoFrame',
-                  frame: data[0] | (data[1] << 8),
-                });
-                break;
-              case 3:
-                var url = read_string(data, 0);
-                var target = read_string(data, url.length + 1);
-                actions.push({
-                  action: 'GetURL',
-                  url: url,
-                  target: target,
-                });
-                break;
-              case 4:
-                actions.push({action:'NextFrame'});
-                break;
-              case 5:
-                actions.push({action:'PreviousFrame'});
-                break;
-              case 6:
-                actions.push({action:'Play'});
-                break;
-              case 7:
-                actions.push({action:'Stop'});
-                break;
-              case 8:
-                actions.push({action:'ToggleQuality'});
-                break;
-              case 9:
-                actions.push({action:'StopSounds'});
-                break;
-              case 10:
-                if (data.length !== 3) {
-                  throw new Error('WaitForFrame: invalid data');
-                }
-                var frame = data[0] | (data[1] << 8);
-                var skipCount = data[2];
-                actions.push({
-                  action: 'WaitForFrame',
-                  frame: frame,
-                  skipCount: skipCount,
-                });
-                break;
-              case 11:
-                var target = read_string(data);
-                actions.push({
-                  action: 'SetTarget',
-                  target: target,
-                });
-                break;
-              case 12:
-                var label = read_string(data);
-                actions.push({
-                  action: 'GoToLabel',
-                  label: label,
-                });
-                break;
-              default:
-                console.warn('unknown action code: ' + b);
-                actions.push({
-                  action: 'unknown',
-                  code: b,
-                  data: data,
-                });
-                break;
-            }
-          }
-          if (chunkOffset !== chunk.length) {
+          var actions = read_actions(chunk, 0);
+          if (actions.endOffset !== chunk.length) {
             console.warn('unexpected data after DoAction');
           }
           console.log('DoAction', actions);
@@ -336,6 +252,67 @@ function(
           }
           var depth = chunk[0] | (chunk[1] << 8);
           console.log('RemoveObject2', depth);
+          break;
+        case 34:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var def = {characterID: chunkDV.getUint16(0, true)};
+          def.isMenuButton = !!(chunk[2] & 1);
+          var actionOffset = 3 + chunkDV.getUint16(3, true);
+          var chunkOffset = 5;
+          def.records = [];
+          while (chunkOffset < actionOffset) {
+            var flags = chunk[chunkOffset++];
+            if (flags === 0) break;
+            var record = {
+              up: !!(flags & 1),
+              over: !!(flags & 2),
+              down: !!(flags & 4),
+              hitTest: !!(flags & 8),
+              characterID: chunkDV.getUint16(chunkOffset, true),
+              depth: chunkDV.getUint16(chunkOffset+2, true),
+            };
+            record.matrix = read_matrix(chunk, chunkOffset + 4);
+            chunkOffset = record.matrix.endOffset;
+            if (true /* only for DefineButton2 */) {
+              record.colorTransform = read_color_transform(chunk, chunkOffset, true);
+              chunkOffset = record.colorTransform.endOffset;
+            }
+          }
+          if (chunkOffset < actionOffset) {
+            throw new Error('unexpected data');
+          }
+          def.actions = [];
+          while (chunkOffset < chunk.length) {
+            var nextActionOffset = chunkOffset + chunkDV.getUint16(chunkOffset, 2);
+            if (nextActionOffset === chunkOffset) {
+              chunkOffset += 2;
+              break;
+            }
+            var flags = chunk[chunkOffset += 2];
+            var action = {
+              keyCode: flags >>> 1,
+              overDownToIdle: !!(flags & 1),
+            };
+            flags = chunk[chunkOffset++];
+            action.idleToOverUp = !!(flags & 1);
+            action.overUpToIdle = !!(flags & 2);
+            action.overUpToOverDown = !!(flags & 4);
+            action.overDownToOverUp = !!(flags & 8);
+            action.overDownToOutDown = !!(flags & 0x10);
+            action.outDownToOverDown = !!(flags & 0x20);
+            action.outDownToIdle = !!(flags & 0x40);
+            action.idleToOverDown = !!(flags & 0x80);
+            action.response = read_action(chunk, chunkOffset);
+            if (action.response.endOffset !== nextActionOffset) {
+              console.warn('unexpected data after button action record');
+            }
+            def.actions.push(action);
+            chunkOffset = nextActionOffset;
+          }
+          if (chunkOffset !== chunk.length) {
+            console.warn('unexpected data after DefineButton2');
+          }
+          console.log('DefineButton2', def);
           break;
         case 39:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -498,7 +475,7 @@ function(
     return matrix;
   }
   
-  function read_color_transform(bytes, offset) {
+  function read_color_transform(bytes, offset, withAlpha) {
     var bits = bitreader(bytes, offset);
     var transform = {};
     var withAdd = bits(1, false);
@@ -509,12 +486,18 @@ function(
       var g = bits(valueBits, true) / 0x100;
       var b = bits(valueBits, true) / 0x100;
       transform.multiply = {r:r, g:g, b:b};
+      if (withAlpha) {
+        transform.multiply.a = bits(valueBits, true) / 0x100;
+      }
     }
     if (withAdd) {
       var r = bits(valueBits, true);
       var g = bits(valueBits, true);
       var b = bits(valueBits, true);
       transform.add = {r:r, g:g, b:b};
+      if (withAlpha) {
+        transform.add.a = bits(valueBits, true) / 0x100;
+      }
     }
     transform.endOffset = bits.getOffset();
     return transform;
@@ -594,6 +577,95 @@ function(
     }
     path.endOffset = bits.getOffset();
     return path;
+  }
+  
+  function read_actions(bytes, offset) {
+    var actions = [];
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    while (offset < bytes.length) {
+      var b = bytes[offset++];
+      if (b === 0) break;
+      var data = '';
+      if (b & 0x80) {
+        var len = dv.getUint16(offset, true);
+        offset += 2;
+        data = bytes.subarray(offset, offset + len);
+        offset += len;
+      }
+      b &= 0x7F;
+      switch (b) {
+        case 1:
+          if (data.length !== 2) throw new Error('ActionGotoFrame: invalid data');
+          actions.push({
+            action: 'GotoFrame',
+            frame: data[0] | (data[1] << 8),
+          });
+          break;
+        case 3:
+          var url = read_string(data, 0);
+          var target = read_string(data, url.length + 1);
+          actions.push({
+            action: 'GetURL',
+            url: url,
+            target: target,
+          });
+          break;
+        case 4:
+          actions.push({action:'NextFrame'});
+          break;
+        case 5:
+          actions.push({action:'PreviousFrame'});
+          break;
+        case 6:
+          actions.push({action:'Play'});
+          break;
+        case 7:
+          actions.push({action:'Stop'});
+          break;
+        case 8:
+          actions.push({action:'ToggleQuality'});
+          break;
+        case 9:
+          actions.push({action:'StopSounds'});
+          break;
+        case 10:
+          if (data.length !== 3) {
+            throw new Error('WaitForFrame: invalid data');
+          }
+          var frame = data[0] | (data[1] << 8);
+          var skipCount = data[2];
+          actions.push({
+            action: 'WaitForFrame',
+            frame: frame,
+            skipCount: skipCount,
+          });
+          break;
+        case 11:
+          var target = read_string(data);
+          actions.push({
+            action: 'SetTarget',
+            target: target,
+          });
+          break;
+        case 12:
+          var label = read_string(data);
+          actions.push({
+            action: 'GoToLabel',
+            label: label,
+          });
+          break;
+        default:
+          console.warn('unknown action code: ' + b);
+          actions.push({
+            action: 'unknown',
+            code: b,
+            data: data,
+          });
+          break;
+      }
+    }
+    actions.endOffset = offset;
+    return actions;
   }
   
   function bitreader(bytes, offset) {
