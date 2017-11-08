@@ -225,6 +225,14 @@ function(
                         + '"/>'
                        + '</swf:SoundStreamHead>');
           break;
+        case 24:
+          if (data.length === 0) {
+            context.push('<swf:Protect/>');
+          }
+          else {
+            context.push('<swf:Protect password-md5="' + String.fromCharCode.apply(null, data).replace(/\0.*/, '') + '"/>');
+          }
+          break;
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var flags = chunk[0];
@@ -340,6 +348,10 @@ function(
           def.frameCount = chunkDV.getUint16(2, true);
           console.log('DefineSprite', def);
           read_chunks(chunk, 4, context);
+          break;
+        case 43:
+          var frameLabel = read_string(data);
+          context.push('<swf:FrameLabel>' + frameLabel.replace('&','&amp;').replace(/</, '&lt;') + '</swf:FrameLabel>');
           break;
         default:
           console.log(chunkType, chunk);
