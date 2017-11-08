@@ -322,9 +322,20 @@ function(
     offset += 2;
     var frameCount = dv.getUint16(offset, true);
     offset += 2;
-    var context = [];
+    var widthTwips = frameRect.right - frameRect.left;
+    var heightTwips = frameRect.bottom - frameRect.top;
+    var context = [
+      '<svg width="'+ widthTwips/20 + '"'
+      + ' height="' + heightTwips/20 + '"'
+      + ' viewBox="' + frameRect.left + ' ' + frameRect.top + ' ' + frameRect.right + ' ' + frameRect.bottom + '"'
+      + ' xmlns:swf="intro.swf"'
+      + ' swf:version="'+header.version+'"'
+      + ' swf:frames-per-second="' + framesPerSecond + '"'
+      + '>'
+    ];
     context.files = {};
     read_chunks(body, offset, context);
+    context.push('</svg>');
     context.files['movie.svg'] = new File(
       context,
       'movie.svg',
