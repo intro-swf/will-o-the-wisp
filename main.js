@@ -741,8 +741,7 @@ function(
         case 0x37: actions.push({action:'mb-ascii-to-char'}); break;
         case 0x99:
         case 0x9D:
-          var dv = new DataView(data.buffer, 0, 2);
-          var jumpOffset = dv.getInt16(0, true);
+          var jumpOffset = new DataView(data.buffer, 0, 2).getInt16(0, true);
           actions.push({action:b === 0x9A ? 'jump' : 'if', offset:jumpOffset});
           break;
         case 0x9E: actions.push({action:'call'}); break;
