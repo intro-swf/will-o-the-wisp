@@ -40,6 +40,7 @@ function(
           break;
         case 2:
         case 22:
+        case 32:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var shapeID = chunkDV.getUint16(0, true);
           var bounds = read_twip_rect(chunk, 2);
@@ -55,6 +56,7 @@ function(
           }
           console.log(
             chunkType === 22 ? 'DefineShape2'
+            chunkType === 32 ? 'DefineShape3'
             : 'DefineShape',
             shapeID, bounds, fillStyles, strokeStyles, path);
           break;
