@@ -58,6 +58,14 @@ function(
             : 'DefineShape',
             shapeID, bounds, fillStyles, strokeStyles, path);
           break;
+        case 6:
+          var characterID = chunk[0] | (chunk[1] << 8);
+          var jpegData = chunk.subarray(2);
+          console.log('DefineBits', {characterID:characterID, jpegData:jpegData});
+          break;
+        case 8:
+          console.log('JPEGTables', chunk);
+          break;
         case 9:
           var rgb = read_rgb(chunk, 0);
           console.log('SetBackgroundColor', rgb);
