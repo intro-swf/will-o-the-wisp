@@ -27,9 +27,15 @@ function(
       offset += chunkLength;
       switch (chunkType) {
         case 0:
+          if (chunk.length !== 0) {
+            console.warn('unexpected data: End');
+          }
           console.log('End');
           break;
         case 1:
+          if (chunk.length !== 0) {
+            console.warn('unexpected data: ShowFrame');
+          }
           console.log('ShowFrame');
           break;
         case 2:
@@ -81,7 +87,7 @@ function(
           }
           var path = read_path(chunk, chunkOffset);
           if (path.endOffset !== chunk.length) {
-            throw new Error('unexpected data after shape path');
+            console.warn('unexpected data after shape path');
           }
           console.log('DefineShape', shapeID, bounds, fillStyles, strokeStyles, path);
           break;
@@ -217,7 +223,7 @@ function(
             throw new Error('NYI: clip actions'); // v5+
           }
           if (chunkOffset !== chunk.length) {
-            throw new Error('unexpected data after PlaceObject2');
+            console.warn('unexpected data after PlaceObject2');
           }
           console.log('PlaceObject2', place);
           break;
