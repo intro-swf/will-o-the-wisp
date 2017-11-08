@@ -387,7 +387,7 @@ function(
     var transform = {};
     var withAdd = bits(1, false);
     var withMultiply = bits(1, false);
-    var valueBits = bits(5, false);
+    var valueBits = bits(4, false);
     if (withMultiply) {
       var r = bits(valueBits, true) / 0x100;
       var g = bits(valueBits, true) / 0x100;
