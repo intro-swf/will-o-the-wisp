@@ -12,7 +12,7 @@ function(
   
   'use strict';
   
-  function read_chunks(body, offset) {
+  function read_chunks(body, offset, context) {
     var dv = new DataView(body.buffer, body.byteOffset, body.byteLength);
     while (offset < body.length) {
       var shortHeader = dv.getUint16(offset, true);
@@ -59,12 +59,23 @@ function(
             shapeID, bounds, fillStyles, strokeStyles, path);
           break;
         case 6:
+          var tables = context.files['tables.jpg'];
+          if (!tables) {
+            throw new Error('DefineBits without JPEGTables');
+          }
           var characterID = chunk[0] | (chunk[1] << 8);
-          var jpegData = chunk.subarray(2);
-          console.log('DefineBits', {characterID:characterID, jpegData:jpegData});
+          context.push('<swf:DefineBits character="'+characterID+'" href="'+characterID+'.jpg"/>');
+          context.files[characterID+'.jpg'] = new File(
+            [tables.slice(0, -2), chunk.subarray(2)],
+            characterID+'.jpg',
+            {type:'image/jpeg'});
           break;
         case 8:
-          console.log('JPEGTables', chunk);
+          files['tables.jpg'] = new File(
+            [chunk],
+            'tables.jpg',
+            {type:'image/jpeg'});
+          context.push('<swf:JPEGTables href="tables.jpg"/>');
           break;
         case 9:
           var rgb = read_rgb(chunk, 0);
@@ -283,7 +294,7 @@ function(
           var def = {characterID: chunkDV.getUint16(0, true)};
           def.frameCount = chunkDV.getUint16(2, true);
           console.log('DefineSprite', def);
-          read_chunks(chunk, 4);
+          read_chunks(chunk, 4, context);
           break;
         default:
           console.log(chunkType, chunk);
@@ -311,7 +322,14 @@ function(
     offset += 2;
     var frameCount = dv.getUint16(offset, true);
     offset += 2;
-    read_chunks(body, offset);
+    var context = [];
+    context.files = {};
+    read_chunks(body, offset, context);
+    context.files['movie.svg'] = new File(
+      context,
+      'movie.svg',
+      {type:'image/svg+xml'});
+    console.log(context.join(''), context.files);
   }
   
   // function called on a blob containing swf data
