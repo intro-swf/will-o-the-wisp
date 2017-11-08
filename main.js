@@ -162,6 +162,97 @@ function(
           }
           console.log('DefineText', def);
           break;
+        case 12:
+          var actions = [];
+          var chunkOffset = 0;
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          while (chunkOffset < chunk.length) {
+            var b = chunk[chunkOffset++];
+            if (b === 0) break;
+            var data = '';
+            if (b & 0x80) {
+              var len = chunkDV.getUint16(chunkOffset, true);
+              chunkOffset += 2;
+              data = chunk.subarray(chunkOffset, chunkOffset + len);
+              chunkOffset += len;
+            }
+            b &= 0x7F;
+            switch (b) {
+              case 1:
+                if (data.length !== 2) throw new Error('ActionGotoFrame: invalid data');
+                actions.push({
+                  action: 'GotoFrame',
+                  frame: data[0] | (data[1] << 8),
+                });
+                break;
+              case 3:
+                var url = read_string(data, 0);
+                var target = read_string(data, url.length + 1);
+                actions.push({
+                  action: 'GetURL',
+                  url: url,
+                  target: target,
+                });
+                break;
+              case 4:
+                actions.push({action:'NextFrame'});
+                break;
+              case 5:
+                actions.push({action:'PreviousFrame'});
+                break;
+              case 6:
+                actions.push({action:'Play'});
+                break;
+              case 7:
+                actions.push({action:'Stop'});
+                break;
+              case 8:
+                actions.push({action:'ToggleQuality'});
+                break;
+              case 9:
+                actions.push({action:'StopSounds'});
+                break;
+              case 10:
+                if (data.length !== 3) {
+                  throw new Error('WaitForFrame: invalid data');
+                }
+                var frame = data[0] | (data[1] << 8);
+                var skipCount = data[2];
+                actions.push({
+                  action: 'WaitForFrame',
+                  frame: frame,
+                  skipCount: skipCount,
+                });
+                break;
+              case 11:
+                var target = read_string(data);
+                actions.push({
+                  action: 'SetTarget',
+                  target: target,
+                });
+                break;
+              case 12:
+                var label = read_string(data);
+                actions.push({
+                  action: 'GoToLabel',
+                  label: label,
+                });
+                break;
+              default:
+                console.warn('unknown action code: ' + b);
+                actions.push({
+                  action: 'unknown',
+                  code: b,
+                  data: data,
+                });
+                break;
+            }
+          }
+          if (chunkOffset !== chunk.length) {
+            console.warn('unexpected data after DoAction');
+          }
+          console.log('DoAction', actions);
+          break;
         case 13:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontInfo = {id: chunkDV.getUint16(0, true)};
@@ -226,6 +317,13 @@ function(
             console.warn('unexpected data after PlaceObject2');
           }
           console.log('PlaceObject2', place);
+          break;
+        case 28:
+          if (chunk.length < 2) {
+            throw new Error('RemoveObject2: not enough data');
+          }
+          var depth = chunk[0] | (chunk[1] << 8);
+          console.log('RemoveObject2', depth);
           break;
         case 39:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
