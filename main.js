@@ -699,7 +699,7 @@ function(
         offset += 3;
       }
       strokeStyles[i_stroke] = {widthTwips:widthTwips, style:style};
-      chunkOffset += 2;
+      offset += 2;
     }
     strokeStyles.endOffset = offset;
     return strokeStyles;
