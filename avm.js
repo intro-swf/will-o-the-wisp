@@ -25,7 +25,7 @@ define(['ReadableOp'], function(ReadableOp) {
       },
     })
     .Typify(function GoToFrame(n) {
-      this.frameNumber = n;
+      this.param('frameNumber', n);
     });
   op('GetURL', 0x83)
     .assign({
@@ -39,7 +39,7 @@ define(['ReadableOp'], function(ReadableOp) {
       if (url.indexOf('\0') !== -1 || target.indexOf('\0') !== 0) {
         throw new Error('strings may not contain null characters');
       }
-      this.param('url', url, true).param('target', target, true);
+      this.param('url', url).param('target=', target, '');
     });
   op('NextFrame', 0x04);
   op('PreviousFrame', 0x05);
@@ -50,11 +50,11 @@ define(['ReadableOp'], function(ReadableOp) {
   op('WaitForFrame', 0x8A)
     .assign({
       writeBinary: function(out) {
-        out.u8(this.code).u16(3).u16(this.frameNumber).u8(this.skipCount);
+        out.u8(this.code).u16(3).u16(this.frameNumber).u8(this.skip);
       },
     })
     .Typify(function WaitForFrame(frameNumber, skipCount) {
-      this.frameNumber = frameNumber;
+      this.param('frameNumber', frameNumber).param('skip=', skipCount);
     });
 
   return avm;
