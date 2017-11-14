@@ -41,9 +41,12 @@ define(function() {
       Type.prototype = this;
       return Type;
     },
-    param: function(name, value, isAnonymous) {
+    param: function(name, value) {
       this.params = this.params || [];
-      this.params.push({name:name, isAnonymous:isAnonymous});
+      this.params.push(name);
+      if (name.slice(-1) === '=') {
+        name = name.slice(0, -1);
+      }
       this[name] = value;
       return this;
     },
