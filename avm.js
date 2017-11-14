@@ -15,7 +15,7 @@ define(['ReadableOp'], function(ReadableOp) {
   });
 
   function op(name, code) {
-    return AVM[name] = AVM[code] = new avm.Op(name, code);
+    return avm[name] = avm[code] = new avm.Op(name, code);
   }
 
   op('GoToFrame', 0x81)
