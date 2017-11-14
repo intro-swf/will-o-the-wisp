@@ -36,7 +36,7 @@ define(['ReadableOp'], function(ReadableOp) {
       },
     })
     .Typify(function GetURL(url, target) {
-      if (url.indexOf('\0') !== -1 || target.indexOf('\0') !== 0) {
+      if (url.indexOf('\0') !== -1 || target.indexOf('\0') !== -1) {
         throw new Error('strings may not contain null characters');
       }
       this.param('url', url).param('target=', target, '');
@@ -55,6 +55,30 @@ define(['ReadableOp'], function(ReadableOp) {
     })
     .Typify(function WaitForFrame(frameNumber, skipCount) {
       this.param('frameNumber', frameNumber).param('skip=', skipCount);
+    });
+  op('SetTarget', 0x8B)
+    .assign({
+      writeBinary: function(out) {
+        out.u8(this.code).u16(this.target.length + 1).str(this.target).u8(0);
+      },
+    })
+    .Typify(function SetTarget(target) {
+      if (target.indexOf('\0') !== -1) {
+        throw new Error('strings may not contain null characters');
+      }
+      this.param('target', target);
+    });
+  op('GotoLabel', 0x8C)
+    .assign({
+      writeBinary: function(out) {
+        out.u8(this.code).u16(this.label.length + 1).str(this.label).u8(0);
+      },
+    })
+    .Typify(function GotoLabel(label) {
+      if (label.indexOf('\0') !== -1) {
+        throw new Error('strings may not contain null characters');
+      }
+      this.param('label', label);
     });
 
   return avm;
