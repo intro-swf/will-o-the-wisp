@@ -107,6 +107,51 @@ define(['ReadableOp'], function(ReadableOp) {
   op('If', 0x9D).i16('offset');
   op('Call', 0x9E).pop(1); // does this push?
   op('GotoFrame2', 0x9F).enum('and_play', 'u8', {false:0, true:1});
+  
+  // SWF6+
+  op('CallFunction', 0x3D).pop([2, Infinity]).push(1);
+  op('CallMethod', 0x52).pop([3, Infinity]).push(1);
+  op('ConstantPool', 0x86).str('pool');
+  op('DefineFunction', 0x9B)
+    .str('name').u8(0)
+    .readTokens(function read(input) {
+      this.paramNames = [];
+      var param;
+      while (param = input.nextOp('param')) {
+        this.paramNames.push(param.requireString());
+        param.requireEnd();
+      }
+      // TODO: body code
+    })
+    .writeTokens(function write(output) {
+      for (var i = 0; i < this.paramNames.length; i++) {
+        var param = output.openOp('param');
+        param.string(this.paramNames[i]);
+        param.close();
+      }
+      // TODO: body code
+    })
+    .readBytes(function read(input) {
+      this.paramNames = [];
+      for (var count = input.u16(); count > 0; count--) {
+        this.paramNames.push(input.str());
+      }
+      // TODO: body code
+    })
+    .writeBytes(function write(output) {
+      output.u16(this.paramNames.length);
+      for (var i = 0; i < this.paramNames.length; i++) {
+        output.str(this.paramNames[i]).u8(0);
+      }
+      // TODO: body code
+    });
+  op('DefineLocal', 0x3C).pop(2);
+  op('DefineLocal2', 0x41).pop(2);
+  op('Delete', 0x3A).pop(2);
+  op('Delete2', 0x3B).pop(1);
+  op('Enumerate', 0x46).pop(1).push([1, Infinity]);
+  op('Equals2', 0x49).pop(2).push(1);
+  op('GetMember', 0x4E).pop(2).push(1);
 
   return avm;
 
