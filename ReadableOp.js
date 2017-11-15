@@ -52,6 +52,52 @@ define(function() {
     },
   };
   
+  function TokenReader(source) {
+    this.source = source;
+    this.matcher = /(\s+)|"(?:[^"\\]|\\.)*"|;;[^\r\n]*|\(;|[()]|[^();"]+/g;
+  }
+  TokenReader.prototype = {
+    ontoken: function() { },
+    onwhitespace: function() { },
+    oncomment: function() { },
+    next: function() {
+      var index = this.matcher.lastIndex;
+      if (index >= this.source.length) {
+        return false;
+      }
+      var match = this.matcher.match(this.source);
+      if (match.index !== index) {
+        throw new Error('malformed input');
+      }
+      this.matcher.lastIndex = index + match.length;
+      if (match[1]) {
+        this.onwhitespace(match[1]);
+        return true;
+      }
+      match = match[0];
+      switch (match.charAt(0)) {
+        case '"':
+          this.ontoken('string', match);
+          break;
+        case ';':
+          this.oncomment(match);
+          break;
+        case '(':
+          if (match === '(;') {
+            this.oncomment(match);
+          }
+          else {
+            this.ontoken('(');
+          }
+          break;
+        default:
+          this.ontoken(match);
+          break;
+      }
+      return true;
+    },
+  };
+  
   return ReadableOp;
   
 });
