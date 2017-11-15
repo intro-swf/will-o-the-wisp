@@ -207,7 +207,7 @@ define(function() {
   
   const RX_NUM = new RegExp('^'
     + '([+-])?' // 1: sign
-    + '(?:
+    + '(?:'
       + '([0-9]+)((?:_[0-9]+)+)?' // 2: dec int, 3: dec int separated
         + '(?:(\.[0-9]+)((?:_[0-9]+)+)?)?' // 4: dec frac, 5: dec frac separated
         + '(?:(e[+-]?[0-9]+)((?:_[0-9]+)+)?)?' // 6: e, 7: e separated
