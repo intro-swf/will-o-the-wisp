@@ -319,12 +319,22 @@ define(function() {
               if (numMatch[11]) fracPart += numMatch[1].replace(/_/g, '');
               var pPart = numMatch[12];
               if (numMatch[13]) pPart += numMatch[13].replace(/_/g, '');
-              if (fracPart || ePart) {
+              if (fracPart || pPart) {
+                var value = parseInt(intPart, 16);
+                if (fracPart) fracPart = fracPart.slice(1);
+                pPart = (pPart || 0) - fracPart;
                 
+                if (fracPart) {
+                  
+                }
+                if (pPart) {
+                  value << ((pPart.length-1) << 3);
+                }
+                return this.mode = 'float';
               }
               else {
                 this.value = parseInt(intPart, 16);
-                return this.mode = 'float';
+                return this.mode = 'int';
               }
             }
           }
