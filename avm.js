@@ -1,33 +1,37 @@
-define(['ReadableOp'], function(ReadableOp) {
+define(['bytecodeIO'], function(bytecodeIO) {
 
   'use strict';
   
   var avm = {};
 
-  avm.Op = function AVMOp(name, code) {
-    ReadableOp.call(this, name);
-    this.code = code;
-  };
-  avm.Op.prototype = Object.create(ReadableOp.prototype, {
-    writeBinary: function(out) {
-      out.u8(this.code);
-    },
-  });
-
   function op(name, code) {
-    return avm[name] = avm[code] = new avm.Op(name).u8(code);
+    var op = new bytecodeIO.Op();
+    op.symbol(name).u8(code);
+    avm[name] = avm[code] = op;
+    return op;
   }
   
   // SWF3+
-  op('GoToFrame', 0x81).u16(2).u8('frameNumber');
+  op('GoToFrame', 0x81)
+    .u16(2)
+    .u16('frameNumber');
   op('GetURL', 0x83)
-    .str('url')
-    .str('target', '')
-    .writer(function write(out) {
-      out.u8(this.code)
-        .u16(this.url.length + 1 + this.target.length + 1)
-        .utf8(this.url).u8(0)
-        .utf8(this.target).u8(0);
+    .byteReader(function(bin) {
+      this.totalLength = bin.u16();
+    })
+    .byteWriter(function(bout) {
+      bin.u16(this.url.length + 1 + this.target.length + 1);
+    })
+    .nullTerminatedString('url')
+    .nullTerminatedString('target')
+    .byteReader(function(bin) {
+      var actualLength = this.url.length + 1 + this.target.length + 1;
+      if (actualLength !== this.totalLength) {
+        throw new Error(
+          'incorrect length: expected ' + this.totalLength
+          + ', got ' + actualLength);
+      }
+      delete this.totalLength;
     });
   op('NextFrame', 0x04);
   op('PreviousFrame', 0x05);
@@ -38,47 +42,79 @@ define(['ReadableOp'], function(ReadableOp) {
   op('WaitForFrame', 0x8A)
     .u16(3)
     .u16('frameNumber')
-    .u8('skip=', 0);
+    .u8('skip=');
   op('SetTarget', 0x8B)
-    .str('target', '')
-    .writer(function write(out) {
-      out.u8(this.code)
-        .u16(this.target.length + 1)
-        .str(this.target).u8(0);
+    .byteReader(function(bin) {
+      this.totalLength = bin.u16();
+    })
+    .byteWriter(function(bout) {
+      bin.u16(this.target.length + 1);
+    })
+    .nullTerminatedString('target')
+    .binaryReader(function(bin) {
+      var actualLength = this.target.length + 1;
+      if (actualLength !== this.totalLength) {
+        throw new Error(
+          'incorrect length: expected ' + this.totalLength
+          + ', got ' + actualLength);
+      }
+      delete this.totalLength;
     });
   op('GotoLabel', 0x8C)
-    .str('label', '')
-    .write(function write(out) {
-      out.u8(this.code)
-        .u16(this.label.length + 1)
-        .str(this.label).u8(0);
+    .byteReader(function(bin) {
+      this.totalLength = bin.u16();
+    })
+    .byteWriter(function(bout) {
+      bin.u16(this.label.length + 1);
+    })
+    .nullTerminatedString('label')
+    .binaryReader(function(bin) {
+      var actualLength = this.label.length + 1;
+      if (actualLength !== this.totalLength) {
+        throw new Error(
+          'incorrect length: expected ' + this.totalLength
+          + ', got ' + actualLength);
+      }
+      delete this.totalLength;
     });
   
   // SWF4+
-  op('Add', 0x0A).pop(2).push('f32');
-  op('Subtract', 0x0B).pop(2).push('f32');
-  op('Multiply', 0x0C).pop(2).push('f32');
-  op('Divide', 0x0D).pop(2).push('f32');
+  op('Add', 0x0A).pop('f32', 'f32').push('f32');
+  op('Subtract', 0x0B).pop('f32', 'f32').push('f32');
+  op('Multiply', 0x0C).pop('f32', 'f32').push('f32');
+  op('Divide', 0x0D).pop('f32', 'f32').push('f32');
   op('WaitForFrame2', 0x8D).pop(1).u8('skip=', 0);
-  op('Equals', 0x0E).pop(2).push('bool');
-  op('Less', 0x0F).pop(2).push('bool');
-  op('And', 0x10).pop(2).push('bool');
-  op('Or', 0x11).pop(2).push('bool');
-  op('Not', 0x12).pop(2).push('bool');
-  op('StringEquals', 0x13).pop(2).push('bool');
-  op('StringLength', 0x14).pop(2).push('f32');
-  op('StringExtract', 0x15).pop(3).push('str');
+  op('Equals', 0x0E).pop('f32', 'f32').push('bool');
+  op('Less', 0x0F).pop('f32', 'f32').push('bool');
+  op('And', 0x10).pop('f32', 'f32').push('bool');
+  op('Or', 0x11).pop('f32', 'f32').push('bool');
+  op('Not', 0x12).pop('f32', 'f32').push('bool');
+  op('StringEquals', 0x13).pop('str', 'str').push('bool');
+  op('StringLength', 0x14).pop('str').push('f32');
+  op('StringExtract', 0x15).pop('str', 'f32', 'f32').push('str');
   op('Push', 0x96)
-    .param('value')
-    .push(1)
-    .writer(function write(out) {
-      out.u8(this.code);
-      if (typeof this.value === 'number') {
-        out.u8(0).f32(this.value);
+    .byteReader(function(bin) {
+      var mode = bin.u8();
+      if (mode === 0) {
+        this.value = bin.f32();
+      }
+      else if (mode === 1) {
+        this.value = this.nullTerminatedString();
       }
       else {
-        out.str(this.value).u8(0);
+        throw new Error('Push: unknown type ID ' + mode);
       }
+    })
+    .byteWriter(function(bout) {
+      if (typeof this.value === 'number') {
+        bout.u8(0).f32(this.value);
+      }
+      else {
+        bout.u8(1).nullTerminatedString(this.value);
+      }
+    })
+    .symbolReader(function(sin) {
+      this.value = sin.expect('string', 'float', 'int');
     });
   op('Pop', 0x17).pop(1);
   op('ToInteger', 0x18).pop(1).push('f32');
