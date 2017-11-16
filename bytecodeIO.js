@@ -449,6 +449,8 @@ define(function() {
     this.binaryWriters = [];
     this.symbolReaders = [];
     this.symbolWriters = [];
+    this.stackTopBefore = [];
+    this.stackTopAfter = [];
   }
   Op.prototype = {
     binaryReader: function(fn) {
@@ -490,6 +492,28 @@ define(function() {
       .symbolWriter(function(sout) {
         sout.int(this[v]);
       });
+    },
+    pop: function() {
+      if (arguments.length === 1 && typeof arguments[0] === 'number') {
+        for (var count = arguments[0]; count > 0; count--) {
+          this.stackTopBefore.push('*');
+        }
+      }
+      else {
+        [].push.apply(this.stackTopBefore, arguments);
+      }
+      return this;
+    },
+    push: function() {
+      if (arguments.length === 1 && typeof arguments[0] === 'number') {
+        for (var count = arguments[0]; count > 0; count--) {
+          this.stackTopAfter.push('*');
+        }
+      }
+      else {
+        [].push.apply(this.stackTopAfter, arguments);
+      }
+      return this;
     },
   };
   
