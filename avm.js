@@ -161,9 +161,9 @@ define(['bytecodeIO'], function(bytecodeIO) {
   // SWF6+
   op('CallFunction', 0x3D).pop([2, Infinity]).push(1);
   op('CallMethod', 0x52).pop([3, Infinity]).push(1);
-  op('ConstantPool', 0x86).nullTerminatedStr('pool');
+  op('ConstantPool', 0x86).nullTerminatedString('pool');
   op('DefineFunction', 0x9B)
-    .str('name').u8(0)
+    .nullTerminatedString('name')
     .binaryReader(function read(input) {
       this.paramNames = [];
       for (var count = input.u16(); count > 0; count--) {
