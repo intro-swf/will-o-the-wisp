@@ -26,6 +26,7 @@ define(['bytecodeIO'], function(bytecodeIO) {
   }
   
   // SWF3+
+  op('End', 0x00);
   op('GoToFrame', 0x81)
     .u16(2)
     .u16('frameNumber');
