@@ -469,6 +469,26 @@ define(function() {
       this.symbolWriters.push(fn);
       return this;
     },
+    readBinary: function(bin) {
+      for (var i = 0; i < this.binaryReaders.length; i++) {
+        this.binaryReaders[i].call(this, bin);
+      }
+    },
+    writeBinary: function(bout) {
+      for (var i = 0; i < this.binaryWriters.length; i++) {
+        this.binaryWriters[i].call(this, bout);
+      }
+    },
+    readSymbols: function(sin) {
+      for (var i = 0; i < this.symbolReaders.length; i++) {
+        this.symbolReaders[i].call(this, sin);
+      }
+    },
+    writeSymbols: function(sout) {
+      for (var i = 0; i < this.symbolWriters.length; i++) {
+        this.symbolWriters[i].call(this, sout);
+      }
+    },
     u8: function(v) {
       if (typeof v === 'number') {
         return this
