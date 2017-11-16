@@ -33,6 +33,26 @@ define(function() {
           throw new Error('NYI');
       }
     },
+    read: function(type) {
+      var v = this.peek(type);
+      switch (type) {
+        case 'u8': case 'i8':
+          this.offset++;
+          break;
+        case 'u16': case 'i16':
+          this.offset += 2;
+          break;
+        case 'u32': case 'i32': case 'f32':
+          this.offset += 4;
+          break;
+        case 'f64':
+          this.offset += 4;
+          break;
+        default:
+          throw new Error('NYI');
+      }
+      return v;
+    },
     u8: function() {
       var v = this.source[this.offset++];
       if (typeof v !== 'number') {
@@ -144,6 +164,36 @@ define(function() {
       this.buffer = new Uint8Array(Math.max(BUFFER_SIZE, byteLength));
       this.dv = new DataView(this.buffer.buffer, this.buffer.byteOffset, this.buffer.byteLength);
       this.bufferPos = 0;
+    },
+    write: function(type, v) {
+      switch (type) {
+        case 'u8': case 'i8':
+          this.requireBuffer(1);
+          this.buffer[this.bufferPos++] = v & 0xff;
+          break;
+        case 'u16': case 'i16':
+          this.requireBuffer(2);
+          this.dv.setUint16(this.bufferPos, v & 0xffff, this.littleEndian);
+          this.bufferPos += 2;
+          break;
+        case 'i32': case 'u32':
+          this.requireBuffer(4);
+          this.dv.setInt32(this.bufferPos, v | 0, this.littleEndian);
+          this.bufferPos += 4;
+          break;
+        case 'f32':
+          this.requireBuffer(4);
+          this.dv.setFloat32(this.bufferPos, v, this.littleEndian);
+          this.bufferPos += 4;
+          break;
+        case 'f64':
+          this.requireBuffer(8);
+          this.dv.setFloat64(this.bufferPos, v, this.littleEndian);
+          this.bufferPos += 8;
+          break;
+        default:
+          throw new Error('NYI');
+      }
     },
     u8: function(v) {
       this.requireBuffer(1);
@@ -501,23 +551,26 @@ define(function() {
         this.symbolWriters[i].call(this, sout);
       }
     },
-    u8: function(v) {
+    num: function(type, v) {
       if (typeof v === 'number') {
         return this
-        .binaryReader(function(bin) {
-          bin.expectU8(v);
-        })
-        .binaryWriter(function(bout) {
-          bout.u8(v);
-        });
+          .binaryReader(function(bin) {
+            var b = bin.read(type);
+            if (b !== v) {
+              throw new Error('expected ' + v + ', got ' + b);
+            }
+          })
+          .binaryWriter(function(bout) {
+            bout.write(type, v);
+          });
       }
       this
-      .binaryReader(function(bin) {
-        this[v] = bin.u8();
-      })
-      .binaryWriter(function(bout) {
-        bout.u8(this[v]);
-      });
+        .binaryReader(function(bin) {
+          this[v] = bin.read(type);
+        })
+        .binaryWriter(function(bout) {
+          bout.write(type, this[v]);
+        });
       var match = v.match(/^(?:\((.*)\)|(.*?)=)$/);
       if (match) {
         if (match[1]) {
@@ -553,6 +606,54 @@ define(function() {
         });
       }
       return this;
+    },
+    u8: function(v) {
+      return this.num('u8', v);
+    },
+    i8: function(v) {
+      return this.num('i8', v);
+    },
+    u16: function(v) {
+      return this.num('u16', v);
+    },
+    i16: function(v) {
+      return this.num('i16', v);
+    },
+    u32: function(v) {
+      return this.num('u32', v);
+    },
+    i32: function(v) {
+      return this.num('i32', v);
+    },
+    f32: function(v) {
+      return this.num('f32', v);
+    },
+    f64: function(v) {
+      return this.num('f64', v);
+    },
+    nullTerminatedString: function(name) {
+      return this
+        .binaryReader(function read(bin) {
+          var str = '';
+          for (;;) {
+            var b = bin.read('u8');
+            if (b === 0) break;
+            str += String.fromCharCode(b);
+          }
+          this[name] = str;
+        })
+        .binaryWriter(function write(bout) {
+          for (var i = 0; i < this[name].length; i++) {
+            bout.write('u8', this[name].charCodeAt(i));
+          }
+          bout.write('u8', 0);
+        })
+        .symbolReader(function read(sin) {
+          this[name] = sin.read('string');
+        })
+        .symbolWriter(function write(sout) {
+          sout.write('string', this[name]);
+        });
     },
     pop: function() {
       if (arguments.length === 1 && typeof arguments[0] === 'number') {
