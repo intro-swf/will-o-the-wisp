@@ -28,6 +28,21 @@ define(function() {
       }
       return v;
     },
+    expectU8: function(v) {
+      var b = this.source[this.offset];
+      if (v !== b) {
+        v = '0x' + ('0' + v.toString(16)).slice(-2);
+        if (b === undefined) {
+          b = 'end of data';
+        }
+        else {
+          b = '0x' + ('0' + v.toString(16)).slice(-2);
+        }
+        throw new Error('expected ' + v + ', got ' + b);
+      }
+      this.offset++;
+      return this;
+    },
     i8: function() {
       return this.u8() << 24 >> 24;
     },
@@ -429,11 +444,61 @@ define(function() {
     },
   };
   
+  function Op() {
+    this.binaryReaders = [];
+    this.binaryWriters = [];
+    this.symbolReaders = [];
+    this.symbolWriters = [];
+  }
+  Op.prototype = {
+    binaryReader: function(fn) {
+      this.binaryReaders.push(fn);
+      return this;
+    },
+    binaryWriter: function(fn) {
+      this.binaryWriters.push(fn);
+      return this;
+    },
+    symbolReader: function(fn) {
+      this.symbolReaders.push(fn);
+      return this;
+    },
+    symbolWriter: function(fn) {
+      this.symbolWriters.push(fn);
+      return this;
+    },
+    u8: function(v) {
+      if (typeof v === 'number') {
+        return this
+        .binaryReader(function(bin) {
+          bin.expectU8(v);
+        })
+        .binaryWriter(function(bout) {
+          bout.u8(v);
+        });
+      }
+      return this
+      .binaryReader(function(bin) {
+        this[v] = bin.u8();
+      })
+      .binaryWriter(function(bout) {
+        bout.u8(this[v]);
+      })
+      .symbolReader(function(sin) {
+        this[v] = sin.expectInt();
+      })
+      .symbolWriter(function(sout) {
+        sout.int(this[v]);
+      });
+    },
+  };
+  
   return {
     BinaryReader: BinaryReader,
     BinaryWriter: BinaryWriter,
     SymbolReader: SymbolReader,
     SymbolWriter: SymbolWriter,
+    Op: Op,
   };
 
 });
