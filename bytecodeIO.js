@@ -479,19 +479,48 @@ define(function() {
           bout.u8(v);
         });
       }
-      return this
+      this
       .binaryReader(function(bin) {
         this[v] = bin.u8();
       })
       .binaryWriter(function(bout) {
         bout.u8(this[v]);
-      })
-      .symbolReader(function(sin) {
-        this[v] = sin.expectInt();
-      })
-      .symbolWriter(function(sout) {
-        sout.int(this[v]);
       });
+      var match = v.match(/^(?:\((.*)\)|(.*?)=)$/);
+      if (match) {
+        if (match[1]) {
+          v = match[1];
+          this
+          .symbolReader(function(sin) {
+            sin.expectOpen(v);
+            this[v] = sin.expectInt();
+            sin.expectClose();
+          })
+          .symbolWriter(function(sout) {
+            sout.open(v).int(this[v]).close();
+          });
+        }
+        else {
+          v = match[2];
+          this
+          .symbolReader(function(sin) {
+            this[v] = sin.expectSymbolAfterPrefix(v+'=');
+          })
+          .symbolWriter(function(sout) {
+            sout.symbol(v+'='+this[v]);
+          });
+        }
+      }
+      else {
+        this
+        .symbolReader(function(sin) {
+          this[v] = sin.expectInt();
+        })
+        .symbolWriter(function(sout) {
+          sout.int(this[v]);
+        });
+      }
+      return this;
     },
     pop: function() {
       if (arguments.length === 1 && typeof arguments[0] === 'number') {
