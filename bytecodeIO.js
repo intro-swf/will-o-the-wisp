@@ -224,7 +224,7 @@ define(function() {
         else {
           this
             .u8((copo >>> 12) | 0xE0)
-            .u8(((copo >>> 6) & 0x3F) | 0x80);
+            .u8(((copo >>> 6) & 0x3F) | 0x80)
             .u8((copo & 0x3F) | 0x80);
         }
       }
