@@ -544,6 +544,15 @@ define(function() {
       }
       return this;
     },
+    symbol: function(symbol) {
+      return this
+      .symbolReader(function(sin) {
+        sin.expectSymbol(symbol);
+      })
+      .symbolWriter(function(sout) {
+        sout.symbol(symbol);
+      });
+    },
   };
   
   return {
