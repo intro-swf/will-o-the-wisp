@@ -206,15 +206,15 @@ define(function() {
   }
   
   const RX_NUM = new RegExp('^'
-    + '([+-])?' // 1: sign
+    + '([+-]?)' // 1: sign
     + '(?:'
-      + '([0-9]+)((?:_[0-9]+)+)?' // 2: dec int, 3: dec int separated
-        + '(?:(\.[0-9]+)((?:_[0-9]+)+)?)?' // 4: dec frac, 5: dec frac separated
+      + '([0-9]+)((?:_[0-9]+)*)' // 2: dec int, 3: dec int separated
+        + '(?:(\\.[0-9]+)((?:_[0-9]+)*))?' // 4: dec frac, 5: dec frac separated
         + '(?:(e[+-]?[0-9]+)((?:_[0-9]+)+)?)?' // 6: e, 7: e separated
       + '|'
-      + '0x([0-9a-f]+)((?:_[0-9a-f]+)+)?' // 8: hex int, 9: hex int separated
-        + '(?:(\.[0-9a-f]+)((?:_[0-9a-f]+)+)?)?' // 10: hex frac, 11: hex frac separated
-        + '(?:(p[+-]?[0-9]+)((?:_[0-9]+)+)?)?' // 12: p, 13: p int separated
+      + '0x([0-9a-f]+)((?:_[0-9a-f]+)*)' // 8: hex int, 9: hex int separated
+        + '(?:(\\.[0-9a-f]+)((?:_[0-9a-f]+)*))?' // 10: hex frac, 11: hex frac separated
+        + '(?:(p[+-]?[0-9]+)((?:_[0-9]+)*))?' // 12: p, 13: p int separated
     + ')'
     + '$', 'i');
   
@@ -303,7 +303,7 @@ define(function() {
               var ePart = numMatch[6] || '';
               if (numMatch[7]) ePart += numMatch[7].replace(/_/g, '');
               if (fracPart || ePart) {
-                this.value = parseNumber(intPart + fracPart + ePart);
+                this.value = parseFloat(intPart + fracPart + ePart);
                 return this.mode = 'float';
               }
               else {
@@ -314,21 +314,28 @@ define(function() {
             else {
               // hexadecimal
               var intPart = numMatch[1] + numMatch[8];
-              if (numMatch[9]) hexPart += numMatch[9];
-              var fracPart = numMatch[10];
-              if (numMatch[11]) fracPart += numMatch[1].replace(/_/g, '');
-              var pPart = numMatch[12];
+              if (numMatch[9]) intPart += numMatch[9].replace(/_/g, '');
+              var fracPart = numMatch[10] || '';
+              if (numMatch[11]) fracPart += numMatch[11].replace(/_/g, '');
+              var pPart = numMatch[12] || '';
               if (numMatch[13]) pPart += numMatch[13].replace(/_/g, '');
               if (fracPart || pPart) {
-                var value = parseInt(intPart, 16);
-                if (fracPart) fracPart = fracPart.slice(1);
-                pPart = (pPart || 0) - fracPart;
-                
                 if (fracPart) {
-                  
+                  fracPart = fracPart.slice(1);
+                  intPart += fracPart;
                 }
                 if (pPart) {
-                  value << ((pPart.length-1) << 3);
+                  pPart = parseInt(pPart.slice(1));
+                }
+                else {
+                  pPart = 0;
+                }
+                pPart -= fracPart.length * 4;
+                if (pPart < 0) {
+                  this.value = parseInt(intPart, 16) / (1 << -pPart);
+                }
+                else {
+                  this.value = parseInt(intPart, 16) << pPart;
                 }
                 return this.mode = 'float';
               }
