@@ -5,9 +5,13 @@ requirejs.config({
 
 require([
   'domReady!', // use domReady.js plugin to require DOM readiness
+  'bytecodeIO',
+  'avm',
 ],
 function(
   domReady // unused value
+  ,bytecodeIO
+  ,avm
 ){
   
   'use strict';
@@ -151,7 +155,7 @@ function(
           console.log('DefineText', def);
           break;
         case 12:
-          var actions = read_actions(chunk, 0);
+          var actions = read_actions(chunk);
           if (actions.endOffset !== chunk.length) {
             console.warn('unexpected data after DoAction');
           }
@@ -330,10 +334,8 @@ function(
             action.outDownToOverDown = !!(flags & 0x20);
             action.outDownToIdle = !!(flags & 0x40);
             action.idleToOverDown = !!(flags & 0x80);
-            action.response = read_action(chunk, chunkOffset);
-            if (action.response.endOffset !== nextActionOffset) {
-              console.warn('unexpected data after button action record');
-            }
+            var actionBytes = chunk.slice(chunkOffset, nextActionOffset);
+            action.response = read_action(actionBytes);
             def.actions.push(action);
             chunkOffset = nextActionOffset;
           }
@@ -641,7 +643,10 @@ function(
     return path;
   }
   
-  function read_actions(bytes, offset) {
+  function read_actions(bytes) {
+    var bin = new bytecodeIO.BinaryReader(bytes);
+    return avm.readBinary(bin);
+    var offset = 0;
     var actions = [];
     var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     while (offset < bytes.length) {
