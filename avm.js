@@ -4,6 +4,20 @@ define(['bytecodeIO'], function(bytecodeIO) {
   
   var avm = {};
 
+  avm.readBinary = function readBinary(bin) {
+    var list = [];
+    while (!bin.isAtEnd) {
+      var b = bin.peek('u8');
+      if (!(b in avm)) {
+        throw new Error('unrecognized opcode: 0x' + ('0' + b.toString(16)).slice(-2));
+      }
+      var op = Object.create(avm[b]);
+      op.readBinary(bin);
+      list.push(op);
+    }
+    return list;
+  };
+  
   function op(name, code) {
     var op = new bytecodeIO.Op();
     op.symbol(name).u8(code);
