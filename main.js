@@ -645,6 +645,7 @@ function(
   
   function read_actions(bytes) {
     var bin = new bytecodeIO.BinaryReader(bytes);
+    bin.littleEndian = true;
     return avm.readBinary(bin);
     var offset = 0;
     var actions = [];
