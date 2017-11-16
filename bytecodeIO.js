@@ -19,16 +19,34 @@ define(function() {
     offset: 0,
     littleEndian: false,
     get isAtEnd() {
-      return this.offset >= this.source.length;
+      return this.offset >= this.bytes.length;
     },
     peek: function(type) {
       switch (type) {
         case 'u8':
-          var v = this.source[this.offset];
+          var v = this.bytes[this.offset];
           if (typeof v !== 'number') {
             throw new Error('unexpected end of data');
           }
           return v;
+        case 'i8':
+          var v = this.bytes[this.offset];
+          if (typeof v !== 'number') {
+            throw new Error('unexpected end of data');
+          }
+          return v << 24 >> 24;
+        case 'u16':
+          return this.dv.getUint16(this.offset, this.littleEndian);
+        case 'i16':
+          return this.dv.getInt16(this.offset, this.littleEndian);
+        case 'u32':
+          return this.dv.getUint32(this.offset, this.littleEndian);
+        case 'i32':
+          return this.dv.getInt32(this.offset, this.littleEndian);
+        case 'f32':
+          return this.dv.getFloat32(this.offset, this.littleEndian);
+        case 'f64':
+          return this.dv.getFloat64(this.offset, this.littleEndian);
         default:
           throw new Error('NYI');
       }
@@ -54,14 +72,14 @@ define(function() {
       return v;
     },
     u8: function() {
-      var v = this.source[this.offset++];
+      var v = this.bytes[this.offset++];
       if (typeof v !== 'number') {
         throw new Error('unexpected end of data');
       }
       return v;
     },
     expectU8: function(v) {
-      var b = this.source[this.offset];
+      var b = this.bytes[this.offset];
       if (v !== b) {
         v = '0x' + ('0' + v.toString(16)).slice(-2);
         if (b === undefined) {
@@ -79,7 +97,7 @@ define(function() {
       return this.u8() << 24 >> 24;
     },
     i16: function() {
-      if (this.offset+2 > this.source.length) {
+      if (this.offset+2 > this.bytes.length) {
         throw new Error('unexpected end of data');
       }
       var v = this.dv.getInt16(this.offset, this.littleEndian);
@@ -90,7 +108,7 @@ define(function() {
       return this.i16() & 0xffff;
     },
     i32: function() {
-      if (this.offset+4 > this.source.length) {
+      if (this.offset+4 > this.bytes.length) {
         throw new Error('unexpected end of data');
       }
       var v = this.dv.getInt32(this.offset, this.littleEndian);
@@ -101,7 +119,7 @@ define(function() {
       return this.i32() >>> 0;
     },
     f32: function() {
-      if (this.offset+4 > this.source.length) {
+      if (this.offset+4 > this.bytes.length) {
         throw new Error('unexpected end of data');
       }
       var v = this.dv.getFloat32(this.offset, this.littleEndian);
@@ -109,7 +127,7 @@ define(function() {
       return v;
     },
     f64: function() {
-      if (this.offset+8 > this.source.length) {
+      if (this.offset+8 > this.bytes.length) {
         throw new Error('unexpected end of data');
       }
       var v = this.dv.getFloat64(this.offset, this.littleEndian);
