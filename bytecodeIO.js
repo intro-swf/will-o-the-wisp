@@ -301,7 +301,7 @@ define(function() {
             /\\(?:u\{([a-fA-F0-9]+)\}|([a-fA-F0-9]{1,2})|[\\tnr"'])?/g,
             function(escape, hex1, hex2) {
               switch (escape) {
-                case '\\\\': return = '\\';
+                case '\\\\': return '\\';
                 case '\\t': return '\t';
                 case '\\r': return '\r';
                 case '\\"': return '"';
