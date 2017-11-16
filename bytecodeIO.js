@@ -21,6 +21,18 @@ define(function() {
     get isAtEnd() {
       return this.offset >= this.source.length;
     },
+    peek: function(type) {
+      switch (type) {
+        case 'u8':
+          var v = this.source[this.offset];
+          if (typeof v !== 'number') {
+            throw new Error('unexpected end of data');
+          }
+          return v;
+        default:
+          throw new Error('NYI');
+      }
+    },
     u8: function() {
       var v = this.source[this.offset++];
       if (typeof v !== 'number') {
