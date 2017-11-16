@@ -30,15 +30,15 @@ define(['bytecodeIO'], function(bytecodeIO) {
     .u16(2)
     .u16('frameNumber');
   op('GetURL', 0x83)
-    .byteReader(function(bin) {
+    .binaryReader(function read(bin) {
       this.totalLength = bin.u16();
     })
-    .byteWriter(function(bout) {
+    .binaryWriter(function write(bout) {
       bin.u16(this.url.length + 1 + this.target.length + 1);
     })
     .nullTerminatedString('url')
     .nullTerminatedString('target')
-    .byteReader(function(bin) {
+    .binaryReader(function read(bin) {
       var actualLength = this.url.length + 1 + this.target.length + 1;
       if (actualLength !== this.totalLength) {
         throw new Error(
@@ -58,14 +58,14 @@ define(['bytecodeIO'], function(bytecodeIO) {
     .u16('frameNumber')
     .u8('skip=');
   op('SetTarget', 0x8B)
-    .byteReader(function(bin) {
+    .binaryReader(function read(bin) {
       this.totalLength = bin.u16();
     })
-    .byteWriter(function(bout) {
+    .binaryWriter(function write(bout) {
       bin.u16(this.target.length + 1);
     })
     .nullTerminatedString('target')
-    .binaryReader(function(bin) {
+    .binaryReader(function read(bin) {
       var actualLength = this.target.length + 1;
       if (actualLength !== this.totalLength) {
         throw new Error(
@@ -75,14 +75,14 @@ define(['bytecodeIO'], function(bytecodeIO) {
       delete this.totalLength;
     });
   op('GotoLabel', 0x8C)
-    .byteReader(function(bin) {
+    .binaryReader(function read(bin) {
       this.totalLength = bin.u16();
     })
-    .byteWriter(function(bout) {
+    .binaryWriter(function write(bout) {
       bin.u16(this.label.length + 1);
     })
     .nullTerminatedString('label')
-    .binaryReader(function(bin) {
+    .binaryReader(function read(bin) {
       var actualLength = this.label.length + 1;
       if (actualLength !== this.totalLength) {
         throw new Error(
@@ -107,7 +107,7 @@ define(['bytecodeIO'], function(bytecodeIO) {
   op('StringLength', 0x14).pop('str').push('f32');
   op('StringExtract', 0x15).pop('str', 'f32', 'f32').push('str');
   op('Push', 0x96)
-    .byteReader(function(bin) {
+    .binaryReader(function read(bin) {
       var mode = bin.u8();
       if (mode === 0) {
         this.value = bin.f32();
@@ -119,7 +119,7 @@ define(['bytecodeIO'], function(bytecodeIO) {
         throw new Error('Push: unknown type ID ' + mode);
       }
     })
-    .byteWriter(function(bout) {
+    .binaryWriter(function write(bout) {
       if (typeof this.value === 'number') {
         bout.u8(0).f32(this.value);
       }
@@ -127,7 +127,7 @@ define(['bytecodeIO'], function(bytecodeIO) {
         bout.u8(1).nullTerminatedString(this.value);
       }
     })
-    .symbolReader(function(sin) {
+    .symbolReader(function read(sin) {
       this.value = sin.expect('string', 'float', 'int');
     });
   op('Pop', 0x17).pop(1);
@@ -153,18 +153,32 @@ define(['bytecodeIO'], function(bytecodeIO) {
   op('MBCharToAscii', 0x36).pop(1).push('f32');
   op('MBAsciiToChar', 0x37).pop(1).push('str');
   op('Jump', 0x99).i16('offset');
-  op('GetURL2', 0x9A).enum('send_vars', 'u8', {off:0, get:1, post:2});
+  op('GetURL2', 0x9A).u8('send_vars'); // .enum('send_vars', 'u8', {off:0, get:1, post:2});
   op('If', 0x9D).i16('offset');
   op('Call', 0x9E).pop(1); // does this push?
-  op('GotoFrame2', 0x9F).enum('and_play', 'u8', {false:0, true:1});
+  op('GotoFrame2', 0x9F).u8('and_play'); //.enum('and_play', 'u8', {false:0, true:1});
   
   // SWF6+
   op('CallFunction', 0x3D).pop([2, Infinity]).push(1);
   op('CallMethod', 0x52).pop([3, Infinity]).push(1);
-  op('ConstantPool', 0x86).str('pool');
+  op('ConstantPool', 0x86).nullTerminatedStr('pool');
   op('DefineFunction', 0x9B)
     .str('name').u8(0)
-    .readTokens(function read(input) {
+    .binaryReader(function read(input) {
+      this.paramNames = [];
+      for (var count = input.u16(); count > 0; count--) {
+        this.paramNames.push(input.str());
+      }
+      // TODO: body code
+    })
+    .binaryWriter(function write(output) {
+      output.u16(this.paramNames.length);
+      for (var i = 0; i < this.paramNames.length; i++) {
+        output.str(this.paramNames[i]).u8(0);
+      }
+      // TODO: body code
+    })
+    .symbolReader(function read(input) {
       this.paramNames = [];
       var param;
       while (param = input.nextOp('param')) {
@@ -173,25 +187,11 @@ define(['bytecodeIO'], function(bytecodeIO) {
       }
       // TODO: body code
     })
-    .writeTokens(function write(output) {
+    .symbolWriter(function write(output) {
       for (var i = 0; i < this.paramNames.length; i++) {
         var param = output.openOp('param');
         param.string(this.paramNames[i]);
         param.close();
-      }
-      // TODO: body code
-    })
-    .readBytes(function read(input) {
-      this.paramNames = [];
-      for (var count = input.u16(); count > 0; count--) {
-        this.paramNames.push(input.str());
-      }
-      // TODO: body code
-    })
-    .writeBytes(function write(output) {
-      output.u16(this.paramNames.length);
-      for (var i = 0; i < this.paramNames.length; i++) {
-        output.str(this.paramNames[i]).u8(0);
       }
       // TODO: body code
     });
