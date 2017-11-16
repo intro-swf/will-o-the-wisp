@@ -215,6 +215,8 @@ define(function() {
       + '0x([0-9a-f]+)((?:_[0-9a-f]+)*)' // 8: hex int, 9: hex int separated
         + '(?:(\\.[0-9a-f]+)((?:_[0-9a-f]+)*))?' // 10: hex frac, 11: hex frac separated
         + '(?:(p[+-]?[0-9]+)((?:_[0-9]+)*))?' // 12: p, 13: p int separated
+      + '|'
+        + '(inf|nan(?::0x([0-9a-f]+(?:_[0-9a-f]+)*))?)' // 14: inf/nan/nan:0x(hex) 15: (hex)
     + ')'
     + '$', 'i');
   
@@ -311,7 +313,7 @@ define(function() {
                 return this.mode = 'int';
               }
             }
-            else {
+            else if (numMatch[8]) {
               // hexadecimal
               var intPart = numMatch[1] + numMatch[8];
               if (numMatch[9]) intPart += numMatch[9].replace(/_/g, '');
@@ -343,6 +345,18 @@ define(function() {
                 this.value = parseInt(intPart, 16);
                 return this.mode = 'int';
               }
+            }
+            else if (numMatch[14] === 'inf') {
+              this.value = numMatch[1] === '-' ? -Infinity : Infinity;
+              return this.mode = 'float';
+            }
+            else if (numMatch[15]) {
+              this.value = numMatch[15].replace(/_/g, '').toUpperCase();
+              return this.mode = 'nan-hex';
+            }
+            else {
+              this.value = NaN;
+              return this.mode = 'float';
             }
           }
           this.value = match[0];
