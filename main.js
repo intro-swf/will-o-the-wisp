@@ -461,10 +461,11 @@ function(
           break;
         case 39:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var def = {characterID: chunkDV.getUint16(0, true)};
-          def.frameCount = chunkDV.getUint16(2, true);
-          console.log('DefineSprite', def);
+          var spriteID = '_' + chunkDV.getUint16(0, true);
+          var frameCount = chunkDV.getUint16(2, true);
+          context.open('g', {class:'sprite', id:spriteID, 'swf:frame-count':frameCount});
           read_chunks(chunk, 4, context);
+          context.close();
           break;
         case 43:
           var frameLabel = read_string(chunk);
