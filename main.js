@@ -43,8 +43,8 @@ function(
             console.warn('unexpected data: ShowFrame');
           }
           var count = 1;
-          while (body[offset] === (1 << 6)) {
-            offset++;
+          while (body[offset] === (1 << 6) && body[offset+1] === 0) {
+            offset += 2;
             count++;
           }
           context.empty('swf:ShowFrame', count === 1 ? null : {count:count});
