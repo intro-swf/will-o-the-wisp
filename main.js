@@ -117,8 +117,9 @@ function(
         case 10:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontID = '_' + chunkDV.getUint16(0, true);
+          var glyphCount = chunkDV.getUint16(2, true) / 2;
           context.open('g', {class:'font', id:fontID});
-          for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
+          for (var i_glyph = 0; i_glyph < glyphCount; i_glyph++) {
             var glyphID = fontID + 'g' + i_glyph;
             var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
             context.open('g', {id:glyphID});
