@@ -322,7 +322,7 @@ function(
           }
           var colorTransform;
           if (flags & 8) {
-            colorTransform = read_color_transform(chunk, chunkOffset);
+            colorTransform = read_color_transform(chunk, chunkOffset, true);
             chunkOffset = colorTransform.endOffset;
           }
           if (flags & 0x10) {
