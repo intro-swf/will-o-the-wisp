@@ -473,7 +473,7 @@ function(
           fillClass = id_base + '_fill' + step.values[0] + '_' + step.values[1];
           break;
         case 'stroke':
-          strokeClass = id_base + '_stroke' + step.values[1];
+          strokeClass = id_base + '_stroke' + step.values[0];
           break;
         case 'styles':
           throw new Error('NYI');
