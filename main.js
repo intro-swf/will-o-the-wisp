@@ -320,6 +320,7 @@ function(
                 record.glyphs[i_glyph] = {index:index, advance:advance};
               }
               chunkOffset = readBits.getOffset();
+              def.records.push(record);
             }
           }
           console.log('DefineText', def);
