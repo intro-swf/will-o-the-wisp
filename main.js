@@ -351,7 +351,7 @@ function(
           else {
             attrs.opacity = colorTransform.multiply.a;
             colorTransform.multiply.a = 1;
-            if (colorTransform.multiply.r !== 1 || colorTransform.multiply.g !== 1 || colorTransform.multiply.b !== 1) {
+            if (colorTransform.multiply.r === 1 && colorTransform.multiply.g === 1 && colorTransform.multiply.b === 1) {
               delete colorTransform.multiply;
             }
             if (colorTransform.add && colorTransform.add.r === 0 && colorTransform.add.g === 0 && colorTransform.add.b === 0) {
