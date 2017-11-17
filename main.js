@@ -244,7 +244,7 @@ function(
             "  font-family: '" + fontID + "';",
             "  font-weight: " + (font.bold?'bold':'normal') + ';',
             '  font-style: ' + (font.italic?'italic':'normal') + ';',
-            '  src: url("' + font.filename + '#' + fontID + '" format("svg")',
+            '  src: url("' + font.filename + '#' + fontID + '") format("svg")',
             '}',
           ].join('\n'));
           break;
