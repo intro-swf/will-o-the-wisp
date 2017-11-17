@@ -81,11 +81,6 @@ function(
             d: JSON.stringify(path),
           });
           context.close();
-          console.log(
-            chunkType === 22 ? 'DefineShape2'
-            : chunkType === 32 ? 'DefineShape3'
-            : 'DefineShape',
-            shapeID, bounds, fillStyles, strokeStyles, path);
           break;
         case 6:
           var tables = context.files['tables.jpg'];
