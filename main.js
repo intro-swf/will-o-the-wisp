@@ -70,16 +70,140 @@ function(
             height: bounds.bottom - bounds.top,
           });
           var styleText = [];
+          styleText.push('.' + attrs.id + '_fill0 { fill: none; }');
           for (var style_i = 1; style_i < fillStyles.length; style_i++) {
-            styleText.push('_' + attrs.id + '_fill' + style_i + ' {' + JSON.stringify(fillStyles[style_i]) + '}');
+            styleText.push('.' + attrs.id + '_fill' + style_i + ' {' + JSON.stringify(fillStyles[style_i]) + '}');
           }
+          styleText.push('.' + attrs.id + '_stroke0 { stroke: none; }');
           for (var style_i = 1; style_i < strokeStyles.length; style_i++) {
-            styleText.push('_' + attrs.id + '_stroke' + style_i + ' {' + JSON.stringify(strokeStyles[style_i]) + '}');
+            styleText.push('.' + attrs.id + '_stroke' + style_i + ' {' + JSON.stringify(strokeStyles[style_i]) + '}');
           }
           context.text('style', styleText.join('\n'));
-          context.empty('path', {
-            d: JSON.stringify(path),
-          });
+          var x=0, y=0, startX, startY;
+          var d = [];
+          var fillClass = attrs.id + '_fill0';
+          var strokeClass = attrs.id + '_stroke0';
+          function endPathAt(n) {
+            for (;;) {
+              if (n >= path.length) return true;
+              switch (path[n]) {
+                case 'fill':
+                case 'stroke':
+                case 'm':
+                  return true;
+                case 'styles':
+                  break;
+                default:
+                  return false;
+              }
+              n++;
+            }
+          }
+          for (var path_i = 0; path_i < path.length; path_i++) {
+            var step = path[path_i];
+            switch (step.type) {
+              default:
+                throw new Error('unknown step type');
+              case 'fill':
+                fillClass = attrs.id + '_fill' + step.values[0] + '_' + step.values[1];
+                break;
+              case 'stroke':
+                strokeClass = attrs.id + '_stroke' + step.values[1];
+                break;
+              case 'styles':
+                throw new Error('NYI');
+              case 'm':
+                if (d.length > 0) {
+                  context.empty('path', {class: fillClass+' '+strokeClass, d:d.join(' ')});
+                  d = [];
+                }
+                startX = x += step.values[0];
+                startY = y += step.values[1];
+                d.push('m ' + step.values[0] + ',' + step.values[1]);
+                while (path[path_i+1] && path[path_i+1].type === 'l') {
+                  step = path[++path_i];
+                  x += step.values[0];
+                  y += step.values[1];
+                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                    d.push('z');
+                  }
+                  else {
+                    d.push(step.values[0] + ',' + step.values[1]);
+                  }
+                }
+                break;
+              case 'l':
+                d.push('l');
+                for (;;) {
+                  step = path[path_i];
+                  x += step.values[0];
+                  y += step.values[1];
+                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                    d.push('z');
+                  }
+                  else {
+                    d.push(step.values[0] + ',' + step.values[1]);
+                  }
+                  if (path[path_i+1] && path[path_i+1].type === 'l') {
+                    path_i++;
+                    continue;
+                  }
+                  break;
+                }
+                break;
+              case 'q':
+                d.push('q');
+                for (;;) {
+                  step = path[path_i];
+                  x += step.values[2];
+                  y += step.values[3];
+                  d.push(step.values[0] + ',' + step.values[1] + ' ' + step.values[2] + ',' + step.values[3]);
+                  if (path[path_i+1] && path[path_i+1].type === 'q') {
+                    path_i++;
+                    continue;
+                  }
+                  break;
+                }
+                break;
+              case 'h':
+                d.push('h');
+                for (;;) {
+                  step = path[path_i];
+                  x += step.values[0];
+                  d.push(step.values[0]);
+                  if (path[path_i+1] && path[path_i+1].type === 'v') {
+                    step = path[++path_i];
+                    y += step.values[0];
+                    d.push(step.values[0]);
+                    if (path[path_i+1] && path[path_i+1].type === 'h') {
+                      continue;
+                    }
+                  }
+                  break;
+                }
+                break;
+              case 'v':
+                d.push('v');
+                for (;;) {
+                  step = path[path_i];
+                  y += step.values[0];
+                  d.push(step.values[0]);
+                  if (path[path_i+1] && path[path_i+1].type === 'h') {
+                    step = path[++path_i];
+                    x += step.values[0];
+                    d.push(step.values[0]);
+                    if (path[path_i+1] && path[path_i+1].type === 'v') {
+                      continue;
+                    }
+                  }
+                  break;
+                }
+                break;
+            }
+          }
+          if (d.length > 0) {
+            context.empty('path', {class:fillClass+' '+strokeClass, d:d.join(' ')});
+          }
           context.close();
           break;
         case 6:
@@ -630,7 +754,7 @@ function(
       else {
         // not edge record flag
         var flags = bits(5, false);
-        if (flags === 0) break; // end of shape data;
+        if (flags === 0) break; // end of shape data
         if (flags & 1) {
           // move-to flag
           var coordBitCount = bits(5, false);
