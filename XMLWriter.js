@@ -20,11 +20,19 @@ define(function() {
   }
   
   function XMLWriter() {
-    this.buf = [];
+    this.buf = ['<?xml version="1.0" charset="utf-8"?>'];
     this.inStack = [];
   }
   XMLWriter.prototype = {
-    indent: '',
+    indent: '\n',
+    pushIndent: function() {
+      this.indent = this.indent + '  ';
+      return this;
+    },
+    popIndent: function() {
+      this.indent = this.indent.slice(0, -2);
+      return this;
+    },
     toString: function() {
       return this.buf.join('');
     },
@@ -41,7 +49,7 @@ define(function() {
       return this;
     },
     tagPrefix: function(name, attrs) {
-      this.raw('<' + name);
+      this.raw(this.indent).raw('<' + name);
       if (attrs) {
         var k = Object.keys(attrs);
         for (var i = 0; i < k.length; i++) {
@@ -52,19 +60,25 @@ define(function() {
     },
     open: function(name, attrs) {
       this.inStack.push(name);
-      this.indent += '  ';
+      this.pushIndent();
       return this.tagPrefix(name, attrs).raw('>');
     },
     close: function() {
       var name = this.inStack.pop();
       if (!name) throw new Error('mismatched tags');
-      this.indent = this.indent.slice(2);
-      return this.raw('</' + name + '>');
+      this.popIndent();
+      return this.raw(this.indent).raw('</' + name + '>');
     },
     empty: function(name, attrs) {
       return this.tagPrefix(name, attrs).raw('/>');
     },
     text: function(name, attrs, text) {
+      if (/[\r\n]/.test(text)) {
+        this.pushIndent();
+        text = this.indent + (''+text).replace(/\r\n|\n|\r/g, this.indent);
+        this.popIndent();
+        text += this.indent;
+      }
       if (typeof attrs === 'string') {
         text = attrs;
         attrs = null;
