@@ -71,6 +71,12 @@ define(function() {
       }
       return this.tagPrefix(name, attrs).raw('>').encoded(text).raw('</' + name + '>');
     },
+    toFile: function(name, type) {
+      return new File(this.buf, name, {type:type || 'application/xml'});
+    },
+    toBlob: function(type) {
+      return new Blob(this.buf, {type:type || 'application/xml'});
+    },
   };
   
   return XMLWriter;
