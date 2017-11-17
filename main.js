@@ -858,7 +858,7 @@ function(
         transform.multiply.a = bits(valueBits, true) / 0x100;
       }
       else {
-        transform.multiply.a = 0x100;
+        transform.multiply.a = 1;
       }
     }
     if (withAdd) {
