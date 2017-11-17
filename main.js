@@ -117,81 +117,94 @@ function(
         case 10:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontID = '_' + chunkDV.getUint16(0, true);
-          var font = context.fonts[fontID] = new XMLWriter();
-          font.filename = fontID + '.font.svg';
-          font.open('svg', {
-            xmlns:"http://www.w3.org/2000/svg",
-            'xmlns:xlink':"http://www.w3.org/1999/xlink",
-            'xmlns:swf':"intro.swf",
-          });
-          var glyphCount = chunkDV.getUint16(2, true) / 2;
-          font.open('g', {class:'font', id:fontID});
-          for (var i_glyph = 0; i_glyph < glyphCount; i_glyph++) {
-            var glyphID = fontID + 'g' + i_glyph;
+          var font = context.fonts[fontID] = {filename:fontID+'.font.svg'};
+          font.glyphs = new Array(chunkDV.getUint16(2, true) / 2);
+          for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
             var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
-            font.open('g', {id:glyphID});
-            write_path(font, read_path(chunk, pathOffset), glyphID);
-            font.close();
+            font.glyphs[i_glyph] = read_path(chunk, pathOffset);
+            font.glyphs[i_glyph].char = String.fromCharCode(32 + i_glyph);
           }
           context.empty('swf:DefineFont', {'xlink:href': font.filename});
           break;
         case 11:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var def = {characterID: chunkDV.getUint16(0, true)};
-          def.bounds = read_twip_rect(chunk, 2);
-          def.matrix = read_matrix(chunk, def.bounds.endOffset);
-          var chunkOffset = def.matrix.endOffset;
+          var textID = '_' + chunkDV.getUint16(0, true);
+          var bounds = read_twip_rect(chunk, 2);
+          var matrix = read_matrix(chunk, bounds.endOffset);
+          var chunkOffset = matrix.endOffset;
+          var attrs = {class:'text', id:textID};
+          if (!matrix.isIdentity) attrs.transform = matrix.toString();
+          context.open('g', attrs);
+          context.empty('rect', {
+            class: 'bounds',
+            x: bounds.left,
+            y: bounds.top,
+            width: bounds.right - bounds.left,
+            height: bounds.bottom - bounds.top,
+          });
           var glyphBits = chunk[chunkOffset++];
           var advanceBits = chunk[chunkOffset++];
-          def.records = [];
+          var textAttrs;
           while (1) {
             var b = chunk[chunkOffset++];
             if (b & 0x80) {
-              // text style record
-              var record = {type:'style'};
               var hasX = b & 1;
               var hasY = b & 2;
               var hasColor = b & 4;
               var hasFont = b & 8;
+              textAttrs = {};
               if (hasFont) {
-                record.fontID = chunkDV.getUint16(chunkOffset, true);
+                textAttrs['font-family'] = '_' + chunkDV.getUint16(chunkOffset, true);
                 chunkOffset += 2;
               }
               if (hasColor) {
-                record.color = read_rgb(chunk, chunkOffset);
+                textAttrs.fill = read_rgb(chunk, chunkOffset);
                 chunkOffset += 3;
               }
               if (hasX) {
-                record.xOffset = chunkDV.getInt16(chunkOffset, true);
+                textAttrs.dx = chunkDV.getInt16(chunkOffset, true);
                 chunkOffset += 2;
               }
               if (hasY) {
-                record.xOffset = chunkDV.getInt16(chunkOffset, true);
+                textAttrs.dy = chunkDV.getInt16(chunkOffset, true);
                 chunkOffset += 2;
               }
               if (hasFont) {
-                record.textHeight = chunkDV.getUint16(chunkOffset, true);
+                // TODO: is this something to add to next line's Y offset instead?
+                textAttrs['font-size'] = chunkDV.getUint16(chunkOffset, true);
                 chunkOffset += 2;
               }
-              def.records.push(record);
             }
             else if (b === 0) break;
             else {
               // glyph record
-              var record = {type:'glyph'};
               var count = b & 0x7F;
               var readBits = bitreader(chunk, chunkOffset);
-              record.glyphs = new Array(count);
+              var textValue = '';
+              var advances = [textAttrs.dx || 0];
               for (var i_glyph = 0; i_glyph < count; i_glyph++) {
+                var glyph = font.glyphs[i_glyph];
                 var index = readBits(glyphBits, false);
                 var advance = readBits(advanceBits, true);
-                record.glyphs[i_glyph] = {index:index, advance:advance};
+                textValue += glyph.char;
+                advances.push(advance);
+                if ('advance' in glyph) {
+                  if (glyph.advance !== advance) {
+                    advances.custom = true;
+                  }
+                }
+                else glyph.advance = advance;
+              }
+              var textAttrs = {};
+              if (advances.custom) {
+                advances.pop();
+                textAttrs.dx = advances.join(' ');
               }
               chunkOffset = readBits.getOffset();
-              def.records.push(record);
+              context.textExact('text', textAttrs, textValue);
             }
           }
-          console.log('DefineText', def);
+          context.close();
           break;
         case 12:
           var actions = read_actions(chunk);
@@ -199,16 +212,20 @@ function(
           break;
         case 13:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var fontInfo = {id: chunkDV.getUint16(0, true)};
-          fontInfo.nameRaw = chunk.subarray(3, 3 + chunk[2]);
+          var fontID = '_' + chunkDV.getUint16(0, true);
+          if (!(fontID in context.fonts)) {
+            throw new Error('DefineFontInfo before DefineFont');
+          }
+          var font = context.fonts[fontID];
+          font.name = String.fromCharCode.apply(null, chunk.subarray(3, 3 + chunk[2]));
           var flags = chunk[3 + chunk[2]];
           var codeTable = chunk.subarray(3 + chunk[2] + 1);
-          fontInfo.wideChar = flags & 1;
-          fontInfo.bold = flags & 2;
-          fontInfo.italic = flags & 4;
-          fontInfo.ansi = flags & 8;
-          fontInfo.shiftJIS = flags & 0x10;
-          if (fontInfo.wideChar) {
+          font.wideChar = flags & 1;
+          font.bold = flags & 2;
+          font.italic = flags & 4;
+          font.ansi = flags & 8;
+          font.shiftJIS = flags & 0x10;
+          if (font.wideChar) {
             var codeTableDV = new DataView(
               codeTable.buffer,
               codeTable.byteOffset,
@@ -217,10 +234,20 @@ function(
             for (var i_code = 0; i_code < codeTable.length; i_code++) {
               codeTable[i_code] = codeTableDV.getUint16(i_code * 2, true);
             }
-            fontInfo.codeTable = codeTable;
+            font.codeTable = codeTable;
           }
-          else fontInfo.codeTable = codeTable;
-          console.log('DefineFontInfo', fontInfo);
+          else font.codeTable = codeTable;
+          for (var i_glyph = 0; i_glyph < font.codeTable.length; i_glyph++) {
+            font.glyphs[i_glyph].char = String.fromCodePoint(codeTable[i_glyph]);
+          }
+          context.text('style', {type:'text/css', 'swf:DefineFontInfo':font.filename}, [
+            '@font-face {',
+            "  font-family: '" + fontID + "';",
+            "  font-weight: " + (font.bold?'bold':'normal') + ';',
+            '  font-style: ' + (font.italic?'italic':'normal') + ';',
+            '  src: url("' + font.filename + '#' + fontID + '" format("svg")',
+            '}',
+          ].join('\n'));
           break;
         case 18:
         case 45:
@@ -639,9 +666,24 @@ function(
     var fontIDs = Object.keys(context.fonts);
     for (var font_i = 0; font_i < fontIDs.length; font_i++) {
       var font = context.fonts[fontIDs[font_i]];
-      font.close();
-      font.file = font.toFile(font.filename, 'image/svg+xml');
-      context.files[font.file] = font.file;
+      var fontWriter = new XMLWriter();
+      fontWriter.open('svg', {
+        xmlns:"http://www.w3.org/2000/svg",
+        'xmlns:xlink':"http://www.w3.org/1999/xlink",
+        'xmlns:swf':"intro.swf",
+      });
+      fontWriter.open('font', {id:fontIDs[font_i]});
+      for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
+        var glyph = font.glyphs[i_glyph];
+        var glyphID = fontIDs[font_i] + 'g' + i_glyph;
+        fontWriter.open('glyph', {id:glyphID, unicode: glyph.char});
+        write_path(fontWriter, font.glyphs[i_glyph], glyphID);
+        fontWriter.close();
+      }
+      fontWriter.close();
+      fontWriter.close();
+      font.file = fontWriter.toFile(font.filename, 'image/svg+xml');
+      context.files[font.file.name] = font.file;
       console.log(font.toString());
     }
     console.log(context.toString());
