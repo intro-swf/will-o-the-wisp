@@ -406,33 +406,35 @@ function(
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var flags = chunk[0];
-          var place = {depth: chunkDV.getUint16(1, true)};
+          var attrs = {'swf:depth': chunkDV.getUint16(1, true)};
           var chunkOffset = 3;
-          if (flags & 1) place.move = true;
+          if (flags & 1) attrs['swf:move'] = true;
           if (flags & 2) {
-            place.characterID = chunkDV.getUint16(chunkOffset, true);
+            attrs.href = '#_' + chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           if (flags & 4) {
-            place.matrix = read_matrix(chunk, chunkOffset);
-            chunkOffset = place.matrix.endOffset;
+            var matrix = read_matrix(chunk, chunkOffset);
+            attrs.matrix = matrix.toString();
+            chunkOffset = matrix.endOffset;
           }
+          var colorTransform;
           if (flags & 8) {
-            place.colorTransform = read_color_transform(chunk, chunkOffset);
-            chunkOffset = place.colorTransform.endOffset;
+            colorTransform = read_color_transform(chunk, chunkOffset);
+            chunkOffset = colorTransform.endOffset;
           }
           if (flags & 0x10) {
-            place.ratio = chunkDV.getUint16(chunkOffset, true);
+            attrs['swf:ratio'] = chunkDV.getUint16(chunkOffset, true) + '/65535';
             chunkOffset += 2;
           }
           if (flags & 0x20) {
             var name = read_string(chunk, chunkOffset);
-            place.name = name.text;
+            attrs['swf:name'] = name.text;
             // TODO: UTF-8 in v5+, Shift-JIS
             chunkOffset = name.length + 1;
           }
           if (flags & 0x40) {
-            place.clipDepth = chunkDV.getUint16(chunkOffset, true);
+            attrs['swf:clip-depth'] = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           if (flags & 0x80) {
@@ -441,7 +443,55 @@ function(
           if (chunkOffset !== chunk.length) {
             console.warn('unexpected data after PlaceObject2');
           }
-          console.log('PlaceObject2', place);
+          context.open('swf:PlaceObject', attrs);
+          if (colorTransform) {
+            context.open('filter');
+            context.open('feComponentTransfer');
+            var funcR = {}, funcG = {}, funcB = {}, funcA = {};
+            if (colorTransform.multiply) {
+              if (colorTransform.multiply.r !== 1) {
+                funcR.slope = colorTransform.multiply.r;
+              }
+              if (colorTransform.multiply.g !== 1) {
+                funcG.slope = colorTransform.multiply.g;
+              }
+              if (colorTransform.multiply.b !== 1) {
+                funcB.slope = colorTransform.multiply.b;
+              }
+              if (colorTransform.multiply.a !== 1) {
+                funcA.slope = colorTransform.multiply.a;
+              }
+            }
+            if (colorTransform.add) {
+              if (colorTransform.add.r !== 0) {
+                funcR.intercept = colorTransform.add.r/255;
+              }
+              if (colorTransform.add.g !== 0) {
+                funcG.intercept = colorTransform.add.g/255;
+              }
+              if (colorTransform.add.b !== 0) {
+                funcB.intercept = colorTransform.add.b/255;
+              }
+              if (colorTransform.add.a !== 0) {
+                funcA.intercept = colorTransform.add.a/255;
+              }
+            }
+            if (funcR.slope || funcR.intercept) {
+              context.empty('feFuncR', funcR);
+            }
+            if (funcG.slope || funcG.intercept) {
+              context.empty('feFuncG', funcG);
+            }
+            if (funcB.slope || funcB.intercept) {
+              context.empty('feFuncB', funcB);
+            }
+            if (funcA.slope || funcA.intercept) {
+              context.empty('feFuncA', funcA);
+            }
+            context.close();
+            context.close();
+          }
+          context.close();
           break;
         case 28:
           if (chunk.length < 2) {
@@ -712,6 +762,9 @@ function(
       if (withAlpha) {
         transform.multiply.a = bits(valueBits, true) / 0x100;
       }
+      else {
+        transform.multiply.a = 0x100;
+      }
     }
     if (withAdd) {
       var r = bits(valueBits, true);
@@ -720,6 +773,9 @@ function(
       transform.add = {r:r, g:g, b:b};
       if (withAlpha) {
         transform.add.a = bits(valueBits, true) / 0x100;
+      }
+      else {
+        transform.add.a = 0;
       }
     }
     transform.endOffset = bits.getOffset();
