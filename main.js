@@ -183,9 +183,9 @@ function(
               var textValue = '';
               var advances = [textAttrs.dx || 0];
               for (var i_glyph = 0; i_glyph < count; i_glyph++) {
-                var glyph = font.glyphs[i_glyph];
                 var index = readBits(glyphBits, false);
                 var advance = readBits(advanceBits, true);
+                var glyph = font.glyphs[index];
                 textValue += glyph.char;
                 advances.push(advance);
                 if ('advance' in glyph) {
