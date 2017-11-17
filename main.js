@@ -47,8 +47,9 @@ function(
         case 2:
         case 22:
         case 32:
+          var attrs = {class:'shape'};
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var shapeID = chunkDV.getUint16(0, true);
+          attrs.id = '_' + chunkDV.getUint16(0, true);
           var bounds = read_twip_rect(chunk, 2);
           var chunkOffset = bounds.endOffset;
           var supportExtendedLength = chunkType !== 2;
@@ -60,6 +61,26 @@ function(
           if (path.endOffset !== chunk.length) {
             console.warn('unexpected data after shape path');
           }
+          context.open('g', attrs);
+          context.empty('rect', {
+            class: 'bounds',
+            x: bounds.left,
+            y: bounds.top,
+            width: bounds.right - bounds.left,
+            height: bounds.bottom - bounds.top,
+          });
+          var styleText = [];
+          for (var style_i = 1; style_i < fillStyles.length; style_i++) {
+            styleText.push('_' + attrs.id + '_fill' + style_i + ' {' + JSON.stringify(fillStyles[style_i]) + '}');
+          }
+          for (var style_i = 1; style_i < strokeStyles.length; style_i++) {
+            styleText.push('_' + attrs.id + '_stroke' + style_i + ' {' + JSON.stringify(strokeStyles[style_i]) + '}');
+          }
+          context.text('style', styleText.join('\n'));
+          context.empty('path', {
+            d: JSON.stringify(path),
+          });
+          context.close();
           console.log(
             chunkType === 22 ? 'DefineShape2'
             : chunkType === 32 ? 'DefineShape3'
