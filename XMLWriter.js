@@ -60,8 +60,7 @@ define(function() {
     },
     open: function(name, attrs) {
       this.inStack.push(name);
-      this.pushIndent();
-      return this.tagPrefix(name, attrs).raw('>');
+      return this.tagPrefix(name, attrs).raw('>').pushIndent();
     },
     close: function() {
       var name = this.inStack.pop();
