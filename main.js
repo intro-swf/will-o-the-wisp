@@ -638,7 +638,7 @@ function(
     context.files[file.name] = file;
     var fontIDs = Object.keys(context.fonts);
     for (var font_i = 0; font_i < fontIDs.length; font_i++) {
-      var font = fontIDs[font_i];
+      var font = context.fonts[fontIDs[font_i]];
       font.file = font.toFile(font.filename, 'image/svg+xml');
       context.files[font.file] = font.file;
       console.log(font.toString());
