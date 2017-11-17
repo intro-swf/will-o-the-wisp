@@ -19,11 +19,11 @@ define(function() {
     });
   }
   
-  function xmlWriter() {
+  function XMLWriter() {
     this.buf = [];
     this.inStack = [];
   }
-  xmlWriter.prototype = {
+  XMLWriter.prototype = {
     indent: '',
     toString: function() {
       return this.buf.join('');
@@ -70,6 +70,6 @@ define(function() {
     },
   };
   
-  return xmlWriter;
+  return XMLWriter;
 
 });
