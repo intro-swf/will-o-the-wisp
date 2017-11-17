@@ -722,9 +722,18 @@ function(
     return points;
   }
   
+  function Matrix() {
+  }
+  Matrix.prototype = {
+    a: 1, b: 0, c:0, d:1, e:0, f:0,
+    toString: function() {
+      return 'matrix(' + [this.a, this.b, this.c, this.d, this.e, this.f].join(', ') + ')';
+    },
+  }
+  
   function read_matrix(bytes, offset) {
     var bits = bitreader(bytes, offset);
-    var matrix = {};
+    var matrix = new Matrix;
     if (bits(1, false)) {
       var scaleBits = bits(5, false);
       matrix.a = bits(scaleBits, true) / 0x10000;
