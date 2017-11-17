@@ -7,11 +7,13 @@ require([
   'domReady!', // use domReady.js plugin to require DOM readiness
   'bytecodeIO',
   'avm',
+  'XMLWriter',
 ],
 function(
   domReady // unused value
   ,bytecodeIO
   ,avm
+  ,XMLWriter
 ){
   
   'use strict';
@@ -34,13 +36,13 @@ function(
           if (chunk.length !== 0) {
             console.warn('unexpected data: End');
           }
-          context.push('<swf:End/>');
+          context.empty('swf:End');
           break;
         case 1:
           if (chunk.length !== 0) {
             console.warn('unexpected data: ShowFrame');
           }
-          context.push('<swf:ShowFrame/>');
+          context.empty('swf:ShowFrame');
           break;
         case 2:
         case 22:
@@ -70,22 +72,31 @@ function(
             throw new Error('DefineBits without JPEGTables');
           }
           var characterID = chunk[0] | (chunk[1] << 8);
-          context.push('<swf:DefineBits character="'+characterID+'" href="'+characterID+'.jpg"/>');
-          context.files[characterID+'.jpg'] = new File(
+          var file = new File(
             [tables.slice(0, -2), chunk.subarray(2)],
             characterID+'.jpg',
             {type:'image/jpeg'});
+          context.files[file.name] = file;
+          context.empty('swf:DefineBits', {
+            character: characterID,
+            href: file.name,
+          });
           break;
         case 8:
-          context.files['tables.jpg'] = new File(
+          var file = new File(
             [chunk],
             'tables.jpg',
-            {type:'image/jpeg'});
-          context.push('<swf:JPEGTables href="tables.jpg"/>');
+            {type:'image/jpeg'})
+          context.files['tables.jpg'] = file;
+          context.empty('swf:JPEGTables', {
+            href: file.name,
+          });
           break;
         case 9:
           var rgb = read_rgb(chunk, 0);
-          context.push('<swf:SetBackgroundColor color="' + rgb + '"/>');
+          context.empty('swf:SetBackgroundColor', {
+            color: rgb,
+          });
           break;
         case 10:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -227,12 +238,11 @@ function(
                        + '</swf:SoundStreamHead>');
           break;
         case 24:
-          if (chunk.length === 0) {
-            context.push('<swf:Protect/>');
+          var attrs = {};
+          if (chunk.length !== 0) {
+            attrs['password-md5'] = read_string(chunk);
           }
-          else {
-            context.push('<swf:Protect password-md5="' + read_string(chunk) + '"/>');
-          }
+          context.empty('swf:Protect', attrs);
           break;
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -279,7 +289,9 @@ function(
             throw new Error('RemoveObject2: not enough data');
           }
           var depth = chunk[0] | (chunk[1] << 8);
-          context.push('<swf:RemoveObject2 depth="' + depth + '"/>');
+          context.empty('swf:RemoveObject2', {
+            depth: depth,
+          });
           break;
         case 34:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -350,7 +362,7 @@ function(
           break;
         case 43:
           var frameLabel = read_string(chunk);
-          context.push('<swf:FrameLabel>' + frameLabel.replace('&','&amp;').replace(/</, '&lt;') + '</swf:FrameLabel>');
+          context.text('swf:FrameLabel', {}, frameLabel);
           break;
         default:
           console.log(chunkType, chunk);
@@ -380,23 +392,25 @@ function(
     offset += 2;
     var widthTwips = frameRect.right - frameRect.left;
     var heightTwips = frameRect.bottom - frameRect.top;
-    var context = [
-      '<svg width="'+ widthTwips/20 + '"'
-      + ' height="' + heightTwips/20 + '"'
-      + ' viewBox="' + frameRect.left + ' ' + frameRect.top + ' ' + frameRect.right + ' ' + frameRect.bottom + '"'
-      + ' xmlns:swf="intro.swf"'
-      + ' swf:version="'+header.version+'"'
-      + ' swf:frames-per-second="' + framesPerSecond + '"'
-      + '>'
-    ];
+    var context = new XMLWriter();
+    context.open('svg', {
+      width: widthTwips/20,
+      height: heightTwips/20,
+      viewBox: [frameRect.left, frameRect.top, frameRect.right, frameRect.bottom].join(' '),
+      'xmlns:swf': "intro.swf",
+      'swf:version': header.version,
+      'swf:frames-per-second:' framesPerSecond,
+    });
     context.files = {};
     read_chunks(body, offset, context);
-    context.push('</svg>');
-    context.files['movie.svg'] = new File(
+    context.close();
+    var file = new File(
       context,
       'movie.svg',
-      {type:'image/svg+xml'});
-    console.log(context.join(''), context.files);
+      {type:'image/svg+xml'})
+    context.files[file.name] = file;
+    console.log(context.toString());
+    console.log(context.files);
   }
   
   // function called on a blob containing swf data
