@@ -675,7 +675,9 @@ function(
       for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
         var glyph = font.glyphs[i_glyph];
         var glyphID = fontIDs[font_i] + 'g' + i_glyph;
-        fontWriter.open('glyph', {id:glyphID, unicode: glyph.char});
+        var glyphAttrs = {id:glyphID, unicode: glyph.char};
+        if ('advance' in glyph) glyphAttrs['horiz-adv-x'] = glyph.advance;
+        fontWriter.open('glyph', glyphAttrs);
         write_path(fontWriter, font.glyphs[i_glyph], glyphID);
         fontWriter.close();
       }
