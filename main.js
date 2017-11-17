@@ -345,6 +345,22 @@ function(
           if (chunkOffset !== chunk.length) {
             console.warn('unexpected data after PlaceObject2');
           }
+          if (!colorTransform || !colorTransform.multiply || (colorTransform.add && colorTransform.add.a)) {
+            attrs.opacity = 1;
+          }
+          else {
+            attrs.opacity = colorTransform.multiply.a;
+            colorTransform.multiply.a = 1;
+            if (colorTransform.multiply.r !== 1 || colorTransform.multiply.g !== 1 || colorTransform.multiply.b !== 1) {
+              delete colorTransform.multiply;
+            }
+            if (colorTransform.add && colorTransform.add.r === 0 && colorTransform.add.g === 0 && colorTransform.add.b === 0) {
+              delete colorTransform.add;
+            }
+            if (!colorTransform.multiply && !colorTransform.add) {
+              colorTransform = null;
+            }
+          }
           context.open('swf:PlaceObject', attrs);
           if (colorTransform) {
             context.open('filter');
