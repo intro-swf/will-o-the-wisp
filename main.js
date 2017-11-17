@@ -399,7 +399,7 @@ function(
       viewBox: [frameRect.left, frameRect.top, frameRect.right, frameRect.bottom].join(' '),
       'xmlns:swf': "intro.swf",
       'swf:version': header.version,
-      'swf:frames-per-second:' framesPerSecond,
+      'swf:frames-per-second': framesPerSecond,
     });
     context.files = {};
     read_chunks(body, offset, context);
