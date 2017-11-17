@@ -79,150 +79,7 @@ function(
             styleText.push('.' + attrs.id + '_stroke' + style_i + ' {' + JSON.stringify(strokeStyles[style_i]) + '}');
           }
           context.text('style', styleText.join('\n'));
-          var x=0, y=0, startX, startY;
-          var d = [];
-          var fillClass = attrs.id + '_fill0';
-          var strokeClass = attrs.id + '_stroke0';
-          function endPathAt(n) {
-            for (;;) {
-              if (n >= path.length) return true;
-              switch (path[n]) {
-                case 'fill':
-                case 'stroke':
-                case 'm':
-                  return true;
-                case 'styles':
-                  break;
-                default:
-                  return false;
-              }
-              n++;
-            }
-          }
-          for (var path_i = 0; path_i < path.length; path_i++) {
-            var step = path[path_i];
-            switch (step.type) {
-              default:
-                throw new Error('unknown step type');
-              case 'fill':
-                fillClass = attrs.id + '_fill' + step.values[0] + '_' + step.values[1];
-                break;
-              case 'stroke':
-                strokeClass = attrs.id + '_stroke' + step.values[1];
-                break;
-              case 'styles':
-                throw new Error('NYI');
-              case 'm':
-                if (d.length > 0) {
-                  context.empty('path', {class: fillClass+' '+strokeClass, d:d.join(' ')});
-                  d = [];
-                }
-                startX = x += step.values[0];
-                startY = y += step.values[1];
-                d.push('m' + step.values[0] + ',' + step.values[1]);
-                while (path[path_i+1] && path[path_i+1].type === 'l') {
-                  step = path[++path_i];
-                  x += step.values[0];
-                  y += step.values[1];
-                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
-                    d.push('z');
-                    break;
-                  }
-                  d.push(step.values[0] + ',' + step.values[1]);
-                }
-                break;
-              case 'l':
-                var prefix = 'l';
-                for (;;) {
-                  step = path[path_i];
-                  x += step.values[0];
-                  y += step.values[1];
-                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
-                    d.push('z');
-                    break;
-                  }
-                  d.push(prefix + step.values[0] + ',' + step.values[1]);
-                  prefix = '';
-                  if (path[path_i+1] && path[path_i+1].type === 'l') {
-                    path_i++;
-                    continue;
-                  }
-                  break;
-                }
-                break;
-              case 'q':
-                var prefix = 'q';
-                for (;;) {
-                  step = path[path_i];
-                  x += step.values[2];
-                  y += step.values[3];
-                  d.push(prefix + step.values[0] + ',' + step.values[1] + ' ' + step.values[2] + ',' + step.values[3]);
-                  prefix = '';
-                  if (!path[path_i+1] || path[path_i+1].type !== 'q') {
-                    break;
-                  }
-                  path_i++;
-                }
-                break;
-              case 'h':
-                var prefix = 'h';
-                for (;;) {
-                  step = path[path_i];
-                  x += step.values[0];
-                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
-                    d.push('z');
-                    break;
-                  }
-                  d.push(prefix + step.values[0]);
-                  prefix = '';
-                  if (path[path_i+1] && path[path_i+1].type === 'v') {
-                    step = path[++path_i];
-                    y += step.values[0];
-                    if (x === startX && y === startY && endPathAt(path_i + 1)) {
-                      d.push('z');
-                      break;
-                    }
-                    d.push(step.values[0]);
-                    if (path[path_i+1] && path[path_i+1].type === 'h') {
-                      path_i++;
-                      continue;
-                    }
-                  }
-                  break;
-                }
-                break;
-              case 'v':
-                var prefix = 'v';
-                for (;;) {
-                  step = path[path_i];
-                  y += step.values[0];
-                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
-                    d.push('z');
-                    break;
-                  }
-                  d.push(prefix + step.values[0]);
-                  prefix = '';
-                  if (path[path_i+1] && path[path_i+1].type === 'h') {
-                    step = path[++path_i];
-                    x += step.values[0];
-                    if (x === startX && y === startY && endPathAt(path_i + 1)) {
-                      d.push('z');
-                      break;
-                    }
-                    d.push(step.values[0]);
-                    if (path[path_i+1] && path[path_i+1].type === 'v') {
-                      path_i++;
-                      continue;
-                    }
-                  }
-                  break;
-                }
-                break;
-            }
-          }
-          if (d.length > 0) {
-            context.empty('path', {class:fillClass+' '+strokeClass, d:d.join(' ')});
-          }
+          write_path(context, path, attrs.id);
           context.close();
           break;
         case 6:
@@ -259,13 +116,16 @@ function(
           break;
         case 10:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var font = {id: chunkDV.getUint16(0, true)};
-          font.glyphs = new Array(chunkDV.getUint16(2, true) / 2);
+          var fontID = '_' + chunkDV.getUint16(0, true)};
+          context.open('g', {class:'font', id:fontID});
           for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
+            var glyphID = fontID + 'g' + i_glyph;
             var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
-            font.glyphs[i_glyph] = read_path(chunk, pathOffset);
+            context.open('g', {id:glyphID});
+            write_path(context, read_path(chunk, pathOffset), glyphID);
+            context.close();
           }
-          console.log('DefineFont', font);
+          context.close();
           break;
         case 11:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -579,6 +439,153 @@ function(
         default:
           console.log(chunkType, chunk);
       }
+    }
+  }
+  
+  function write_path(context, path, id_base) {
+    var x=0, y=0, startX, startY;
+    var d = [];
+    var fillClass = id_base + '_fill0';
+    var strokeClass = id_base + '_stroke0';
+    function endPathAt(n) {
+      for (;;) {
+        if (n >= path.length) return true;
+        switch (path[n]) {
+          case 'fill':
+          case 'stroke':
+          case 'm':
+            return true;
+          case 'styles':
+            break;
+          default:
+            return false;
+        }
+        n++;
+      }
+    }
+    for (var path_i = 0; path_i < path.length; path_i++) {
+      var step = path[path_i];
+      switch (step.type) {
+        default:
+          throw new Error('unknown step type');
+        case 'fill':
+          fillClass = id_base + '_fill' + step.values[0] + '_' + step.values[1];
+          break;
+        case 'stroke':
+          strokeClass = id_base + '_stroke' + step.values[1];
+          break;
+        case 'styles':
+          throw new Error('NYI');
+        case 'm':
+          if (d.length > 0) {
+            context.empty('path', {class: fillClass+' '+strokeClass, d:d.join(' ')});
+            d = [];
+          }
+          startX = x += step.values[0];
+          startY = y += step.values[1];
+          d.push('m' + step.values[0] + ',' + step.values[1]);
+          while (path[path_i+1] && path[path_i+1].type === 'l') {
+            step = path[++path_i];
+            x += step.values[0];
+            y += step.values[1];
+            if (x === startX && y === startY && endPathAt(path_i + 1)) {
+              d.push('z');
+              break;
+            }
+            d.push(step.values[0] + ',' + step.values[1]);
+          }
+          break;
+        case 'l':
+          var prefix = 'l';
+          for (;;) {
+            step = path[path_i];
+            x += step.values[0];
+            y += step.values[1];
+            if (x === startX && y === startY && endPathAt(path_i + 1)) {
+              d.push('z');
+              break;
+            }
+            d.push(prefix + step.values[0] + ',' + step.values[1]);
+            prefix = '';
+            if (path[path_i+1] && path[path_i+1].type === 'l') {
+              path_i++;
+              continue;
+            }
+            break;
+          }
+          break;
+        case 'q':
+          var prefix = 'q';
+          for (;;) {
+            step = path[path_i];
+            x += step.values[2];
+            y += step.values[3];
+            d.push(prefix + step.values[0] + ',' + step.values[1] + ' ' + step.values[2] + ',' + step.values[3]);
+            prefix = '';
+            if (!path[path_i+1] || path[path_i+1].type !== 'q') {
+              break;
+            }
+            path_i++;
+          }
+          break;
+        case 'h':
+          var prefix = 'h';
+          for (;;) {
+            step = path[path_i];
+            x += step.values[0];
+            if (x === startX && y === startY && endPathAt(path_i + 1)) {
+              d.push('z');
+              break;
+            }
+            d.push(prefix + step.values[0]);
+            prefix = '';
+            if (path[path_i+1] && path[path_i+1].type === 'v') {
+              step = path[++path_i];
+              y += step.values[0];
+              if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                d.push('z');
+                break;
+              }
+              d.push(step.values[0]);
+              if (path[path_i+1] && path[path_i+1].type === 'h') {
+                path_i++;
+                continue;
+              }
+            }
+            break;
+          }
+          break;
+        case 'v':
+          var prefix = 'v';
+          for (;;) {
+            step = path[path_i];
+            y += step.values[0];
+            if (x === startX && y === startY && endPathAt(path_i + 1)) {
+              d.push('z');
+              break;
+            }
+            d.push(prefix + step.values[0]);
+            prefix = '';
+            if (path[path_i+1] && path[path_i+1].type === 'h') {
+              step = path[++path_i];
+              x += step.values[0];
+              if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                d.push('z');
+                break;
+              }
+              d.push(step.values[0]);
+              if (path[path_i+1] && path[path_i+1].type === 'v') {
+                path_i++;
+                continue;
+              }
+            }
+            break;
+          }
+          break;
+      }
+    }
+    if (d.length > 0) {
+      context.empty('path', {class:fillClass+' '+strokeClass, d:d.join(' ')});
     }
   }
   
