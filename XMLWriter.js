@@ -30,12 +30,15 @@ define(function() {
     },
     raw: function(v) {
       this.buf.push(v);
+      return this;
     },
     encoded: function(v, quot) {
       this.buf.push(encode(v, quot));
+      return this;
     },
     quoted: function(v) {
       this.buf.push('"' + encode(v, '"') + '"');
+      return this;
     },
     tagPrefix: function(name, attrs) {
       this.raw('<' + name);
