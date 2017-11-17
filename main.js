@@ -176,6 +176,7 @@ function(
                     y += step.values[0];
                     d.push(step.values[0]);
                     if (path[path_i+1] && path[path_i+1].type === 'h') {
+                      path_i++;
                       continue;
                     }
                   }
@@ -193,6 +194,7 @@ function(
                     x += step.values[0];
                     d.push(step.values[0]);
                     if (path[path_i+1] && path[path_i+1].type === 'v') {
+                      path_i++;
                       continue;
                     }
                   }
