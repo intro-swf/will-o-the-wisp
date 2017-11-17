@@ -195,7 +195,6 @@ function(
                 }
                 else glyph.advance = advance;
               }
-              var textAttrs = {};
               if (advances.custom) {
                 advances.pop();
                 textAttrs.dx = advances.join(' ');
