@@ -72,17 +72,24 @@ define(function() {
       return this.tagPrefix(name, attrs).raw('/>');
     },
     text: function(name, attrs, text) {
+      if (typeof attrs === 'string') {
+        text = attrs;
+        attrs = null;
+      }
       if (/[\r\n]/.test(text)) {
         this.pushIndent();
         text = this.indent + (''+text).replace(/\r\n|\n|\r/g, this.indent);
         this.popIndent();
         text += this.indent;
       }
+      return this.tagPrefix(name, attrs).raw('>').encoded(text).raw('</' + name + '>');
+    },
+    textExact: function(name, attrs, text) {
       if (typeof attrs === 'string') {
         text = attrs;
         attrs = null;
       }
-      return this.tagPrefix(name, attrs).raw('>').encoded(text).raw('</' + name + '>');
+      return this.tagPrefix(name, attrs).raw('><![CDATA[').raw(text.replace(/\]\]>/g, ']]>]]&gt;<![CDATA[')).raw('</' + name + '>');
     },
     toFile: function(name, type) {
       return new File(this.buf, name, {type:type || 'application/xml'});
