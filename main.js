@@ -94,7 +94,7 @@ function(
             {type:'image/jpeg'});
           context.files[file.name] = file;
           context.empty('swf:DefineBits', {
-            character: characterID,
+            id: '_' + characterID,
             href: file.name,
           });
           break;
