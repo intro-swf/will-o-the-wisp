@@ -89,7 +89,7 @@ define(function() {
         text = attrs;
         attrs = null;
       }
-      return this.tagPrefix(name, attrs).raw('><![CDATA[').raw(text.replace(/\]\]>/g, ']]>]]&gt;<![CDATA[')).raw('</' + name + '>');
+      return this.tagPrefix(name, attrs).raw('><![CDATA[').raw(text.replace(/\]\]>/g, ']]>]]&gt;<![CDATA[')).raw(']]></' + name + '>');
     },
     toFile: function(name, type) {
       return new File(this.buf, name, {type:type || 'application/xml'});
