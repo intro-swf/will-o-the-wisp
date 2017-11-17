@@ -156,9 +156,6 @@ function(
           break;
         case 12:
           var actions = read_actions(chunk);
-          if (actions.endOffset !== chunk.length) {
-            console.warn('unexpected data after DoAction');
-          }
           console.log('DoAction', actions);
           break;
         case 13:
