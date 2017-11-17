@@ -643,7 +643,12 @@ function(
   function read_actions(bytes) {
     var bin = new bytecodeIO.BinaryReader(bytes);
     bin.littleEndian = true;
-    return avm.readBinary(bin);
+    var parts = avm.readBinary(bin);
+    var sout = new bytecodeIO.SymbolWriter();
+    parts.forEach(function(part) {
+      part.writeSymbols(sout);
+    });
+    return sout.toString();
     var offset = 0;
     var actions = [];
     var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
