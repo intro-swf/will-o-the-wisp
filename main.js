@@ -351,18 +351,13 @@ function(
             context.open('feComponentTransfer');
             var funcR = {}, funcG = {}, funcB = {}, funcA = {};
             if (colorTransform.multiply) {
-              if (colorTransform.multiply.r !== 1) {
-                funcR.slope = colorTransform.multiply.r;
-              }
-              if (colorTransform.multiply.g !== 1) {
-                funcG.slope = colorTransform.multiply.g;
-              }
-              if (colorTransform.multiply.b !== 1) {
-                funcB.slope = colorTransform.multiply.b;
-              }
-              if (colorTransform.multiply.a !== 1) {
-                funcA.slope = colorTransform.multiply.a;
-              }
+              funcR.slope = colorTransform.multiply.r;
+              funcG.slope = colorTransform.multiply.g;
+              funcB.slope = colorTransform.multiply.b;
+              funcA.slope = colorTransform.multiply.a;
+            }
+            else {
+              funcR.slope = funcG.slope = funcB.slope = funcA.slope = 1;
             }
             if (colorTransform.add) {
               if (colorTransform.add.r !== 0) {
@@ -378,16 +373,16 @@ function(
                 funcA.intercept = colorTransform.add.a/255;
               }
             }
-            if (funcR.slope || funcR.intercept) {
+            if (funcR.slope !== 1 || funcR.intercept !== 0) {
               context.empty('feFuncR', funcR);
             }
-            if (funcG.slope || funcG.intercept) {
+            if (funcG.slope !== 1 || funcG.intercept !== 0) {
               context.empty('feFuncG', funcG);
             }
-            if (funcB.slope || funcB.intercept) {
+            if (funcB.slope !== 1 || funcB.intercept !== 0) {
               context.empty('feFuncB', funcB);
             }
-            if (funcA.slope || funcA.intercept) {
+            if (funcA.slope !== 1 || funcA.intercept !== 0) {
               context.empty('feFuncA', funcA);
             }
             context.close();
