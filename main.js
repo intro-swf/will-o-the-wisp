@@ -404,10 +404,7 @@ function(
     context.files = {};
     read_chunks(body, offset, context);
     context.close();
-    var file = new File(
-      context,
-      'movie.svg',
-      {type:'image/svg+xml'})
+    var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
     console.log(context.toString());
     console.log(context.files);
