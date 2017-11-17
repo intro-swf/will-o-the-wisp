@@ -117,16 +117,23 @@ function(
         case 10:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontID = '_' + chunkDV.getUint16(0, true);
+          var font = context.fonts[fontID] = new XMLWriter();
+          font.filename = fontID + '.font.svg';
+          font.open('svg', {
+            xmlns:"http://www.w3.org/2000/svg",
+            'xmlns:xlink':"http://www.w3.org/1999/xlink",
+            'xmlns:swf':"intro.swf",
+          });
           var glyphCount = chunkDV.getUint16(2, true) / 2;
-          context.open('g', {class:'font', id:fontID});
+          font.open('g', {class:'font', id:fontID});
           for (var i_glyph = 0; i_glyph < glyphCount; i_glyph++) {
             var glyphID = fontID + 'g' + i_glyph;
             var pathOffset = 2 + chunkDV.getUint16(2 + i_glyph*2, true);
-            context.open('g', {id:glyphID});
-            write_path(context, read_path(chunk, pathOffset), glyphID);
-            context.close();
+            font.open('g', {id:glyphID});
+            write_path(font, read_path(chunk, pathOffset), glyphID);
+            font.close();
           }
-          context.close();
+          context.empty('swf:DefineFont', {'xlink:href': font.filename});
           break;
         case 11:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -624,10 +631,18 @@ function(
       'swf:frames-per-second': framesPerSecond,
     });
     context.files = {};
+    context.fonts = {};
     read_chunks(body, offset, context);
     context.close();
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
+    var fontIDs = Object.keys(context.fonts);
+    for (var font_i = 0; font_i < fontIDs.length; font_i++) {
+      var font = fontIDs[font_i];
+      font.file = font.toFile(font.filename, 'image/svg+xml');
+      context.files[font.file] = font.file;
+      console.log(font.toString());
+    }
     console.log(context.toString());
     console.log(context.files);
   }
