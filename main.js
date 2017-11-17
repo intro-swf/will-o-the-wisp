@@ -373,6 +373,9 @@ function(
                 funcA.intercept = colorTransform.add.a/255;
               }
             }
+            else {
+              funcR.intercept = funcG.intercept = funcB.intercept = funcA.intercept = 0;
+            }
             if (funcR.slope !== 1 || funcR.intercept !== 0) {
               context.empty('feFuncR', funcR);
             }
