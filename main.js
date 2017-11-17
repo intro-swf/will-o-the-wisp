@@ -43,7 +43,7 @@ function(
             console.warn('unexpected data: ShowFrame');
           }
           var count = 1;
-          while (body[offset] === 1) {
+          while (body[offset] === (1 << 6)) {
             offset++;
             count++;
           }
