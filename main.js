@@ -42,7 +42,12 @@ function(
           if (chunk.length !== 0) {
             console.warn('unexpected data: ShowFrame');
           }
-          context.empty('swf:ShowFrame');
+          var count = 1;
+          while (body[offset] === 1) {
+            offset++;
+            count++;
+          }
+          context.empty('swf:ShowFrame', count === 1 ? null : {count:count});
           break;
         case 2:
         case 22:
