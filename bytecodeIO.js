@@ -498,7 +498,7 @@ define(function() {
       return this;
     },
     toString: function() {
-      return this.parts.join('');
+      return this.parts.join(' ');
     },
     int: function(v) {
       this.parts.push(v.toString());
