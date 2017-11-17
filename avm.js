@@ -20,6 +20,8 @@ define(['bytecodeIO'], function(bytecodeIO) {
   
   function op(name, code) {
     var op = new bytecodeIO.Op();
+    op.name = name;
+    op.code = code;
     op.symbol(name).u8(code);
     avm[name] = avm[code] = op;
     return op;
