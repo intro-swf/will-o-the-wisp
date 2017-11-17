@@ -730,14 +730,14 @@ function(
     a: 1, b: 0, c:0, d:1, e:0, f:0,
     toString: function() {
       if (this.a === 1 && this.b === 0 && this.c === 0 && this.d === 1) {
-        return 'translate(' + this.e + ', ' + this.f + ')');
+        return 'translate(' + this.e + ', ' + this.f + ')';
       }
       if (this.b === 0 && this.c === 0 && this.e === 0 && this.f === 0) {
         if (this.a === this.d) {
-          return 'scale(' + this.a + ')');
+          return 'scale(' + this.a + ')';
         }
         else {
-          return 'scale(' + this.a + ', ' + this.d + ')');
+          return 'scale(' + this.a + ', ' + this.d + ')';
         }
       }
       return 'matrix(' + [this.a, this.b, this.c, this.d, this.e, this.f].join(', ') + ')';
