@@ -119,31 +119,30 @@ function(
                 }
                 startX = x += step.values[0];
                 startY = y += step.values[1];
-                d.push('m ' + step.values[0] + ',' + step.values[1]);
+                d.push('m' + step.values[0] + ',' + step.values[1]);
                 while (path[path_i+1] && path[path_i+1].type === 'l') {
                   step = path[++path_i];
                   x += step.values[0];
                   y += step.values[1];
                   if (x === startX && y === startY && endPathAt(path_i + 1)) {
                     d.push('z');
+                    break;
                   }
-                  else {
-                    d.push(step.values[0] + ',' + step.values[1]);
-                  }
+                  d.push(step.values[0] + ',' + step.values[1]);
                 }
                 break;
               case 'l':
-                d.push('l');
+                var prefix = 'l';
                 for (;;) {
                   step = path[path_i];
                   x += step.values[0];
                   y += step.values[1];
                   if (x === startX && y === startY && endPathAt(path_i + 1)) {
                     d.push('z');
+                    break;
                   }
-                  else {
-                    d.push(step.values[0] + ',' + step.values[1]);
-                  }
+                  d.push(prefix + step.values[0] + ',' + step.values[1]);
+                  prefix = '';
                   if (path[path_i+1] && path[path_i+1].type === 'l') {
                     path_i++;
                     continue;
@@ -152,28 +151,37 @@ function(
                 }
                 break;
               case 'q':
-                d.push('q');
+                var prefix = 'q';
                 for (;;) {
                   step = path[path_i];
                   x += step.values[2];
                   y += step.values[3];
-                  d.push(step.values[0] + ',' + step.values[1] + ' ' + step.values[2] + ',' + step.values[3]);
-                  if (path[path_i+1] && path[path_i+1].type === 'q') {
-                    path_i++;
-                    continue;
+                  d.push(prefix + step.values[0] + ',' + step.values[1] + ' ' + step.values[2] + ',' + step.values[3]);
+                  prefix = '';
+                  if (!path[path_i+1] || path[path_i+1].type !== 'q') {
+                    break;
                   }
-                  break;
+                  path_i++;
                 }
                 break;
               case 'h':
-                d.push('h');
+                var prefix = 'h';
                 for (;;) {
                   step = path[path_i];
                   x += step.values[0];
-                  d.push(step.values[0]);
+                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                    d.push('z');
+                    break;
+                  }
+                  d.push(prefix + step.values[0]);
+                  prefix = '';
                   if (path[path_i+1] && path[path_i+1].type === 'v') {
                     step = path[++path_i];
                     y += step.values[0];
+                    if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                      d.push('z');
+                      break;
+                    }
                     d.push(step.values[0]);
                     if (path[path_i+1] && path[path_i+1].type === 'h') {
                       path_i++;
@@ -184,14 +192,23 @@ function(
                 }
                 break;
               case 'v':
-                d.push('v');
+                var prefix = 'v';
                 for (;;) {
                   step = path[path_i];
                   y += step.values[0];
-                  d.push(step.values[0]);
+                  if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                    d.push('z');
+                    break;
+                  }
+                  d.push(prefix + step.values[0]);
+                  prefix = '';
                   if (path[path_i+1] && path[path_i+1].type === 'h') {
                     step = path[++path_i];
                     x += step.values[0];
+                    if (x === startX && y === startY && endPathAt(path_i + 1)) {
+                      d.push('z');
+                      break;
+                    }
                     d.push(step.values[0]);
                     if (path[path_i+1] && path[path_i+1].type === 'v') {
                       path_i++;
