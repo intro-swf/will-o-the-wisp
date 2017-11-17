@@ -212,7 +212,7 @@ function(
           break;
         case 12:
           var actions = read_actions(chunk);
-          console.log('DoAction', actions);
+          context.textExact('swf:DoAction', actions.toString());
           break;
         case 13:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
