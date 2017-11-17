@@ -360,18 +360,10 @@ function(
               funcR.slope = funcG.slope = funcB.slope = funcA.slope = 1;
             }
             if (colorTransform.add) {
-              if (colorTransform.add.r !== 0) {
-                funcR.intercept = colorTransform.add.r/255;
-              }
-              if (colorTransform.add.g !== 0) {
-                funcG.intercept = colorTransform.add.g/255;
-              }
-              if (colorTransform.add.b !== 0) {
-                funcB.intercept = colorTransform.add.b/255;
-              }
-              if (colorTransform.add.a !== 0) {
-                funcA.intercept = colorTransform.add.a/255;
-              }
+              funcR.intercept = colorTransform.add.r/255;
+              funcG.intercept = colorTransform.add.g/255;
+              funcB.intercept = colorTransform.add.b/255;
+              funcA.intercept = colorTransform.add.a/255;
             }
             else {
               funcR.intercept = funcG.intercept = funcB.intercept = funcA.intercept = 0;
