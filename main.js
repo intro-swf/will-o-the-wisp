@@ -1254,7 +1254,6 @@ function(
         offset += 3;
       }
       strokeStyles[i_stroke] = {widthTwips:widthTwips, style:style};
-      offset += 2;
     }
     strokeStyles.endOffset = offset;
     return strokeStyles;
