@@ -410,7 +410,7 @@ function(
           var chunkOffset = 3;
           if (flags & 1) attrs['swf:move'] = true;
           if (flags & 2) {
-            attrs.href = '#_' + chunkDV.getUint16(chunkOffset, true);
+            attrs['xlink:href'] = '#_' + chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           if (flags & 4) {
@@ -605,10 +605,12 @@ function(
     var heightTwips = frameRect.bottom - frameRect.top;
     var context = new XMLWriter();
     context.open('svg', {
+      xmlns:"http://www.w3.org/2000/svg",
+      'xmlns:xlink':"http://www.w3.org/1999/xlink",
+      'xmlns:swf':"intro.swf",
       width: widthTwips/20,
       height: heightTwips/20,
       viewBox: [frameRect.left, frameRect.top, frameRect.right, frameRect.bottom].join(' '),
-      'xmlns:swf': "intro.swf",
       'swf:version': header.version,
       'swf:frames-per-second': framesPerSecond,
     });
