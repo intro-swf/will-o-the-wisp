@@ -414,34 +414,42 @@ function(
           break;
         case 34:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var def = {characterID: chunkDV.getUint16(0, true)};
-          def.isMenuButton = !!(chunk[2] & 1);
+          context.open('g', {
+            class: chunk[2] & 1 ? 'menu button' : 'button',
+            id: '_' + chunkDV.getUint16(0, true),
+          });
           var actionOffset = 3 + chunkDV.getUint16(3, true);
           var chunkOffset = 5;
-          def.records = [];
           while (chunkOffset < actionOffset) {
             var flags = chunk[chunkOffset++];
             if (flags === 0) break;
-            var record = {
-              up: !!(flags & 1),
-              over: !!(flags & 2),
-              down: !!(flags & 4),
-              hitTest: !!(flags & 8),
-              characterID: chunkDV.getUint16(chunkOffset, true),
-              depth: chunkDV.getUint16(chunkOffset+2, true),
-            };
-            record.matrix = read_matrix(chunk, chunkOffset + 4);
-            chunkOffset = record.matrix.endOffset;
-            if (true /* only for DefineButton2 */) {
-              record.colorTransform = read_color_transform(chunk, chunkOffset, true);
-              chunkOffset = record.colorTransform.endOffset;
+            var stateAttrs = {};
+            var classList = [];
+            if (flags & 1) classList.push('up');
+            if (flags & 2) classList.push('over');
+            if (flags & 4) classList.push('down');
+            if (flags & 7) classList.push('hit-test');
+            if (classList.length > 0) {
+              stateAttrs.class = classList.join(' ');
             }
-            def.records.push(record);
+            stateAttrs.href = '#_' + chunkDV.getUint16(chunkOffset, true);
+            stateAttrs.depth = chunkDV.getUint16(chunkOffset+2, true);
+            var matrix = read_matrix(chunk, chunkOffset + 4);
+            chunkOffset = matrix.endOffset;
+            if (!matrix.isIdentity) {
+              stateAttrs.transform = matrix.toString();
+            }
+            var colorTransform;
+            if (true /* only for DefineButton2 */) {
+              colorTransform = read_color_transform(chunk, chunkOffset, true);
+              chunkOffset = colorTransform.endOffset;
+              stateAttrs.colorTransform = colorTransform+'';
+            }
+            context.empty('use', stateAttrs);
           }
           if (chunkOffset < actionOffset) {
             throw new Error('unexpected data');
           }
-          def.actions = [];
           while (chunkOffset < chunk.length) {
             var nextActionOffset = chunkOffset + chunkDV.getUint16(chunkOffset, true);
             if (nextActionOffset === chunkOffset) {
@@ -449,28 +457,29 @@ function(
               break;
             }
             var flags = chunk[chunkOffset += 2];
-            var action = {
-              keyCode: flags >>> 1,
-              overDownToIdle: !!(flags & 1),
-            };
+            var actionAttrs = {};
+            var keyCode = flags >>> 1;
+            if (keyCode) actionAttrs['key-code'] = keyCode;
+            var classList = [];
+            if (flags & 1) classList.push('idle-to-over-up');
             flags = chunk[chunkOffset++];
-            action.idleToOverUp = !!(flags & 1);
-            action.overUpToIdle = !!(flags & 2);
-            action.overUpToOverDown = !!(flags & 4);
-            action.overDownToOverUp = !!(flags & 8);
-            action.overDownToOutDown = !!(flags & 0x10);
-            action.outDownToOverDown = !!(flags & 0x20);
-            action.outDownToIdle = !!(flags & 0x40);
-            action.idleToOverDown = !!(flags & 0x80);
+            if (flags & 1) classList.push('idle-to-over-up');
+            if (flags & 2) classList.push('over-up-to-idle');
+            if (flags & 4) classList.push('over-up-to-over-down');
+            if (flags & 8) classList.push('over-down-to-over-up');
+            if (flags & 0x10) classList.push('over-down-to-out-down');
+            if (flags & 0x20) classList.push('out-down-to-over-down');
+            if (flags & 0x40) classList.push('out-down-to-idle');
+            if (flags & 0x80) classList.push('idle-to-over-down');
+            if (classList.length > 0) {
+              actionAttrs.on = classList.join(' ');
+            }
             var actionBytes = chunk.slice(chunkOffset, nextActionOffset);
-            action.response = read_action(actionBytes);
-            def.actions.push(action);
+            var response = read_actions(actionBytes);
+            context.textExact('swf:DoAction', actionAttrs, response);
             chunkOffset = nextActionOffset;
           }
-          if (chunkOffset !== chunk.length) {
-            console.warn('unexpected data after DefineButton2');
-          }
-          console.log('DefineButton2', def);
+          context.close();
           break;
         case 39:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
