@@ -499,6 +499,118 @@ function(
           var frameLabel = read_string(chunk);
           context.text('swf:FrameLabel', {}, frameLabel);
           break;
+        case 46:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var morphID = '_'+chunkDV.getUint16(0, true);
+          context.open('g', {class:'morph', id+morphID});
+          var startBounds = read_twip_rect(chunk, 2);
+          var endBounds = read_twip_rect(chunk, startBounds.endOffset);
+          context.empty('rect', {
+            class:'start bounds',
+            x: startBounds.left,
+            y: startBounds.top,
+            width: startBounds.right - startBounds.left,
+            height: startBounds.bottom - startBounds.top,
+          });
+          context.empty('rect', {
+            class:'end bounds',
+            x: endBounds.left,
+            y: endBounds.top,
+            width: endBounds.right - endBounds.left,
+            height: endBounds.bottom - endBounds.top,
+          });
+          var chunkOffset = endBounds.endOffset;
+          var endOffset = chunkDV.getUint16(chunkOffset, true);
+          chunkOffset += 2;
+          var fillStyleCount = chunk[chunkOffset];
+          if (fillStyleCount === 0xFF) {
+            fillStyleCount = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          while (fillStyleCount-- > 0) {
+            var fillStyleType = chunk[chunkOffset++];
+            switch (fillStyleType) {
+              case 0x00:
+                context.empty('animate', {
+                  animateAttribute: 'fill',
+                  from: read_rgba(chunk, chunkOffset),
+                  to: read_rgba(chunk, chunkOffset + 4),
+                });
+                chunkOffset += 8;
+                break;
+              case 0x10:
+              case 0x12:
+                var startMatrix = read_matrix(chunk, chunkOffset);
+                var endMatrix = read_matrix(chunk, startMatrix.endOffset);
+                context.open(fillStyleType === 0x10 ? 'linearGradient' : 'radialGradient');
+                context.empty('animate', {
+                  attributeName: 'gradientTransform',
+                  from: startMatrix.toString(),
+                  to: endMatrix.toString(),
+                });
+                var stopCount = chunk[chunkOffset++];
+                if (stopCount === 0 || stopCount > 8) {
+                  throw new Error('illegal');
+                }
+                do {
+                  context.open('stop');
+                  context.empty('animate', {
+                    attributeName: 'ratio',
+                    from: ((chunk[chunkOffset] * 100) / 0xff) + '%',
+                    to: ((chunk[chunkOffset+5] * 100) / 0xff) + '%',
+                  });
+                  context.empty('animate', {
+                    attributeName: 'stop-color',
+                    from: read_rgba(chunk, chunkOffset+1),
+                    to: read_rgba(chunk, chunkOffset+6),
+                  });
+                  context.close();
+                  chunkOffset += 10;
+                } while (--stopCount > 0);
+                context.close();
+                break;
+              case 0x40:
+              case 0x41:
+                var bitmapID = chunkDV.getUint16(chunkOffset, true);
+                var startMatrix = read_matrix(chunk, chunkOffset + 2);
+                var endMatrix = read_matrix(chunk, startMatrix.endOffset);
+                chunkOffset = endMatrix.endOffset;
+                context.open('swf:BitmapFill', {bitmapID: bitmapID});
+                context.empty('animate', {
+                  attributeName: 'transform',
+                  from: startMatrix.toString(),
+                  to: startMatrix.toString(),
+                });
+                context.close();
+                break;
+              default:
+                throw new Error('unknown morph fill');
+            }
+          }
+          var lineStyleCount = chunk[chunkOffset];
+          if (lineStyleCount === 0xFF) {
+            lineStyleCount = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          while (lineStyleCount--- > 0) {
+            context.empty('animate', {
+              attributeName: 'stroke-width',
+              from: chunkDV.getUint16(chunkOffset, true),
+              to: chunkDV.getUint16(chunkOffset + 2, true),
+            });
+            context.empty('animate', {
+              attributeName: 'stroke',
+              from: read_rgba(chunk, chunkOffset + 4),
+              to: read_rgba(chunk, chunkOffset + 8),
+            });
+            chunkOffset += 12;
+          }
+          var startPath = read_path(chunk, chunkOffset);
+          var endPath = read_path(chunk, startPath.endOffset);
+          write_path(context, startPath, morphID + 'start');
+          write_path(context, endPath, morphID + 'end');
+          context.close();
+          break;
         default:
           console.log(chunkType, chunk);
       }
