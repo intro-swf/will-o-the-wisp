@@ -522,7 +522,7 @@ function(
           var chunkOffset = endBounds.endOffset;
           var endOffset = chunkDV.getUint16(chunkOffset, true);
           chunkOffset += 2;
-          var fillStyleCount = chunk[chunkOffset];
+          var fillStyleCount = chunk[chunkOffset++];
           if (fillStyleCount === 0xFF) {
             fillStyleCount = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
