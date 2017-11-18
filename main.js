@@ -419,6 +419,7 @@ function(
             id: '_' + chunkDV.getUint16(0, true),
           });
           var actionOffset = 3 + chunkDV.getUint16(3, true);
+          if (actionOffset === 3) actionOffset = chunk.length;
           var chunkOffset = 5;
           while (chunkOffset < actionOffset) {
             var flags = chunk[chunkOffset++];
@@ -443,6 +444,11 @@ function(
             if (true /* only for DefineButton2 */) {
               colorTransform = read_color_transform(chunk, chunkOffset, true);
               chunkOffset = colorTransform.endOffset;
+              if (!colorTransform.add && !colorTransform.multiply) {
+                colorTransform = null;
+              }
+            }
+            if (colorTransform) {
               stateAttrs.colorTransform = colorTransform+'';
             }
             context.empty('use', stateAttrs);
