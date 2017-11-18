@@ -8,12 +8,14 @@ require([
   'bytecodeIO',
   'avm',
   'XMLWriter',
+  'OTFTable',
 ],
 function(
   domReady // unused value
   ,bytecodeIO
   ,avm
   ,XMLWriter
+  ,OTFTable
 ){
   
   'use strict';
@@ -813,6 +815,20 @@ function(
     context.files[file.name] = file;
     var fontIDs = Object.keys(context.fonts);
     for (var font_i = 0; font_i < fontIDs.length; font_i++) {
+      var otf = [];
+      var info = {
+        flags: 0,
+        unitsPerEm: 16, // 16 to 16384
+        xMin: 0,
+        yMin: 0,
+        xMax: 0,
+        yMax: 0,
+        smallestReadablePixelSize: 0,
+      };
+      otf.push(new OTFTable.FontHeader(info));
+      otf.file = OTFTable.joinToFile(fontIDs[font_i] + '.otf');
+      context.files[otf.file.name] = otf.file;
+      
       var font = context.fonts[fontIDs[font_i]];
       var fontWriter = new XMLWriter();
       fontWriter.open('svg', {
