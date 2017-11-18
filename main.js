@@ -523,7 +523,8 @@ function(
           strokeClass = id_base + '_stroke' + step.values[0];
           break;
         case 'styles':
-          throw new Error('NYI');
+          context.raw('<!-- ' + step.fill + ' ' + step.stroke + ' -->');
+          break;
         case 'm':
           if (d.length > 0) {
             context.empty('path', {class: fillClass+' '+strokeClass, d:d.join(' ')});
