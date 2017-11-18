@@ -587,7 +587,7 @@ function(
                 throw new Error('unknown morph fill');
             }
           }
-          var lineStyleCount = chunk[chunkOffset];
+          var lineStyleCount = chunk[chunkOffset++];
           if (lineStyleCount === 0xFF) {
             lineStyleCount = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
