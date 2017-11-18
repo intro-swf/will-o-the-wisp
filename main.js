@@ -520,7 +520,8 @@ function(
             height: endBounds.bottom - endBounds.top,
           });
           var chunkOffset = endBounds.endOffset;
-          var endPathOffset = chunkDV.getUint32(chunkOffset, true);
+          var endPathOffset = chunkOffset + chunkDV.getUint32(chunkOffset, true);
+          if (endPathOffset === chunkOffset) endPathOffset = chunk.length;
           chunkOffset += 4;
           var fillStyleCount = chunk[chunkOffset++];
           if (fillStyleCount === 0xFF) {
