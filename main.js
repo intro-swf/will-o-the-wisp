@@ -825,6 +825,14 @@ function(
         yMax: 0,
         smallestReadablePixelSize: 0,
       };
+      // OTFTable.CharacterGlyphMap
+      // OTFTable.HorizontalHeader
+      // OTFTable.HorizontalMetrics
+      // OTFTable.MaximumProfile
+      // OTFTable.Naming
+      // OTFTable.MetricsForOS2
+      // OTFTable.PostScript
+      // OTFTable.CompactFontFormat2
       otf.push(new OTFTable.FontHeader(info));
       otf.file = OTFTable.joinToFile(otf, fontIDs[font_i] + '.otf');
       context.files[otf.file.name] = otf.file;
