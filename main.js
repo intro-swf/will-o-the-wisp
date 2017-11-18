@@ -502,7 +502,7 @@ function(
         case 46:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var morphID = '_'+chunkDV.getUint16(0, true);
-          context.open('g', {class:'morph', id+morphID});
+          context.open('g', {class:'morph', id:morphID});
           var startBounds = read_twip_rect(chunk, 2);
           var endBounds = read_twip_rect(chunk, startBounds.endOffset);
           context.empty('rect', {
