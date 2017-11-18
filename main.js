@@ -592,7 +592,7 @@ function(
             lineStyleCount = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
-          while (lineStyleCount--- > 0) {
+          while (lineStyleCount-- > 0) {
             context.empty('animate', {
               attributeName: 'stroke-width',
               from: chunkDV.getUint16(chunkOffset, true),
