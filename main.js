@@ -826,7 +826,7 @@ function(
         smallestReadablePixelSize: 0,
       };
       otf.push(new OTFTable.FontHeader(info));
-      otf.file = OTFTable.joinToFile(fontIDs[font_i] + '.otf');
+      otf.file = OTFTable.joinToFile(otf, fontIDs[font_i] + '.otf');
       context.files[otf.file.name] = otf.file;
       
       var font = context.fonts[fontIDs[font_i]];
