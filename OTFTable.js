@@ -62,7 +62,7 @@ define(function() {
       getBlobParts(tables),
       {type: 'application/font-sfnt'});
   };
-  OTFTable.joinToFile = function(parts, name) {
+  OTFTable.joinToFile = function(tables, name) {
     return new File(
       getBlobParts(tables),
       name,
