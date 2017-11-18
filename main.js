@@ -520,8 +520,8 @@ function(
             height: endBounds.bottom - endBounds.top,
           });
           var chunkOffset = endBounds.endOffset;
-          var endOffset = chunkDV.getUint16(chunkOffset, true);
-          chunkOffset += 2;
+          var endPathOffset = chunkDV.getUint32(chunkOffset, true);
+          chunkOffset += 4;
           var fillStyleCount = chunk[chunkOffset++];
           if (fillStyleCount === 0xFF) {
             fillStyleCount = chunkDV.getUint16(chunkOffset, true);
@@ -606,7 +606,13 @@ function(
             chunkOffset += 12;
           }
           var startPath = read_path(chunk, chunkOffset);
+          if (startPath.endOffset !== endPathOffset) {
+            console.warn('unexpected data');
+          }
           var endPath = read_path(chunk, startPath.endOffset);
+          if (endPath.endOffset !== chunk.length) {
+            console.warn('unexpected data');
+          }
           write_path(context, startPath, morphID + 'start');
           write_path(context, endPath, morphID + 'end');
           context.close();
