@@ -18,7 +18,7 @@ define(function() {
       return checksum;
     },
   };
-  OTFTable.joinToBlob = function(tables) {
+  function getBlobParts(tables) {
     tables = tables.slice().sort(function(a, b) {
       if (a.name < b.name) return -1;
       if (a.name > b.name) return 1;
@@ -55,7 +55,18 @@ define(function() {
     if (fontHeader) {
       fontHeader.masterChecksum.setUint32(0, masterChecksum, false);
     }
-    return new Blob(parts, {type: 'application/font-sfnt'});
+    return parts;
+  }
+  OTFTable.joinToBlob = function(tables) {
+    return new Blob(
+      getBlobParts(tables),
+      {type: 'application/font-sfnt'});
+  };
+  OTFTable.joinToFile = function(parts, name) {
+    return new File(
+      getBlobParts(tables),
+      name,
+      {type: 'application/font-sfnt'});
   };
 
   OTFTable.CharacterGlyphMap = function OTFCharacterGlyphMap(map) {
