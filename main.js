@@ -564,8 +564,8 @@ function(
                   context.open('stop');
                   context.empty('animate', {
                     attributeName: 'ratio',
-                    from: ((chunk[chunkOffset] * 100) / 0xff) + '%',
-                    to: ((chunk[chunkOffset+5] * 100) / 0xff) + '%',
+                    from: percentFrom255(chunk[chunkOffset]) + '%',
+                    to: percentFrom255(chunk[chunkOffset+5]) + '%',
                   });
                   context.empty('animate', {
                     attributeName: 'stop-color',
@@ -961,7 +961,7 @@ function(
       throw new Error('unexpected end of data');
     }
     for (var i = 0; i < points.length; i++) {
-      var entry = points[i] = {ratio: bytes[offset++]};
+      var entry = points[i] = {ratio: percentFrom255(bytes[offset++])};
       if (use_alpha) {
         entry.color = read_rgba(bytes, offset);
         offset += 4;
@@ -1462,6 +1462,11 @@ function(
       return offset;
     };
     return bits;
+  }
+  
+  function percentFrom255(v) {
+    // reversible (remember to use Math.round) to get 0-255 back
+    return +(v/255).toFixed(1) + '%';
   }
   
 });
