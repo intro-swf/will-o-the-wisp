@@ -514,10 +514,10 @@ function(
               funcR.slope = funcG.slope = funcB.slope = funcA.slope = 1;
             }
             if (colorTransform.add) {
-              funcR.intercept = colorTransform.add.r/255;
-              funcG.intercept = colorTransform.add.g/255;
-              funcB.intercept = colorTransform.add.b/255;
-              funcA.intercept = colorTransform.add.a/255;
+              funcR.intercept = ratioFrom255(colorTransform.add.r);
+              funcG.intercept = ratioFrom255(colorTransform.add.g);
+              funcB.intercept = ratioFrom255(colorTransform.add.b);
+              funcA.intercept = ratioFrom255(colorTransform.add.a);
             }
             else {
               funcR.intercept = funcG.intercept = funcB.intercept = funcA.intercept = 0;
@@ -1256,12 +1256,12 @@ function(
     var withMultiply = bits(1, false);
     var valueBits = bits(4, false);
     if (withMultiply) {
-      var r = bits(valueBits, true) / 0x100;
-      var g = bits(valueBits, true) / 0x100;
-      var b = bits(valueBits, true) / 0x100;
+      var r = toFixed8_8(bits(valueBits, true));
+      var g = toFixed8_8(bits(valueBits, true));
+      var b = toFixed8_8(bits(valueBits, true));
       transform.multiply = {r:r, g:g, b:b};
       if (withAlpha) {
-        transform.multiply.a = bits(valueBits, true) / 0x100;
+        transform.multiply.a = toFixed8_8(bits(valueBits, true));
       }
       else {
         transform.multiply.a = 1;
@@ -1688,6 +1688,14 @@ function(
   function percentFrom255(v) {
     // reversible (remember to use Math.round) to get 0-255 back
     return +(v*100/255).toFixed(1) + '%';
+  }
+  
+  function ratioFrom255(v) {
+    return +(v/255).toPrecision(3);
+  }
+  
+  function toFixed8_8(v) {
+    return +v.toPrecision(6);
   }
   
   function write_play_sound(context, sound) {
