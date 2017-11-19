@@ -114,14 +114,14 @@ define(['bytecodeIO'], function(bytecodeIO) {
       var totalLength = bin.u16();
       var mode = bin.u8();
       if (mode === 0) {
-        this.value = bin.f32();
-        if (totalLength !== 5) {
+        this.value = this.nullTerminatedString();
+        if (totalLength !== (1 + this.value.length + 1)) {
           throw new Error('unexpected length');
         }
       }
       else if (mode === 1) {
-        this.value = this.nullTerminatedString();
-        if (totalLength !== (1 + this.value.length + 1)) {
+        this.value = bin.f32();
+        if (totalLength !== 5) {
           throw new Error('unexpected length');
         }
       }
