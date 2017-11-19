@@ -1466,7 +1466,7 @@ function(
   
   function percentFrom255(v) {
     // reversible (remember to use Math.round) to get 0-255 back
-    return +(v/255).toFixed(1) + '%';
+    return +(v*100/255).toFixed(1) + '%';
   }
   
 });
