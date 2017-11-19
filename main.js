@@ -598,7 +598,8 @@ function(
               chunkOffset += 2;
               break;
             }
-            var flags = chunk[chunkOffset += 2];
+            chunkOffset += 2;
+            var flags = chunk[chunkOffset++];
             var actionAttrs = {};
             var keyCode = flags >>> 1;
             if (keyCode) actionAttrs['key-code'] = keyCode;
