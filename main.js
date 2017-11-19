@@ -469,7 +469,7 @@ function(
           }
           if (flags & 0x20) {
             var name = read_string(chunk, chunkOffset);
-            attrs['swf:name'] = name.text;
+            attrs['swf:name'] = name;
             // TODO: UTF-8 in v5+, Shift-JIS
             chunkOffset = name.length + 1;
           }
