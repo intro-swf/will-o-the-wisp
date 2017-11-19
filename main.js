@@ -255,6 +255,82 @@ function(
             '}',
           ].join('\n'));
           break;
+        case 14:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var soundID = '_' + chunkDV.getUint16(0, true);
+          var format;
+          switch (chunk[2] >> 4) {
+            case 0: format = 'uncompressed-native-endian'; break;
+            case 1: format = 'adpcm'; break;
+            case 2: format = 'mp3'; break;
+            case 3: format = 'uncompressed-little-endian'; break;
+            case 6: format = 'nellymoser'; break;
+            default: throw new Error('unknown sound format');
+          }
+          var hz = 5512.5 * (1 << ((chunk[2] >> 2) & 0x3));
+          var bits = (chunk[2] & 2) ? 16 : 8;
+          var channels = 1 + (chunk[2] & 1);
+          var sampleCount = chunkDV.getUint32(3, true);
+          var data = chunk.subarray(7);
+          var dataFile = new File([data], soundID + '.sound.dat');
+          context.files[dataFile.name] = dataFile;
+          context.empty('swf:DefineSound', {
+            id: soundID,
+            'xlink:href': dataFile.name,
+            format: format,
+            hz: hz,
+            bits: bits,
+            channels: channels,
+            sampleCount: sampleCount,
+          });
+          break;
+        case 15:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var attrs = {'xlink:href': '#_' + chunkDV.getUint16(0, true)};
+          var flags = chunk[2];
+          var chunkOffset = 3;
+          if (flags & 1) {
+            attrs['first-sample'] = chunkDV.getUint32(chunkOffset, true);
+            chunkOffset += 4;
+          }
+          if (flags & 2) {
+            attrs['last-sample'] = chunkDV.getUint32(chunkOffset, true);
+            chunkOffset += 4;
+          }
+          if (flags & 4) {
+            attrs['loop-count'] = chunkDV.getUint32(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          if (flags & 0x10) {
+            attrs['if-already-playing'] = 'ignore';
+          }
+          var tagName = (flags & 0x20) ? 'StopSound' : 'PlaySound';
+          if (flags & 8) {
+            context.open(tagName, attrs);
+            var envelopePointCount = chunk[chunkOffset++];
+            while (envelopePointCount-- > 0) {
+              var pos44 = chunkDV.getUint32(chunkOffset, true);
+              chunkOffset += 4;
+              var leftLevel = chunkDV.getUint16(chunkOffset, true);
+              chunkOffset += 2;
+              var rightLevel = chunkDV.getUint16(chunkOffset, true);
+              chunkOffset += 2;
+              context.empty('envelope-point', {
+                'position-at-44khz': pos44,
+                // documentation said 32768 not 32767
+                leftVolume: leftLevel/32768,
+                rightVolume: rightLevel/32768,
+              });
+            }
+            context.close();
+          }
+          else {
+            context.empty(tagName, attrs);
+          }
+          if (chunkOffset !== chunk.length) {
+            console.warn('unexpected data after PlaySound');
+          }
+          break;
         case 18:
         case 45:
           if (chunk.length < 4) throw new Error('invalid data length');
