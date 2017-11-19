@@ -287,16 +287,21 @@ function(
           else if (chunk.length > 4) {
             console.warn('unexpected data after SoundStreamHead');
           }
-          context.push('<swf:SoundStreamHead>'
-                       + '<swf:playback hz="' + playback.hz + '" bits="' + playback.bits + '" channels="' + playback.channels + '"/>'
-                       + '<swf:stream compression="' + stream.compression
-                        + '" hz="' + stream.hz
-                        + '" bits="' + stream.bits
-                        + '" channels="' + stream.channels
-                        + '" samples-per-block="' + stream.soundSampleCount
-                        + '" mp3-skip-samples="' + (stream.mp3Latency || 0)
-                        + '"/>'
-                       + '</swf:SoundStreamHead>');
+          context.open('swf:SoundStreamHead');
+          context.empty('swf:playback', {
+            hz: playback.hz,
+            bits: playback.bits,
+            channels: playback.channels,
+          });
+          context.empty('swf:stream', {
+            compression: stream.compression,
+            hz: stream.hz,
+            bits: stream.bits,
+            channels: stream.channels,
+            "samples-per-block": stream.soundSampleCount,
+            "mp3-skip-samples": (stream.mp3Latency || 0),
+          });
+          context.close();
           break;
         case 24:
           var attrs = {};
