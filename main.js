@@ -623,6 +623,78 @@ function(
           }
           context.close();
           break;
+        case 37:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var bounds = read_twip_rect(chunk, 0);
+          var classList = [];
+          var attrs = {};
+          var chunkOffset = bounds.endOffset;
+          var flags = chunkDV.getUint16(chunkOffset, true);
+          chunkOffset += 2;
+          var useGlyphFont = !!(flags & 1);
+          if (flags & 2) classList.push('html');
+          if (flags & 8) classList.push('border');
+          if (flags & 0x10) classList.push('unselectable');
+          var hasLayout = !!(flags & 0x20);
+          if (flags & 0x40) classList.push('resize-to-content');
+          var hasFont = !!(flags & 0x100);
+          var hasMaxLength = !!(flags & 0x200);
+          var hasTextColor = !!(flags & 0x400);
+          if (flags & 0x800) classList.push('read-only');
+          if (flags & 0x1000) classList.push('password');
+          if (flags & 0x2000) classList.push('multiline');
+          if (flags & 0x4000) classList.push('word-wrap');
+          var hasText = !!(flags & 0x8000);
+          if (hasFont) {
+            var fontID = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+            var fontHeight = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+            attrs['font'] = '"_'' + fontID + '"';
+            attrs['font-size'] = fontHeight;
+          }
+          if (hasTextColor) {
+            var fontColor = read_rgba(chunk, chunkOffset);
+            chunkOffset += 4;
+            attrs['fill'] = fontColor;
+          }
+          if (hasMaxLength) {
+            var maxLength = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+            attrs['max-length'] = maxLength;
+          }
+          if (hasLayout) {
+            switch (chunk[chunkOffset++]) {
+              case 0: attrs.align = 'left'; break;
+              case 1: attrs.align = 'right'; break;
+              case 2: attrs.align = 'center'; break;
+              case 3: attrs.align = 'justify'; break;
+              default: throw new Error('unknown align');
+            }
+            attrs['margin-left'] = chunkDV.getUint16(chunkOffset);
+            chunkOffset += 2;
+            attrs['margin-right'] = chunkDV.getUint16(chunkOffset);
+            chunkOffset += 2;
+            attrs.indent = chunkDV.getUint16(chunkOffset);
+            chunkOffset += 2;
+            attrs.leading = chunkDV.getUint16(chunkOffset);
+            chunkOffset += 2;
+          }
+          attrs['value-var'] = read_string(chunk, chunkOffset);
+          chunkOffset += attrs['value-var'].length + 1;
+          if (classList.length) attrs.class = classList.join(' ');
+          if (hasText) {
+            var text = read_string(chunk, chunkOffset);
+            chunkOffset += text.length + 1;
+            context.textExact('swf:DefineEditText', attrs, text);
+          }
+          else {
+            context.empty('swf:DefineEditText', attrs);
+          }
+          if (chunkOffset !== chunk.length) {
+            console.warn('unexpected data after DefineEditText');
+          }
+          break;
         case 39:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var spriteID = '_' + chunkDV.getUint16(0, true);
