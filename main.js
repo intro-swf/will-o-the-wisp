@@ -298,7 +298,7 @@ function(
             chunkOffset += 4;
           }
           if (flags & 4) {
-            attrs['loop-count'] = chunkDV.getUint32(chunkOffset, true);
+            attrs['loop-count'] = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           if (flags & 0x10) {
