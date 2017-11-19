@@ -625,10 +625,16 @@ function(
           break;
         case 37:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var bounds = read_twip_rect(chunk, 0);
-          var classList = [];
-          var attrs = {};
+          var attrs = {id: chunkDV.getUint16(0, true)};
+          var bounds = read_twip_rect(chunk, 2);
+          attrs.bounds = [
+            bounds.left,
+            bounds.top,
+            bounds.right - bounds.left,
+            bounds.bottom - bounds.top,
+          ].join(' ');
           var chunkOffset = bounds.endOffset;
+          var classList = [];
           var flags = chunkDV.getUint16(chunkOffset, true);
           chunkOffset += 2;
           var useGlyphFont = !!(flags & 1);
