@@ -1085,8 +1085,8 @@ function(
     if (bytes[offset+3] === 255) return read_rgb(bytes, offset);
     return ('rgba('
       + bytes[offset]
-      + ', ' + bytes[offset+1]
-      + ', ' + bytes[offset+2]
+      + ',' + bytes[offset+1]
+      + ',' + bytes[offset+2]
       + ', ' + percentFrom255(bytes[offset+3])
       + ')');
   }
