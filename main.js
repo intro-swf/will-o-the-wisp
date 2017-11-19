@@ -677,13 +677,13 @@ function(
               case 3: attrs.align = 'justify'; break;
               default: throw new Error('unknown align');
             }
-            attrs['margin-left'] = chunkDV.getUint16(chunkOffset);
+            attrs['margin-left'] = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
-            attrs['margin-right'] = chunkDV.getUint16(chunkOffset);
+            attrs['margin-right'] = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
-            attrs.indent = chunkDV.getUint16(chunkOffset);
+            attrs.indent = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
-            attrs.leading = chunkDV.getUint16(chunkOffset);
+            attrs.leading = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           attrs['value-var'] = read_string(chunk, chunkOffset);
