@@ -936,7 +936,7 @@ function(
   
   function read_rgb(bytes, offset) {
     var r = bytes[offset], g = bytes[offset+1], b = bytes[offset+2];
-    if (r>>4 == r&15 && g>>4 == g&15 && b>>4 == b&15) {
+    if ((r>>4)==(r&15)&&(g>>4)==(g&15)&&(b>>4)==(b&15)) {
       return '#'
         + (r&15).toString(16)
         + (g&15).toString(16)
