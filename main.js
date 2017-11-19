@@ -693,8 +693,8 @@ function(
                   context.open('stop');
                   context.empty('animate', {
                     attributeName: 'ratio',
-                    from: percentFrom255(chunk[chunkOffset]) + '%',
-                    to: percentFrom255(chunk[chunkOffset+5]) + '%',
+                    from: percentFrom255(chunk[chunkOffset]),
+                    to: percentFrom255(chunk[chunkOffset+5]),
                   });
                   context.empty('animate', {
                     attributeName: 'stop-color',
