@@ -1695,7 +1695,7 @@ function(
   }
   
   function toFixed8_8(v) {
-    return +v.toPrecision(6);
+    return +(v/256).toPrecision(6);
   }
   
   function write_play_sound(context, sound) {
