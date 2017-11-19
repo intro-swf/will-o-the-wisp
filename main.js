@@ -485,17 +485,17 @@ function(
           }
           if (colorTransform) {
             attrs.opacity = colorTransform.getOpacity();
-            var str = attrs.getFilterString();
+            var str = colorTransform.getFilterString();
             if (!str) {
               attrs.filter = 'none';
             }
             else {
               if (str in context.colorTransforms) {
-                attrs.filter = 'url(#cx' + context.colorTransforms[str] + ')';
+                attrs.filter = 'url(#' + context.colorTransforms[str] + ')';
               }
               else {
-                context.colorTransforms[str] = context.colorTransforms.length;
                 var id = 'cx' + context.colorTransforms.length;
+                context.colorTransforms[str] = id;
                 colorTransform.writeFilterTo(context, id);
                 attrs.filter = 'url(#' + id + ')';
               }
