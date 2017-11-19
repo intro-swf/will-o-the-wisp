@@ -625,7 +625,7 @@ function(
           break;
         case 37:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var attrs = {id: chunkDV.getUint16(0, true)};
+          var attrs = {id: '_' + chunkDV.getUint16(0, true)};
           var bounds = read_twip_rect(chunk, 2);
           attrs.bounds = [
             bounds.left,
