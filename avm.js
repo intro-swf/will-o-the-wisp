@@ -111,12 +111,19 @@ define(['bytecodeIO'], function(bytecodeIO) {
   op('StringExtract', 0x15).pop('str', 'f32', 'f32').push('str');
   op('Push', 0x96)
     .binaryReader(function read(bin) {
+      var totalLength = bin.u16();
       var mode = bin.u8();
       if (mode === 0) {
         this.value = bin.f32();
+        if (totalLength !== 5) {
+          throw new Error('unexpected length');
+        }
       }
       else if (mode === 1) {
         this.value = this.nullTerminatedString();
+        if (totalLength !== (1 + this.value.length + 1)) {
+          throw new Error('unexpected length');
+        }
       }
       else {
         throw new Error('Push: unknown type ID ' + mode);
@@ -155,11 +162,11 @@ define(['bytecodeIO'], function(bytecodeIO) {
   op('MBStringExtract', 0x35).pop(3).push('str');
   op('MBCharToAscii', 0x36).pop(1).push('f32');
   op('MBAsciiToChar', 0x37).pop(1).push('str');
-  op('Jump', 0x99).i16('offset');
-  op('GetURL2', 0x9A).u8('send_vars'); // .enum('send_vars', 'u8', {off:0, get:1, post:2});
-  op('If', 0x9D).i16('offset');
-  op('Call', 0x9E).pop(1); // does this push?
-  op('GotoFrame2', 0x9F).u8('and_play'); //.enum('and_play', 'u8', {false:0, true:1});
+  op('Jump', 0x99).i16(2).i16('offset');
+  op('GetURL2', 0x9A).i16(1).u8('send_vars'); // .enum('send_vars', 'u8', {off:0, get:1, post:2});
+  op('If', 0x9D).i16(2).i16('offset');
+  op('Call', 0x9E).u16(0).pop(1); // does this push?
+  op('GotoFrame2', 0x9F).u16(1).u8('and_play'); //.enum('and_play', 'u8', {false:0, true:1});
   
   // SWF6+
   op('CallFunction', 0x3D).pop([2, Infinity]).push(1);
