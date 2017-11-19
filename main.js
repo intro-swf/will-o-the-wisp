@@ -304,29 +304,54 @@ function(
             'xlink:href': '#_'+chunkDV.getUint16(0, true),
           });
           
-          context.open('swf:ButtonSound', {on:'over-up-to-idle'});
-          var sound = read_play_sound(chunk, 2);
-          write_play_sound(context, sound);
+          var chunkOffset = 2, sound;
+          if (chunkDV.getUint16(chunkOffset) !== 0) {
+            context.open('swf:ButtonSound', {on:'over-up-to-idle'});
+            sound = read_play_sound(chunk, chunkOffset);
+            chunkOffset = sound.chunkOffset;
+            write_play_sound(context, sound);
+            context.close();
+          }
+          else {
+            chunkOffset += 2;
+          }
+          
+          if (chunkDV.getUint16(chunkOffset) !== 0) {
+            context.open('swf:ButtonSound', {on:'idle-to-over-up'});
+            sound = read_play_sound(chunk, chunkOffset);
+            chunkOffset = sound.chunkOffset;
+            write_play_sound(context, sound);
+            context.close();
+          }
+          else {
+            chunkOffset += 2;
+          }
+          
+          if (chunkDV.getUint16(chunkOffset) !== 0) {
+            context.open('swf:ButtonSound', {on:'over-up-to-over-down'});
+            sound = read_play_sound(chunk, chunkOffset);
+            chunkOffset = sound.chunkOffset;
+            write_play_sound(context, sound);
+            context.close();
+          }
+          else {
+            chunkOffset += 2;
+          }
+          
+          if (chunkDV.getUint16(chunkOffset) !== 0) {
+            context.open('swf:ButtonSound', {on:'over-down-to-over-up'});
+            sound = read_play_sound(chunk, chunkOffset);
+            chunkOffset = sound.chunkOffset;
+            write_play_sound(context, sound);
+            context.close();
+          }
+          else {
+            chunkOffset += 2;
+          }
+          
           context.close();
           
-          context.open('swf:ButtonSound', {on:'idle-to-over-up'});
-          sound = read_play_sound(chunk, sound.endOffset);
-          write_play_sound(context, sound);
-          context.close();
-          
-          context.open('swf:ButtonSound', {on:'over-up-to-over-down'});
-          sound = read_play_sound(chunk, sound.endOffset);
-          write_play_sound(context, sound);
-          context.close();
-          
-          context.open('swf:ButtonSound', {on:'over-down-to-over-up'});
-          sound = read_play_sound(chunk, sound.endOffset);
-          write_play_sound(context, sound);
-          context.close();
-          
-          context.close();
-          
-          if (sound.endOffset !== chunk.length) {
+          if (chunkOffset !== chunk.length) {
             console.warn('unexpected data after DefineButtonSound');
           }
           break;
