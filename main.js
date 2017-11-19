@@ -292,50 +292,40 @@ function(
           });
           break;
         case 15:
-          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          var attrs = {'xlink:href': '#_' + chunkDV.getUint16(0, true)};
-          var flags = chunk[2];
-          var chunkOffset = 3;
-          if (flags & 1) {
-            attrs['first-sample'] = chunkDV.getUint32(chunkOffset, true);
-            chunkOffset += 4;
-          }
-          if (flags & 2) {
-            attrs['last-sample'] = chunkDV.getUint32(chunkOffset, true);
-            chunkOffset += 4;
-          }
-          if (flags & 4) {
-            attrs['loop-count'] = chunkDV.getUint16(chunkOffset, true);
-            chunkOffset += 2;
-          }
-          if (flags & 0x10) {
-            attrs['if-already-playing'] = 'ignore';
-          }
-          var tagName = (flags & 0x20) ? 'StopSound' : 'PlaySound';
-          if (flags & 8) {
-            context.open(tagName, attrs);
-            var envelopePointCount = chunk[chunkOffset++];
-            while (envelopePointCount-- > 0) {
-              var pos44 = chunkDV.getUint32(chunkOffset, true);
-              chunkOffset += 4;
-              var leftLevel = chunkDV.getUint16(chunkOffset, true);
-              chunkOffset += 2;
-              var rightLevel = chunkDV.getUint16(chunkOffset, true);
-              chunkOffset += 2;
-              context.empty('envelope-point', {
-                'position-at-44khz': pos44,
-                // documentation said 32768 not 32767
-                leftVolume: leftLevel/32768,
-                rightVolume: rightLevel/32768,
-              });
-            }
-            context.close();
-          }
-          else {
-            context.empty(tagName, attrs);
-          }
-          if (chunkOffset !== chunk.length) {
+          var sound = read_play_sound(chunk, 0);
+          if (sound.endOffset !== chunk.length) {
             console.warn('unexpected data after PlaySound');
+          }
+          write_play_sound(context, sound);
+          break;
+        case 17:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          context.open('swf:DefineButtonSound', {'xlink:href':chunkDV.getUint16(0, true)});
+          
+          context.open('swf:ButtonSound', {on:'over-up-to-idle'});
+          var sound = read_sound_play(chunk, 2);
+          write_play_sound(context, sound);
+          context.close();
+          
+          context.open('swf:ButtonSound', {on:'idle-to-over-up'});
+          sound = read_sound_play(chunk, sound.endOffset);
+          write_play_sound(context, sound);
+          context.close();
+          
+          context.open('swf:ButtonSound', {on:'over-up-to-over-down'});
+          sound = read_sound_play(chunk, sound.endOffset);
+          write_play_sound(context, sound);
+          context.close();
+          
+          context.open('swf:ButtonSound', {on:'over-down-to-over-up'});
+          sound = read_sound_play(chunk, sound.endOffset);
+          write_play_sound(context, sound);
+          context.close();
+          
+          context.close();
+          
+          if (sound.endOffset !== chunk.length) {
+            console.warn('unexpected data after DefineButtonSound);
           }
           break;
         case 18:
@@ -1590,6 +1580,56 @@ function(
   function percentFrom255(v) {
     // reversible (remember to use Math.round) to get 0-255 back
     return +(v*100/255).toFixed(1) + '%';
+  }
+  
+  function write_play_sound(context, sound) {
+    if (sound.envelope) {
+      context.open(sound.tagName, sound.attrs);
+      for (var i = 0; i < sound.envelope.length; i++) {
+        context.empty('envelope-point', sound.envelope[i]);
+      }
+      context.close();
+    }
+    else {
+      context.empty(sound.tagName, sound.attrs);
+    }
+  }
+  
+  function read_play_sound(chunk, pos) {
+    var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+    var sound = {attrs: {'xlink:href': '#_' + chunkDV.getUint16(pos, true)}};
+    var flags = chunk[pos + 2];
+    var chunkOffset = pos + 3;
+    if (flags & 1) {
+      sound.attrs['first-sample'] = chunkDV.getUint32(chunkOffset, true);
+      chunkOffset += 4;
+    }
+    if (flags & 2) {
+      sound.attrs['last-sample'] = chunkDV.getUint32(chunkOffset, true);
+      chunkOffset += 4;
+    }
+    if (flags & 4) {
+      sound.attrs['loop-count'] = chunkDV.getUint16(chunkOffset, true);
+      chunkOffset += 2;
+    }
+    if (flags & 0x10) {
+      sound.attrs['if-already-playing'] = 'ignore';
+    }
+    sound.tagName = (flags & 0x20) ? 'StopSound' : 'PlaySound';
+    if (flags & 8) {
+      sound.envelope = new Array(chunk[chunkOffset++]);
+      for (var i = 0; i < sound.envelope.length; i++) {
+        sound.envelope[i] = {
+          'position-at-44khz': chunkDV.getUint32(chunkOffset + i*8, true),
+          // documentation said 32768 not 32767
+          leftVolume: chunkDV.getUint16(chunkOffset + i*8 + 4, true) / 32768,
+          rightVolume: chunkDV.getUint16(chunkOffset + i*8 + 6, true) / 32768,
+        };
+      }
+      chunkOffset += sound.envelope.length * 8;
+    }
+    sound.endOffset = chunkOffset;
+    return sound;
   }
   
 });
