@@ -325,7 +325,7 @@ function(
           context.close();
           
           if (sound.endOffset !== chunk.length) {
-            console.warn('unexpected data after DefineButtonSound);
+            console.warn('unexpected data after DefineButtonSound');
           }
           break;
         case 18:
