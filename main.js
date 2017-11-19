@@ -195,7 +195,7 @@ function(
                 var glyph = font.glyphs[index];
                 if (!glyph) {
                   console.warn('text: glyph out of range');
-                  textValue.push(String.fromCodePoint(0xFFFD));
+                  textValue += String.fromCodePoint(0xFFFD);
                   advances.custom = true;
                 }
                 else {
