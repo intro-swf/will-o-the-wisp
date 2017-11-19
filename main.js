@@ -495,6 +495,7 @@ function(
               }
               else {
                 var id = 'cx' + context.colorTransforms.length;
+                context.colorTransforms.push(str);
                 context.colorTransforms[str] = id;
                 colorTransform.writeFilterTo(context, id);
                 attrs.filter = 'url(#' + id + ')';
