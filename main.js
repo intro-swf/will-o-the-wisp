@@ -391,9 +391,11 @@ function(
             totalLength: 0,
           });
           if (context.streamParts) {
-            context.files[context.streamParts.filename] = new File(
-              context.streamParts,
-              context.streamParts.filename);
+            if (context.streamParts.length > 0) {
+              context.files[context.streamParts.filename] = new File(
+                context.streamParts,
+                context.streamParts.filename);
+            }
             streamParts.num = context.streamParts.num + 1;
             streamParts.filename = 'stream' + streamParts.num + '.dat';
           }
@@ -482,70 +484,24 @@ function(
             console.warn('unexpected data after PlaceObject2');
           }
           if (colorTransform) {
-            if (!colorTransform.multiply || (colorTransform.add && colorTransform.add.a)) {
-              attrs.opacity = 1;
+            attrs.opacity = colorTransform.getOpacity();
+            var str = attrs.getFilterString();
+            if (!str) {
+              attrs.filter = 'none';
             }
             else {
-              attrs.opacity = colorTransform.multiply.a;
-              colorTransform.multiply.a = 1;
-              if (colorTransform.multiply.r === 1 && colorTransform.multiply.g === 1 && colorTransform.multiply.b === 1) {
-                delete colorTransform.multiply;
+              if (str in context.colorTransforms) {
+                attrs.filter = 'url(#cx' + context.colorTransforms[str] + ')';
               }
-              if (colorTransform.add && colorTransform.add.r === 0 && colorTransform.add.g === 0 && colorTransform.add.b === 0) {
-                delete colorTransform.add;
-              }
-              if (!colorTransform.multiply && !colorTransform.add) {
-                colorTransform = null;
+              else {
+                context.colorTransforms[str] = context.colorTransforms.length;
+                var id = 'cx' + context.colorTransforms.length;
+                colorTransform.writeFilterTo(context, id);
+                attrs.filter = 'url(#' + id + ')';
               }
             }
           }
-          context.open('swf:PlaceObject', attrs);
-          if (colorTransform) {
-            context.open('filter');
-            context.open('feComponentTransfer');
-            var funcR = {type:'linear'}, funcG = {type:'linear'}, funcB = {type:'linear'}, funcA = {type:'linear'};
-            if (colorTransform.multiply) {
-              funcR.slope = colorTransform.multiply.r;
-              funcG.slope = colorTransform.multiply.g;
-              funcB.slope = colorTransform.multiply.b;
-              funcA.slope = colorTransform.multiply.a;
-            }
-            else {
-              funcR.slope = funcG.slope = funcB.slope = funcA.slope = 1;
-            }
-            if (colorTransform.add) {
-              funcR.intercept = ratioFrom255(colorTransform.add.r);
-              funcG.intercept = ratioFrom255(colorTransform.add.g);
-              funcB.intercept = ratioFrom255(colorTransform.add.b);
-              funcA.intercept = ratioFrom255(colorTransform.add.a);
-            }
-            else {
-              funcR.intercept = funcG.intercept = funcB.intercept = funcA.intercept = 0;
-            }
-            if (funcR.slope !== 1 || funcR.intercept !== 0) {
-              if (funcR.slope === 1) delete funcR.slope;
-              if (funcR.intercept === 0) delete funcR.intercept;
-              context.empty('feFuncR', funcR);
-            }
-            if (funcG.slope !== 1 || funcG.intercept !== 0) {
-              if (funcG.slope === 1) delete funcG.slope;
-              if (funcG.intercept === 0) delete funcG.intercept;
-              context.empty('feFuncG', funcG);
-            }
-            if (funcB.slope !== 1 || funcB.intercept !== 0) {
-              if (funcB.slope === 1) delete funcB.slope;
-              if (funcB.intercept === 0) delete funcB.intercept;
-              context.empty('feFuncB', funcB);
-            }
-            if (funcA.slope !== 1 || funcA.intercept !== 0) {
-              if (funcA.slope === 1) delete funcA.slope;
-              if (funcA.intercept === 0) delete funcA.intercept;
-              context.empty('feFuncA', funcA);
-            }
-            context.close();
-            context.close();
-          }
-          context.close();
+          context.empty('swf:PlaceObject', attrs);
           break;
         case 28:
           if (chunk.length < 2) {
@@ -1034,11 +990,12 @@ function(
     });
     context.files = {};
     context.fonts = {};
+    context.colorTransforms = [];
     read_chunks(body, offset, context);
     context.close();
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
-    if (context.streamParts) {
+    if (context.streamParts && context.streamParts.length > 0) {
       context.files[context.streamParts.filename] = new File(
         context.streamParts,
         context.streamParts.filename);
@@ -1257,9 +1214,84 @@ function(
     return matrix;
   }
   
+  function ColorTransform() {
+  }
+  ColorTransform.prototype = {
+    multiplyR: 1,
+    multiplyG: 1,
+    multiplyB: 1,
+    multiplyA: 1,
+    addR: 0,
+    addG: 0,
+    addB: 0,
+    addA: 0,
+    multiply: function(r, g, b, a) {
+      this.multiplyR = r;
+      this.multiplyG = g;
+      this.multiplyB = b;
+      this.multiplyA = a;
+    },
+    add: function(r, g, b, a) {
+      this.addR = r;
+      this.addG = g;
+      this.addB = b;
+      this.addA = a;
+    },
+    getOpacity: function() {
+      if (this.addA !== 0) return 1;
+      return this.multiplyA;
+    },
+    getFilterString: function() {
+      if (this.addA !== 0) {
+        return [
+          '_m', this.multiplyR, this.multiplyG, this.multiplyB, this.multiplyA,
+          '_a', this.addR, this.addG, this.addB, this.addA,
+        ].join('_');
+      }
+      if (this.multiplyR === 1 && this.multiplyG === 1 && this.multiplyB === 1
+          && this.addA === 0 && this.addR === 0 && this.addG === 0 && this.addB === 0) {
+        return null;
+      }
+      return [
+        '_m', this.multiplyR, this.multiplyG, this.multiplyB,
+        '_a', this.addR, this.addG, this.addB,
+      ].join('_');
+    },
+    writeFilterTo: function(context, id) {
+      context.open('filter', {id:id});
+      context.open('feComponentTransfer');
+      if (this.multiplyR !== 1 || this.addR !== 0) {
+        var attr = {};
+        if (this.multiplyR !== 1) attr.slope = this.multiplyR;
+        if (this.addR !== 0) attr.intercept = ratioFrom255(this.addR);
+        context.empty('feFuncR', attr);
+      }
+      if (this.multiplyG !== 1 || this.addG !== 0) {
+        var attr = {};
+        if (this.multiplyG !== 1) attr.slope = this.multiplyG;
+        if (this.addG !== 0) attr.intercept = ratioFrom255(this.addG);
+        context.empty('feFuncG', attr);
+      }
+      if (this.multiplyB !== 1 || this.addB !== 0) {
+        var attr = {};
+        if (this.multiplyB !== 1) attr.slope = this.multiplyB;
+        if (this.addB !== 0) attr.intercept = ratioFrom255(this.addB);
+        context.empty('feFuncB', attr);
+      }
+      if (this.addA !== 0) {
+        var attr = {};
+        if (this.multiplyA !== 1) attr.slope = this.multiplyA;
+        if (this.addA !== 0) attr.intercept = ratioFrom255(this.addA);
+        context.empty('feFuncA', attr);
+      }
+      context.close();
+      context.close();
+    },
+  };
+  
   function read_color_transform(bytes, offset, withAlpha) {
     var bits = bitreader(bytes, offset);
-    var transform = {};
+    var transform = new ColorTransform;
     var withAdd = bits(1, false);
     var withMultiply = bits(1, false);
     var valueBits = bits(4, false);
@@ -1267,25 +1299,17 @@ function(
       var r = toFixed8_8(bits(valueBits, true));
       var g = toFixed8_8(bits(valueBits, true));
       var b = toFixed8_8(bits(valueBits, true));
-      transform.multiply = {r:r, g:g, b:b};
-      if (withAlpha) {
-        transform.multiply.a = toFixed8_8(bits(valueBits, true));
-      }
-      else {
-        transform.multiply.a = 1;
-      }
+      transform.multiply(
+        r, g, b,
+        withAlpha ? toFixed8_8(bits(valueBits, true)) : 1);
     }
     if (withAdd) {
       var r = bits(valueBits, true);
       var g = bits(valueBits, true);
       var b = bits(valueBits, true);
-      transform.add = {r:r, g:g, b:b};
-      if (withAlpha) {
-        transform.add.a = bits(valueBits, true) / 0x100;
-      }
-      else {
-        transform.add.a = 0;
-      }
+      transform.add(
+        r, g, b,
+        withAlpha ? bits(valueBits, true) : 0);
     }
     transform.endOffset = bits.getOffset();
     return transform;
