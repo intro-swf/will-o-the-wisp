@@ -1396,13 +1396,9 @@ function(
         case 0x10:
         case 0x12:
           var matrix = read_matrix(bytes, offset);
-          offset = matrix.endOffset;
-          var gradients = new Array(bytes[offset++]);
-          for (var i = 0; i < gradients.length; i++) {
-            var gradient = gradients[i] = read_gradient(bytes, offset, withAlpha);
-            offset = gradient.endOffset;
-          }
-          fillStyles[i_fill] = {matrix:matrix, gradients:gradients};
+          var gradient = read_gradient(bytes, matrix.endOffset, withAlpha);
+          offset = gradient.endOffset;
+          fillStyles[i_fill] = {matrix:matrix, gradient:gradient};
           break;
         case 0x40:
         case 0x41:
