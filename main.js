@@ -503,7 +503,7 @@ function(
           if (colorTransform) {
             context.open('filter');
             context.open('feComponentTransfer');
-            var funcR = {}, funcG = {}, funcB = {}, funcA = {};
+            var funcR = {type:'linear'}, funcG = {type:'linear'}, funcB = {type:'linear'}, funcA = {type:'linear'};
             if (colorTransform.multiply) {
               funcR.slope = colorTransform.multiply.r;
               funcG.slope = colorTransform.multiply.g;
@@ -523,15 +523,23 @@ function(
               funcR.intercept = funcG.intercept = funcB.intercept = funcA.intercept = 0;
             }
             if (funcR.slope !== 1 || funcR.intercept !== 0) {
+              if (funcR.slope === 1) delete funcR.slope;
+              if (funcR.intercept === 0) delete funcR.intercept;
               context.empty('feFuncR', funcR);
             }
             if (funcG.slope !== 1 || funcG.intercept !== 0) {
+              if (funcG.slope === 1) delete funcG.slope;
+              if (funcG.intercept === 0) delete funcG.intercept;
               context.empty('feFuncG', funcG);
             }
             if (funcB.slope !== 1 || funcB.intercept !== 0) {
+              if (funcB.slope === 1) delete funcB.slope;
+              if (funcB.intercept === 0) delete funcB.intercept;
               context.empty('feFuncB', funcB);
             }
             if (funcA.slope !== 1 || funcA.intercept !== 0) {
+              if (funcA.slope === 1) delete funcA.slope;
+              if (funcA.intercept === 0) delete funcA.intercept;
               context.empty('feFuncA', funcA);
             }
             context.close();
