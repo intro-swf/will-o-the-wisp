@@ -953,6 +953,9 @@ function(
   
   function read_gradient(bytes, offset, use_alpha) {
     var points = new Array(bytes[offset++]);
+    if (points.length === 0 || points.length > 8) {
+      throw new Error('illegal number of gradient points');
+    }
     var endOffset = points.length * (use_alpha?5:4);
     if (endOffset > bytes.length) {
       throw new Error('unexpected end of data');
