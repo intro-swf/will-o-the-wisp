@@ -650,7 +650,7 @@ function(
             chunkOffset += 2;
             var fontHeight = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
-            attrs['font'] = '"_'' + fontID + '"';
+            attrs['font'] = '"_' + fontID + '"';
             attrs['font-size'] = fontHeight;
           }
           if (hasTextColor) {
