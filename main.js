@@ -378,6 +378,33 @@ function(
             "mp3-skip-samples": (stream.mp3Latency || 0),
           });
           context.close();
+          var streamParts = Object.assign([], {
+            totalLength: 0,
+          });
+          if (context.streamParts) {
+            context.files[context.streamParts] = new File(
+              context.streamParts,
+              context.streamParts.filename);
+            streamParts.num = context.streamParts.num + 1;
+            streamParts.filename = 'stream' + streamParts.num + '.dat';
+          }
+          else {
+            streamParts.num = 1;
+            streamParts.filename = 'stream.dat';
+          }
+          context.streamParts = streamParts;
+          break;
+        case 19:
+          if (!context.streamParts) {
+            throw new Error('SoundStreamBlock without SoundStreamHead');
+          }
+          var newLength = context.streamParts.totalLength + chunk.length;
+          context.empty('swf:SoundStreamBlock', {
+            'xlink:href': context.streamParts.filename,
+            'byte-ranges': context.streamParts.totalLength + '-' + (newLength-1),
+          });
+          context.streamParts.push(chunk);
+          context.streamParts.totalLength = newLength;
           break;
         case 24:
           var attrs = {};
@@ -894,6 +921,12 @@ function(
     context.close();
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
+    if (context.streamParts) {
+      context.files[context.streamParts] = new File(
+        context.streamParts,
+        context.streamParts.filename);
+      delete context.streamParts;
+    }
     var fontIDs = Object.keys(context.fonts);
     for (var font_i = 0; font_i < fontIDs.length; font_i++) {
       var otf = [];
