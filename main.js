@@ -940,7 +940,7 @@ function(
       return '#' + r.toString(16) + g.toString(16) + b.toString(16);
     }
     var rgb = (r << 16) | (g << 8) | b;
-    return '#' + ('0000000' + rgb.toString(16)).slice(-8);
+    return '#' + ('0000000' + rgb.toString(16)).slice(-6);
   }
   
   function read_rgba(bytes, offset) {
