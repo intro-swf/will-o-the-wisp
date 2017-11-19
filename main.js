@@ -367,7 +367,7 @@ function(
             totalLength: 0,
           });
           if (context.streamParts) {
-            context.files[context.streamParts] = new File(
+            context.files[context.streamParts.filename] = new File(
               context.streamParts,
               context.streamParts.filename);
             streamParts.num = context.streamParts.num + 1;
@@ -924,7 +924,7 @@ function(
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
     if (context.streamParts) {
-      context.files[context.streamParts] = new File(
+      context.files[context.streamParts.filename] = new File(
         context.streamParts,
         context.streamParts.filename);
       delete context.streamParts;
