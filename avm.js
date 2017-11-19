@@ -139,6 +139,14 @@ define(['bytecodeIO'], function(bytecodeIO) {
     })
     .symbolReader(function read(sin) {
       this.value = sin.expect('string', 'float', 'int');
+    })
+    .symbolWriter(function write(sout) {
+      if (typeof this.value === 'number') {
+        sout.float(this.value);
+      }
+      else {
+        sout.string(this.value+'');
+      }
     });
   op('Pop', 0x17).pop(1);
   op('ToInteger', 0x18).pop(1).push('f32');
