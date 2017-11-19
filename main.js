@@ -757,6 +757,7 @@ function(
               case 0x12:
                 var startMatrix = read_matrix(chunk, chunkOffset);
                 var endMatrix = read_matrix(chunk, startMatrix.endOffset);
+                chunkOffset = endMatrix.endOffset;
                 context.open(fillStyleType === 0x10 ? 'linearGradient' : 'radialGradient');
                 context.empty('animate', {
                   attributeName: 'gradientTransform',
