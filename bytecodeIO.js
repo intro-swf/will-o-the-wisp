@@ -529,6 +529,14 @@ define(function() {
       this.parts.push(')');
       return this;
     },
+    write: function(type, value) {
+      switch (type) {
+        case 'string': return this.string(value);
+        case 'int': return this.int(value);
+        case 'float': return this.float(value);
+        default: throw new Error('unsupported write type');
+      }
+    },
   };
   
   function Op() {
