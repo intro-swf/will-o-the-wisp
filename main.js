@@ -935,19 +935,21 @@ function(
   }
   
   function read_rgb(bytes, offset) {
-    return ('rgb('
-      + bytes[offset]
-      + ', ' + bytes[offset+1]
-      + ', ' + bytes[offset+2]
-      + ')');
+    var r = bytes[offset], g = bytes[offset+1], b = bytes[offset+2];
+    if (r>>4 == r&15 && g>>4 == g&15 && b>>4 == b&15) {
+      return '#' + r.toString(16) + g.toString(16) + b.toString(16);
+    }
+    var rgb = (r << 16) | (g << 8) | b;
+    return '#' + ('0000000' + rgb.toString(16)).slice(-8);
   }
   
   function read_rgba(bytes, offset) {
+    if (bytes[offset+3] === 255) return read_rgb(bytes, offset);
     return ('rgba('
       + bytes[offset]
       + ', ' + bytes[offset+1]
       + ', ' + bytes[offset+2]
-      + ', ' + bytes[offset+3]/255
+      + ', ' + percentFrom255(bytes[offset+3])
       + ')');
   }
   
