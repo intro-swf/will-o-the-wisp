@@ -78,6 +78,13 @@ define(function() {
       }
       return v;
     },
+    nullTerminatedString: function() {
+      var str = '';
+      while (this.bytes[this.offset]) {
+        str += String.fromCharCode(this.bytes[this.offset++]);
+      }
+      return str;
+    },
     expectU8: function(v) {
       var b = this.bytes[this.offset];
       if (v !== b) {
