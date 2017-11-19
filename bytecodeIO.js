@@ -79,9 +79,9 @@ define(function() {
       return v;
     },
     nullTerminatedString: function() {
-      var str = '';
-      while (this.bytes[this.offset]) {
-        str += String.fromCharCode(this.bytes[this.offset++]);
+      var str = '', c;
+      while (c = this.bytes[this.offset++]) {
+        str += String.fromCharCode(c);
       }
       return str;
     },
