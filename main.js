@@ -363,21 +363,6 @@ function(
           else if (chunk.length > 4) {
             console.warn('unexpected data after SoundStreamHead');
           }
-          context.open('swf:SoundStreamHead');
-          context.empty('swf:playback', {
-            hz: playback.hz,
-            bits: playback.bits,
-            channels: playback.channels,
-          });
-          context.empty('swf:stream', {
-            compression: stream.compression,
-            hz: stream.hz,
-            bits: stream.bits,
-            channels: stream.channels,
-            "samples-per-block": stream.soundSampleCount,
-            "mp3-skip-samples": (stream.mp3Latency || 0),
-          });
-          context.close();
           var streamParts = Object.assign([], {
             totalLength: 0,
           });
@@ -393,6 +378,23 @@ function(
             streamParts.filename = 'stream.dat';
           }
           context.streamParts = streamParts;
+          context.open('swf:SoundStreamHead', {
+            'xlink:href': streamParts.filename,
+          });
+          context.empty('swf:playback', {
+            hz: playback.hz,
+            bits: playback.bits,
+            channels: playback.channels,
+          });
+          context.empty('swf:stream', {
+            compression: stream.compression,
+            hz: stream.hz,
+            bits: stream.bits,
+            channels: stream.channels,
+            "samples-per-block": stream.soundSampleCount,
+            "mp3-skip-samples": (stream.mp3Latency || 0),
+          });
+          context.close();
           break;
         case 19:
           if (!context.streamParts) {
