@@ -193,14 +193,21 @@ function(
                 var index = readBits(glyphBits, false);
                 var advance = readBits(advanceBits, true);
                 var glyph = font.glyphs[index];
-                textValue += glyph.char;
-                advances.push(advance);
-                if ('advance' in glyph) {
-                  if (glyph.advance !== advance) {
-                    advances.custom = true;
-                  }
+                if (!glyph) {
+                  console.warn('text: glyph out of range');
+                  textValue.push(String.fromCodePoint(0xFFFD));
+                  advances.custom = true;
                 }
-                else glyph.advance = advance;
+                else {
+                  textValue += glyph.char;
+                  if ('advance' in glyph) {
+                    if (glyph.advance !== advance) {
+                      advances.custom = true;
+                    }
+                  }
+                  else glyph.advance = advance;
+                }
+                advances.push(advance);
               }
               if (advances.custom) {
                 advances.pop();
