@@ -1081,9 +1081,7 @@ function(
       fontWriter.close();
       font.file = fontWriter.toFile(font.filename, 'image/svg+xml');
       context.files[font.file.name] = font.file;
-      console.log(fontWriter.toString());
     }
-    console.log(context.toString());
     console.log(context.files);
   }
   
