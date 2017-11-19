@@ -300,7 +300,9 @@ function(
           break;
         case 17:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          context.open('swf:DefineButtonSound', {'xlink:href':chunkDV.getUint16(0, true)});
+          context.open('swf:DefineButtonSound', {
+            'xlink:href': '#_'+chunkDV.getUint16(0, true),
+          });
           
           context.open('swf:ButtonSound', {on:'over-up-to-idle'});
           var sound = read_sound_play(chunk, 2);
