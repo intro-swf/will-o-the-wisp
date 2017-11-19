@@ -305,22 +305,22 @@ function(
           });
           
           context.open('swf:ButtonSound', {on:'over-up-to-idle'});
-          var sound = read_sound_play(chunk, 2);
+          var sound = read_play_sound(chunk, 2);
           write_play_sound(context, sound);
           context.close();
           
           context.open('swf:ButtonSound', {on:'idle-to-over-up'});
-          sound = read_sound_play(chunk, sound.endOffset);
+          sound = read_play_sound(chunk, sound.endOffset);
           write_play_sound(context, sound);
           context.close();
           
           context.open('swf:ButtonSound', {on:'over-up-to-over-down'});
-          sound = read_sound_play(chunk, sound.endOffset);
+          sound = read_play_sound(chunk, sound.endOffset);
           write_play_sound(context, sound);
           context.close();
           
           context.open('swf:ButtonSound', {on:'over-down-to-over-up'});
-          sound = read_sound_play(chunk, sound.endOffset);
+          sound = read_play_sound(chunk, sound.endOffset);
           write_play_sound(context, sound);
           context.close();
           
