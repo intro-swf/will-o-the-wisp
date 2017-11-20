@@ -100,7 +100,7 @@ define(['bytecodeIO'], function(bytecodeIO) {
   op('Subtract', 0x0B).pop('f32', 'f32').push('f32');
   op('Multiply', 0x0C).pop('f32', 'f32').push('f32');
   op('Divide', 0x0D).pop('f32', 'f32').push('f32');
-  op('WaitForFrame2', 0x8D).pop(1).u8('skip=', 0);
+  op('WaitForFrame2', 0x8D).pop(1).u16(1).u8('skip=', 0);
   op('Equals', 0x0E).pop('f32', 'f32').push('bool');
   op('Less', 0x0F).pop('f32', 'f32').push('bool');
   op('And', 0x10).pop('f32', 'f32').push('bool');
