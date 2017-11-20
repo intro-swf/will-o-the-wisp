@@ -1764,7 +1764,7 @@ function(
     if (flags & 0x10) {
       sound.attrs['if-already-playing'] = 'ignore';
     }
-    sound.tagName = (flags & 0x20) ? 'StopSound' : 'PlaySound';
+    sound.tagName = (flags & 0x20) ? 'swf:StopSound' : 'swf:PlaySound';
     if (flags & 8) {
       sound.envelope = new Array(chunk[chunkOffset++]);
       for (var i = 0; i < sound.envelope.length; i++) {
