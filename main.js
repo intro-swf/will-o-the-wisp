@@ -1170,16 +1170,16 @@ function(
   function Matrix() {
   }
   Matrix.prototype = {
-    a: 1, b: 0, c:0, d:1, e:0, f:0,
+    a:0x10000, b: 0, c:0, d:0x10000, e:0, f:0,
     toString: function() {
       if (this.b === 0 && this.c === 0) {
         // no rotation/skew
         var scale;
         if (this.a === this.d) {
-          if (this.a !== 1) scale = 'scale(' + this.a + ')';
+          if (this.a !== 0x10000) scale = 'scale(' + toFixed16_16(this.a) + ')';
         }
         else {
-          scale = 'scale(' + this.a + ', ' + this.d + ')';
+          scale = 'scale(' + toFixed16_16(this.a) + ', ' + toFixed16_16(this.d) + ')';
         }
         if (this.e === 0 && this.f === 0) {
           if (scale) return scale;
@@ -1187,11 +1187,20 @@ function(
         var translate = 'translate(' + this.e + ', ' + this.f + ')';
         return scale ? translate+' '+scale : translate;
       }
-      return 'matrix(' + [this.a, this.b, this.c, this.d, this.e, this.f].join(', ') + ')';
+      return 'matrix(' + [
+        toFixed16_16(this.a), toFixed16_16(this.b),
+        toFixed16_16(this.c), toFixed16_16(this.d),
+        this.e, this.f].join(', ') + ')';
     },
     get isIdentity() {
-      return this.a === 1 && this.b === 0 && this.c === 0 && this.d === 1 && this.e === 0 && this.f === 0;
+      return this.a === 0x10000 && this.b === 0 && this.c === 0 && this.d === 0x10000 && this.e === 0 && this.f === 0;
     },
+  }
+  
+  function toFixed16_16(v) {
+    var calc = 'calc(' + v + '/65536)';
+    var num = v/65536+'';
+    return calc.length < num.length ? calc : num;
   }
   
   function read_matrix(bytes, offset) {
@@ -1199,14 +1208,14 @@ function(
     var matrix = new Matrix;
     if (bits(1, false)) {
       var scaleBits = bits(5, false);
-      matrix.a = bits(scaleBits, true) / 0x10000;
-      matrix.d = bits(scaleBits, true) / 0x10000;
+      matrix.a = bits(scaleBits, true);
+      matrix.d = bits(scaleBits, true);
     }
     else matrix.a = matrix.d = 1;
     if (bits(1, false)) {
       var rotSkewBits = bits(5, false);
-      matrix.b = bits(rotSkewBits, true) / 0x10000;
-      matrix.c = bits(rotSkewBits, true) / 0x10000;
+      matrix.b = bits(rotSkewBits, true);
+      matrix.c = bits(rotSkewBits, true);
     }
     matrix.b = matrix.c = 0;
     var translateBits = bits(5, false);
