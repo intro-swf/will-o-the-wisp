@@ -1010,7 +1010,7 @@ function(
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
     context.files['shapes.svg'] = context.shapeFile.toFile('shapes.svg', 'image/svg+xml');
-    context.files['cxforms.svg'] = context.shapeFile.toFile('cxforms.svg', 'image/svg+xml');
+    context.files['cxforms.svg'] = context.colorTransformFile.toFile('cxforms.svg', 'image/svg+xml');
     if (context.streamParts && context.streamParts.length > 0) {
       context.files[context.streamParts.filename] = new File(
         context.streamParts,
