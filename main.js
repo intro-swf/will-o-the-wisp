@@ -474,7 +474,7 @@ function(
             var name = read_string(chunk, chunkOffset);
             attrs['name'] = name;
             // TODO: UTF-8 in v5+, Shift-JIS
-            chunkOffset = name.length + 1;
+            chunkOffset += name.length + 1;
           }
           if (flags & 0x40) {
             attrs['clip-depth'] = chunkDV.getUint16(chunkOffset, true);
