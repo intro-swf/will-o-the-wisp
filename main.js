@@ -533,7 +533,7 @@ function(
             if (flags & 1) classList.push('up');
             if (flags & 2) classList.push('over');
             if (flags & 4) classList.push('down');
-            if (flags & 7) classList.push('hit-test');
+            if (flags & 8) classList.push('hit-test');
             if (classList.length > 0) {
               stateAttrs.class = classList.join(' ');
             }
