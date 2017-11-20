@@ -54,10 +54,15 @@ function(
         case 2:
         case 22:
         case 32:
-          var attrs = {class:'shape'};
+          var attrs = {};
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           attrs.id = '_' + chunkDV.getUint16(0, true);
           var bounds = read_twip_rect(chunk, 2);
+          attrs.viewBox = [
+            bounds.left,
+            bounds.top,
+            bounds.right - bounds.left,
+            bounds.bottom - bounds.top].join(' ');
           var chunkOffset = bounds.endOffset;
           var supportExtendedLength = chunkType !== 2;
           var withAlpha = chunkType !== 2 && chunkType !== 22;
@@ -69,14 +74,7 @@ function(
             console.warn('unexpected data after shape path');
           }
           var shapeOut = context.shapeFile;
-          shapeOut.open('g', attrs);
-          shapeOut.empty('rect', {
-            class: 'bounds',
-            x: bounds.left,
-            y: bounds.top,
-            width: bounds.right - bounds.left,
-            height: bounds.bottom - bounds.top,
-          });
+          shapeOut.open('svg', attrs);
           var styleText = [];
           styleText.push('.' + attrs.id + '_fill0 { fill: none; }');
           for (var style_i = 1; style_i < fillStyles.length; style_i++) {
