@@ -444,10 +444,11 @@ function(
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var flags = chunk[0];
-          var attrs = {'swf:depth': chunkDV.getUint16(1, true)};
+          var attrs = {'z': chunkDV.getUint16(1, true)};
           var chunkOffset = 3;
-          if (flags & 1) attrs['swf:move'] = true;
+          var tagName = (flags & 1) ? 'Update' : 'Insert';
           if (flags & 2) {
+            tagName = 'Replace';
             attrs['xlink:href'] = '#_' + chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
@@ -469,12 +470,12 @@ function(
           }
           if (flags & 0x20) {
             var name = read_string(chunk, chunkOffset);
-            attrs['swf:name'] = name;
+            attrs['name'] = name;
             // TODO: UTF-8 in v5+, Shift-JIS
             chunkOffset = name.length + 1;
           }
           if (flags & 0x40) {
-            attrs['swf:clip-depth'] = chunkDV.getUint16(chunkOffset, true);
+            attrs['clip-depth'] = chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           if (flags & 0x80) {
