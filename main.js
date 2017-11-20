@@ -426,13 +426,11 @@ function(
           if (!context.streamParts) {
             throw new Error('SoundStreamBlock without SoundStreamHead');
           }
-          var newLength = context.streamParts.totalLength + chunk.length;
-          context.empty('f:SoundStreamBlock', {
-            'xlink:href': context.streamParts.filename,
-            'byte-ranges': context.streamParts.totalLength + '-' + (newLength-1),
+          context.empty('f:Stream', {
+            'bytes': chunk.length,
           });
           context.streamParts.push(chunk);
-          context.streamParts.totalLength = newLength;
+          context.streamParts.totalLength += chunk.length;
           break;
         case 24:
           var attrs = {};
