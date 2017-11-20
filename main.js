@@ -446,9 +446,8 @@ function(
           var flags = chunk[0];
           var attrs = {'z': chunkDV.getUint16(1, true)};
           var chunkOffset = 3;
-          var tagName = (flags & 1) ? 'Update' : 'Insert';
+          var tagName = flags & 1 ? (flags & 2 ? 'f:Replace' : 'f:Update') : 'f:Insert';
           if (flags & 2) {
-            tagName = 'Replace';
             attrs['xlink:href'] = '#_' + chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
@@ -503,15 +502,15 @@ function(
               }
             }
           }
-          context.empty('f:PlaceObject', attrs);
+          context.empty(tagName, attrs);
           break;
         case 28:
           if (chunk.length < 2) {
             throw new Error('RemoveObject2: not enough data');
           }
           var depth = chunk[0] | (chunk[1] << 8);
-          context.empty('f:RemoveObject2', {
-            depth: depth,
+          context.empty('f:Remove', {
+            z: depth,
           });
           break;
         case 34:
