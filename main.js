@@ -996,11 +996,11 @@ function(
     context.files = {};
     context.fonts = {};
     context.colorTransforms = [];
+    context.streamPrefix = 'stream';
     read_chunks(body, offset, context);
     context.close();
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
-    context.streamPrefix = 'stream';
     if (context.streamParts && context.streamParts.length > 0) {
       context.files[context.streamParts.filename] = new File(
         context.streamParts,
