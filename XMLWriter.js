@@ -26,11 +26,11 @@ define(function() {
   XMLWriter.prototype = {
     indent: '\n',
     pushIndent: function() {
-      this.indent = this.indent + '  ';
+      this.indent = this.indent + '\t';
       return this;
     },
     popIndent: function() {
-      this.indent = this.indent.slice(0, -2);
+      this.indent = this.indent.slice(0, -1);
       return this;
     },
     toString: function() {
