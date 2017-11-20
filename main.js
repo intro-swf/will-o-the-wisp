@@ -1199,8 +1199,8 @@ function(
   
   function toFixed16_16(v) {
     var calc = 'calc(' + v + '/65536)';
-    var num = v/65536+'';
-    return calc.length < num.length ? calc : num;
+    var num = v/65536;
+    return (num === +num.toFixed(3)) ? num : calc;
   }
   
   function read_matrix(bytes, offset) {
