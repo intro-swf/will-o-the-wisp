@@ -820,7 +820,7 @@ function(
     function endPathAt(n) {
       for (;;) {
         if (n >= path.length) return true;
-        switch (path[n]) {
+        switch (path[n].type) {
           case 'fill':
           case 'stroke':
           case 'm':
