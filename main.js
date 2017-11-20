@@ -1000,6 +1000,7 @@ function(
     context.colorTransforms = [];
     context.shapeFile = new XMLWriter();
     context.shapeFile.open('svg');
+    context.colorTransformFile = new XMLWriter();
     context.colorTransformFile.open('svg');
     context.streamPrefix = 'stream';
     read_chunks(body, offset, context);
