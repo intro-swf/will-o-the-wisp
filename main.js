@@ -394,7 +394,9 @@ function(
           }
           var streamParts = Object.assign([], {
             totalLength: 0,
+            format: stream.compression,
           });
+          var extension = (stream.compression === 'mp3') ? '.mp3' : '.dat';
           if (context.streamParts) {
             if (context.streamParts.length > 0) {
               context.files[context.streamParts.filename] = new File(
@@ -402,11 +404,11 @@ function(
                 context.streamParts.filename);
             }
             streamParts.num = context.streamParts.num + 1;
-            streamParts.filename = context.streamPrefix + streamParts.num + '.dat';
+            streamParts.filename = context.streamPrefix + streamParts.num + extension;
           }
           else {
             streamParts.num = 1;
-            streamParts.filename = context.streamPrefix + '.dat';
+            streamParts.filename = context.streamPrefix + extension;
           }
           context.streamParts = streamParts;
           context.open('f:SoundStreamHead', {
@@ -431,11 +433,14 @@ function(
           if (!context.streamParts) {
             throw new Error('SoundStreamBlock without SoundStreamHead');
           }
-          context.empty('f:Stream', {
-            'bytes': chunk.length,
-          });
+          var attr = {};
+          if (context.streamParts.format === 'mp3') {
+            attr['sample-skip'] = chunk[0] | (chunk[1] << 2);
+            chunk = chunk.subarray(2);
+          }
+          attr.bytes = chunk.length;
           context.streamParts.push(chunk);
-          context.streamParts.totalLength += chunk.length;
+          context.empty('f:Stream', attr);
           break;
         case 24:
           var attrs = {};
