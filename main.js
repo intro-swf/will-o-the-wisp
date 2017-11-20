@@ -38,7 +38,7 @@ function(
           if (chunk.length !== 0) {
             console.warn('unexpected data: End');
           }
-          context.empty('swf:End');
+          context.empty('f:End');
           break;
         case 1:
           if (chunk.length !== 0) {
@@ -49,7 +49,7 @@ function(
             offset += 2;
             count++;
           }
-          context.empty('swf:ShowFrame', count === 1 ? null : {count:count});
+          context.empty('f:ShowFrame', count === 1 ? null : {count:count});
           break;
         case 2:
         case 22:
@@ -100,7 +100,7 @@ function(
             characterID+'.jpg',
             {type:'image/jpeg'});
           context.files[file.name] = file;
-          context.empty('swf:DefineBits', {
+          context.empty('f:DefineBits', {
             id: '_' + characterID,
             href: file.name,
           });
@@ -111,13 +111,13 @@ function(
             'tables.jpg',
             {type:'image/jpeg'})
           context.files['tables.jpg'] = file;
-          context.empty('swf:JPEGTables', {
+          context.empty('f:JPEGTables', {
             href: file.name,
           });
           break;
         case 9:
           var rgb = read_rgb(chunk, 0);
-          context.empty('swf:SetBackgroundColor', {
+          context.empty('f:SetBackgroundColor', {
             color: rgb,
           });
           break;
@@ -131,7 +131,7 @@ function(
             font.glyphs[i_glyph] = read_path(chunk, pathOffset);
             font.glyphs[i_glyph].char = String.fromCharCode(32 + i_glyph);
           }
-          context.empty('swf:DefineFont', {'xlink:href': font.filename});
+          context.empty('f:DefineFont', {'xlink:href': font.filename});
           break;
         case 11:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -221,7 +221,7 @@ function(
           break;
         case 12:
           var actions = read_actions(chunk);
-          context.textExact('swf:DoAction', actions.toString());
+          context.textExact('f:DoAction', actions.toString());
           break;
         case 13:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -253,7 +253,7 @@ function(
           for (var i_glyph = 0; i_glyph < font.codeTable.length; i_glyph++) {
             font.glyphs[i_glyph].char = String.fromCodePoint(codeTable[i_glyph]);
           }
-          context.text('style', {type:'text/css', 'swf:DefineFontInfo':font.filename}, [
+          context.text('style', {type:'text/css', 'f:DefineFontInfo':font.filename}, [
             '@font-face {',
             "  font-family: '" + fontID + "';",
             "  font-weight: " + (font.bold?'bold':'normal') + ';',
@@ -281,7 +281,7 @@ function(
           var data = chunk.subarray(7);
           var dataFile = new File([data], soundID + '.sound.dat');
           context.files[dataFile.name] = dataFile;
-          context.empty('swf:DefineSound', {
+          context.empty('f:DefineSound', {
             id: soundID,
             'xlink:href': dataFile.name,
             format: format,
@@ -300,13 +300,13 @@ function(
           break;
         case 17:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-          context.open('swf:DefineButtonSound', {
+          context.open('f:DefineButtonSound', {
             'xlink:href': '#_'+chunkDV.getUint16(0, true),
           });
           
           var chunkOffset = 2, sound;
           if (chunkDV.getUint16(chunkOffset) !== 0) {
-            context.open('swf:ButtonSound', {on:'over-up-to-idle'});
+            context.open('f:ButtonSound', {on:'over-up-to-idle'});
             sound = read_play_sound(chunk, chunkOffset);
             chunkOffset = sound.endOffset;
             write_play_sound(context, sound);
@@ -317,7 +317,7 @@ function(
           }
           
           if (chunkDV.getUint16(chunkOffset) !== 0) {
-            context.open('swf:ButtonSound', {on:'idle-to-over-up'});
+            context.open('f:ButtonSound', {on:'idle-to-over-up'});
             sound = read_play_sound(chunk, chunkOffset);
             chunkOffset = sound.endOffset;
             write_play_sound(context, sound);
@@ -328,7 +328,7 @@ function(
           }
           
           if (chunkDV.getUint16(chunkOffset) !== 0) {
-            context.open('swf:ButtonSound', {on:'over-up-to-over-down'});
+            context.open('f:ButtonSound', {on:'over-up-to-over-down'});
             sound = read_play_sound(chunk, chunkOffset);
             chunkOffset = sound.endOffset;
             write_play_sound(context, sound);
@@ -339,7 +339,7 @@ function(
           }
           
           if (chunkDV.getUint16(chunkOffset) !== 0) {
-            context.open('swf:ButtonSound', {on:'over-down-to-over-up'});
+            context.open('f:ButtonSound', {on:'over-down-to-over-up'});
             sound = read_play_sound(chunk, chunkOffset);
             chunkOffset = sound.endOffset;
             write_play_sound(context, sound);
@@ -404,15 +404,15 @@ function(
             streamParts.filename = 'stream.dat';
           }
           context.streamParts = streamParts;
-          context.open('swf:SoundStreamHead', {
+          context.open('f:SoundStreamHead', {
             'xlink:href': streamParts.filename,
           });
-          context.empty('swf:playback', {
+          context.empty('f:playback', {
             hz: playback.hz,
             bits: playback.bits,
             channels: playback.channels,
           });
-          context.empty('swf:stream', {
+          context.empty('f:stream', {
             compression: stream.compression,
             hz: stream.hz,
             bits: stream.bits,
@@ -427,7 +427,7 @@ function(
             throw new Error('SoundStreamBlock without SoundStreamHead');
           }
           var newLength = context.streamParts.totalLength + chunk.length;
-          context.empty('swf:SoundStreamBlock', {
+          context.empty('f:SoundStreamBlock', {
             'xlink:href': context.streamParts.filename,
             'byte-ranges': context.streamParts.totalLength + '-' + (newLength-1),
           });
@@ -439,7 +439,7 @@ function(
           if (chunk.length !== 0) {
             attrs['password-md5'] = read_string(chunk);
           }
-          context.empty('swf:Protect', attrs);
+          context.empty('f:Protect', attrs);
           break;
         case 26:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -465,7 +465,7 @@ function(
             chunkOffset = colorTransform.endOffset;
           }
           if (flags & 0x10) {
-            attrs['swf:ratio'] = chunkDV.getUint16(chunkOffset, true) + '/65535';
+            attrs['f:ratio'] = chunkDV.getUint16(chunkOffset, true) + '/65535';
             chunkOffset += 2;
           }
           if (flags & 0x20) {
@@ -503,14 +503,14 @@ function(
               }
             }
           }
-          context.empty('swf:PlaceObject', attrs);
+          context.empty('f:PlaceObject', attrs);
           break;
         case 28:
           if (chunk.length < 2) {
             throw new Error('RemoveObject2: not enough data');
           }
           var depth = chunk[0] | (chunk[1] << 8);
-          context.empty('swf:RemoveObject2', {
+          context.empty('f:RemoveObject2', {
             depth: depth,
           });
           break;
@@ -585,7 +585,7 @@ function(
             }
             var actionBytes = chunk.slice(chunkOffset, nextActionOffset);
             var response = read_actions(actionBytes);
-            context.textExact('swf:DoAction', actionAttrs, response);
+            context.textExact('f:DoAction', actionAttrs, response);
             chunkOffset = nextActionOffset;
           }
           if (chunkOffset !== chunk.length) {
@@ -662,10 +662,10 @@ function(
           if (hasText) {
             var text = read_string(chunk, chunkOffset);
             chunkOffset += text.length + 1;
-            context.textExact('swf:DefineEditText', attrs, text);
+            context.textExact('f:DefineEditText', attrs, text);
           }
           else {
-            context.empty('swf:DefineEditText', attrs);
+            context.empty('f:DefineEditText', attrs);
           }
           if (chunkOffset !== chunk.length) {
             console.warn('unexpected data after DefineEditText');
@@ -675,13 +675,13 @@ function(
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var spriteID = '_' + chunkDV.getUint16(0, true);
           var frameCount = chunkDV.getUint16(2, true);
-          context.open('g', {class:'sprite', id:spriteID, 'swf:frame-count':frameCount});
+          context.open('g', {class:'sprite', id:spriteID, 'f:frame-count':frameCount});
           read_chunks(chunk, 4, context);
           context.close();
           break;
         case 43:
           var frameLabel = read_string(chunk);
-          context.text('swf:FrameLabel', {}, frameLabel);
+          context.text('f:FrameLabel', {}, frameLabel);
           break;
         case 46:
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
@@ -761,7 +761,7 @@ function(
                 var startMatrix = read_matrix(chunk, chunkOffset + 2);
                 var endMatrix = read_matrix(chunk, startMatrix.endOffset);
                 chunkOffset = endMatrix.endOffset;
-                context.open('swf:BitmapFill', {bitmapID: bitmapID});
+                context.open('f:BitmapFill', {bitmapID: bitmapID});
                 context.empty('animate', {
                   attributeName: 'transform',
                   from: startMatrix.toString(),
@@ -983,12 +983,12 @@ function(
     context.open('svg', {
       xmlns:"http://www.w3.org/2000/svg",
       'xmlns:xlink':"http://www.w3.org/1999/xlink",
-      'xmlns:swf':"intro.swf",
+      'xmlns:f':"intro.swf",
       width: widthTwips/20,
       height: heightTwips/20,
       viewBox: [frameRect.left, frameRect.top, frameRect.right, frameRect.bottom].join(' '),
-      'swf:version': header.version,
-      'swf:frames-per-second': framesPerSecond,
+      'f:version': header.version,
+      'f:frames-per-second': framesPerSecond,
     });
     context.files = {};
     context.fonts = {};
@@ -1032,7 +1032,7 @@ function(
       fontWriter.open('svg', {
         xmlns:"http://www.w3.org/2000/svg",
         'xmlns:xlink':"http://www.w3.org/1999/xlink",
-        'xmlns:swf':"intro.swf",
+        'xmlns:f':"intro.swf",
       });
       fontWriter.open('font', {id:fontIDs[font_i]});
       for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
@@ -1765,7 +1765,7 @@ function(
     if (flags & 0x10) {
       sound.attrs['if-already-playing'] = 'ignore';
     }
-    sound.tagName = (flags & 0x20) ? 'swf:StopSound' : 'swf:PlaySound';
+    sound.tagName = (flags & 0x20) ? 'f:StopSound' : 'f:PlaySound';
     if (flags & 8) {
       sound.envelope = new Array(chunk[chunkOffset++]);
       for (var i = 0; i < sound.envelope.length; i++) {
