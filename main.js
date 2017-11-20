@@ -151,6 +151,7 @@ function(
           var glyphBits = chunk[chunkOffset++];
           var advanceBits = chunk[chunkOffset++];
           var textAttrs;
+          var font = null;
           while (1) {
             var b = chunk[chunkOffset++];
             if (b & 0x80) {
@@ -160,8 +161,13 @@ function(
               var hasFont = b & 8;
               textAttrs = {};
               if (hasFont) {
-                textAttrs['font-family'] = '_' + chunkDV.getUint16(chunkOffset, true);
+                var fontID = chunkDV.getUint16(chunkOffset, true);
                 chunkOffset += 2;
+                font = context.fonts[fontID];
+                if (!font) {
+                  throw new Error('undefined font');
+                }
+                textAttrs['font-family'] = '_' + fontID;
               }
               if (hasColor) {
                 textAttrs.fill = read_rgb(chunk, chunkOffset);
