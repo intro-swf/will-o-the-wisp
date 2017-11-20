@@ -68,8 +68,9 @@ function(
           if (path.endOffset !== chunk.length) {
             console.warn('unexpected data after shape path');
           }
-          context.open('g', attrs);
-          context.empty('rect', {
+          var shapeOut = context.shapeFile;
+          shapeOut.open('g', attrs);
+          shapeOut.empty('rect', {
             class: 'bounds',
             x: bounds.left,
             y: bounds.top,
@@ -85,9 +86,9 @@ function(
           for (var style_i = 1; style_i < strokeStyles.length; style_i++) {
             styleText.push('.' + attrs.id + '_stroke' + style_i + ' {' + JSON.stringify(strokeStyles[style_i]) + '}');
           }
-          context.text('style', styleText.join('\n'));
-          write_path(context, path, attrs.id);
-          context.close();
+          shapeOut.text('style', styleText.join('\n'));
+          write_path(shapeOut, path, attrs.id);
+          shapeOut.close();
           break;
         case 6:
           var tables = context.files['tables.jpg'];
@@ -495,7 +496,7 @@ function(
                 var id = 'cx' + context.colorTransforms.length;
                 context.colorTransforms.push(str);
                 context.colorTransforms[str] = id;
-                colorTransform.writeFilterTo(context, id);
+                colorTransform.writeFilterTo(context.colorTransformFile, id);
                 attrs.filter = 'url(#' + id + ')';
               }
             }
@@ -687,19 +688,20 @@ function(
           context.text('f:FrameLabel', {}, frameLabel);
           break;
         case 46:
+          var shapeOut = context.shapeFile;
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var morphID = '_'+chunkDV.getUint16(0, true);
-          context.open('g', {class:'morph', id:morphID});
+          shapeOut.open('g', {class:'morph', id:morphID});
           var startBounds = read_twip_rect(chunk, 2);
           var endBounds = read_twip_rect(chunk, startBounds.endOffset);
-          context.empty('rect', {
+          shapeOut.empty('rect', {
             class:'start bounds',
             x: startBounds.left,
             y: startBounds.top,
             width: startBounds.right - startBounds.left,
             height: startBounds.bottom - startBounds.top,
           });
-          context.empty('rect', {
+          shapeOut.empty('rect', {
             class:'end bounds',
             x: endBounds.left,
             y: endBounds.top,
@@ -719,7 +721,7 @@ function(
             var fillStyleType = chunk[chunkOffset++];
             switch (fillStyleType) {
               case 0x00:
-                context.empty('animate', {
+                shapeOut.empty('animate', {
                   animateAttribute: 'fill',
                   from: read_rgba(chunk, chunkOffset),
                   to: read_rgba(chunk, chunkOffset + 4),
@@ -731,8 +733,8 @@ function(
                 var startMatrix = read_matrix(chunk, chunkOffset);
                 var endMatrix = read_matrix(chunk, startMatrix.endOffset);
                 chunkOffset = endMatrix.endOffset;
-                context.open(fillStyleType === 0x10 ? 'linearGradient' : 'radialGradient');
-                context.empty('animate', {
+                shapeOut.open(fillStyleType === 0x10 ? 'linearGradient' : 'radialGradient');
+                shapeOut.empty('animate', {
                   attributeName: 'gradientTransform',
                   from: startMatrix.toString(),
                   to: endMatrix.toString(),
@@ -742,21 +744,21 @@ function(
                   throw new Error('illegal');
                 }
                 do {
-                  context.open('stop');
-                  context.empty('animate', {
+                  shapeOut.open('stop');
+                  shapeOut.empty('animate', {
                     attributeName: 'ratio',
                     from: percentFrom255(chunk[chunkOffset]),
                     to: percentFrom255(chunk[chunkOffset+5]),
                   });
-                  context.empty('animate', {
+                  shapeOut.empty('animate', {
                     attributeName: 'stop-color',
                     from: read_rgba(chunk, chunkOffset+1),
                     to: read_rgba(chunk, chunkOffset+6),
                   });
-                  context.close();
+                  shapeOut.close();
                   chunkOffset += 10;
                 } while (--stopCount > 0);
-                context.close();
+                shapeOut.close();
                 break;
               case 0x40:
               case 0x41:
@@ -764,13 +766,13 @@ function(
                 var startMatrix = read_matrix(chunk, chunkOffset + 2);
                 var endMatrix = read_matrix(chunk, startMatrix.endOffset);
                 chunkOffset = endMatrix.endOffset;
-                context.open('f:BitmapFill', {bitmapID: bitmapID});
-                context.empty('animate', {
+                shapeOut.open('f:BitmapFill', {bitmapID: bitmapID});
+                shapeOut.empty('animate', {
                   attributeName: 'transform',
                   from: startMatrix.toString(),
                   to: startMatrix.toString(),
                 });
-                context.close();
+                shapeOut.close();
                 break;
               default:
                 throw new Error('unknown morph fill');
@@ -782,12 +784,12 @@ function(
             chunkOffset += 2;
           }
           while (lineStyleCount-- > 0) {
-            context.empty('animate', {
+            shapeOut.empty('animate', {
               attributeName: 'stroke-width',
               from: chunkDV.getUint16(chunkOffset, true),
               to: chunkDV.getUint16(chunkOffset + 2, true),
             });
-            context.empty('animate', {
+            shapeOut.empty('animate', {
               attributeName: 'stroke',
               from: read_rgba(chunk, chunkOffset + 4),
               to: read_rgba(chunk, chunkOffset + 8),
@@ -802,9 +804,9 @@ function(
           if (endPath.endOffset !== chunk.length) {
             console.warn('unexpected data');
           }
-          write_path(context, startPath, morphID + 'start');
-          write_path(context, endPath, morphID + 'end');
-          context.close();
+          write_path(shapeOut, startPath, morphID + 'start');
+          write_path(shapeOut, endPath, morphID + 'end');
+          shapeOut.close();
           break;
         default:
           console.log(chunkType, chunk);
@@ -996,11 +998,18 @@ function(
     context.files = {};
     context.fonts = {};
     context.colorTransforms = [];
+    context.shapeFile = new XMLWriter();
+    context.shapeFile.open('svg');
+    context.colorTransformFile.open('svg');
     context.streamPrefix = 'stream';
     read_chunks(body, offset, context);
     context.close();
+    context.shapeFile.close();
+    context.colorTransformFile.close();
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
+    context.files['shapes.svg'] = context.shapeFile.toFile('shapes.svg', 'image/svg+xml');
+    context.files['cxforms.svg'] = context.shapeFile.toFile('cxforms.svg', 'image/svg+xml');
     if (context.streamParts && context.streamParts.length > 0) {
       context.files[context.streamParts.filename] = new File(
         context.streamParts,
