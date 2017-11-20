@@ -590,9 +590,6 @@ function(
             context.textExact('f:DoAction', actionAttrs, response);
             chunkOffset = nextActionOffset;
           }
-          if (chunkOffset !== chunk.length) {
-            console.warn('unexpected data after DefineButton2');
-          }
           context.close();
           break;
         case 37:
