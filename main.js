@@ -397,11 +397,11 @@ function(
                 context.streamParts.filename);
             }
             streamParts.num = context.streamParts.num + 1;
-            streamParts.filename = 'stream' + streamParts.num + '.dat';
+            streamParts.filename = context.streamPrefix + streamParts.num + '.dat';
           }
           else {
             streamParts.num = 1;
-            streamParts.filename = 'stream.dat';
+            streamParts.filename = context.streamPrefix + '.dat';
           }
           context.streamParts = streamParts;
           context.open('f:SoundStreamHead', {
@@ -673,7 +673,13 @@ function(
           var spriteID = '_' + chunkDV.getUint16(0, true);
           var frameCount = chunkDV.getUint16(2, true);
           context.open('g', {class:'sprite', id:spriteID, 'f:frame-count':frameCount});
+          var streamParts = context.streamParts;
+          var streamPrefix = context.streamPrefix;
+          context.streamParts = null;
+          context.streamPrefix = 'sprite' + spriteID + '.stream';
           read_chunks(chunk, 4, context);
+          context.streamParts = streamParts;
+          context.streamPrefix = streamPrefix;
           context.close();
           break;
         case 43:
@@ -994,6 +1000,7 @@ function(
     context.close();
     var file = context.toFile('movie.svg', 'image/svg+xml');
     context.files[file.name] = file;
+    context.streamPrefix = 'stream';
     if (context.streamParts && context.streamParts.length > 0) {
       context.files[context.streamParts.filename] = new File(
         context.streamParts,
