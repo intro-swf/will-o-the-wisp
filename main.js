@@ -161,13 +161,13 @@ function(
               var hasFont = b & 8;
               textAttrs = {};
               if (hasFont) {
-                var fontID = chunkDV.getUint16(chunkOffset, true);
+                var fontID = '_' + chunkDV.getUint16(chunkOffset, true);
                 chunkOffset += 2;
                 font = context.fonts[fontID];
                 if (!font) {
                   throw new Error('undefined font');
                 }
-                textAttrs['font-family'] = '_' + fontID;
+                textAttrs['font-family'] = fontID;
               }
               if (hasColor) {
                 textAttrs.fill = read_rgb(chunk, chunkOffset);
