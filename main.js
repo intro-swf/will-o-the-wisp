@@ -818,7 +818,7 @@ function(
           var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
           var fontID = '_' + chunkDV.getUint16(0, true);
           var font = context.fonts[fontID] = {id: fontID};
-          var chunkOffset = 3;
+          var chunkOffset = 2;
           var flags = chunk[chunkOffset++];
           font.bold = !!(flags & 1);
           font.italic = !!(flags & 2);
