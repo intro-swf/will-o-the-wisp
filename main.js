@@ -832,21 +832,21 @@ function(
           font.name = String.fromCharCode.apply(null, chunk.subarray(chunkOffset, chunkOffset + nameLen));
           chunkOffset += nameLen;
           var glyphs = font.glyphs = new Array(chunkDV.getUint16(chunkOffset, true))
-          chunkOffset += 2;
+          var offsetBase = chunkOffset += 2;
           if (has32BitOffsets) {
             for (var i = 0; i < glyphs.length; i++) {
-              glyphs[i] = {offset: chunkDV.getUint32(chunkOffset, true)};
+              glyphs[i] = {offset: offsetBase + chunkDV.getUint32(chunkOffset, true)};
               chunkOffset += 4;
             }
-            glyphs.mapOffset = chunkDV.getUint32(chunkOffset, true);
+            glyphs.mapOffset = offsetBase + chunkDV.getUint32(chunkOffset, true);
             chunkOffset += 4;
           }
           else {
             for (var i = 0; i < glyphs.length; i++) {
-              glyphs[i] = {offset: chunkDV.getUint16(chunkOffset, true)};
+              glyphs[i] = {offset: offsetBase + chunkDV.getUint16(chunkOffset, true)};
               chunkOffset += 2;
             }
-            glyphs.mapOffset = chunkDV.getUint16(chunkOffset, true);
+            glyphs.mapOffset = offsetBase + chunkDV.getUint16(chunkOffset, true);
             chunkOffset += 2;
           }
           for (var i = 0; i < glyphs.length; i++) {
