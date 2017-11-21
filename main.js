@@ -814,6 +814,98 @@ function(
           write_path(shapeOut, endPath, morphID + 'end');
           shapeOut.close();
           break;
+        case 48:
+          var chunkDV = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          var fontID = '_' + chunkDV.getUint16(0, true);
+          var font = context.fonts[fontID] = {id: fontID};
+          var chunkOffset = 3;
+          var flags = chunk[chunkOffset++];
+          font.bold = !!(flags & 1);
+          font.italic = !!(flags & 2);
+          var has16BitChars = !!(flags & 4);
+          var has32BitOffsets = !!(flags & 8);
+          font.ansi = !!(flags & 0x10);
+          font.shiftJIS = !!(flags & 0x40);
+          var hasLayout = !!(flags & 0x80);
+          font.langCode = chunk[chunkOffset++]; // SWF5+
+          var nameLen = chunk[chunkOffset++];
+          font.name = String.fromCharCode.apply(null, chunk.subarray(chunkOffset, chunkOffset + nameLen));
+          chunkOffset += nameLen;
+          var glyphs = font.glyphs = new Array(chunkDV.getUint16(chunkOffset, true))
+          chunkOffset += 2;
+          if (has32BitOffsets) {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i] = {offset: chunkDV.getUint32(chunkOffset, true)};
+              chunkOffset += 4;
+            }
+            glyphs.mapOffset = chunkDV.getUint32(chunkOffset, true);
+            chunkOffset += 4;
+          }
+          else {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i] = {offset: chunkDV.getUint16chunkOffset, true)};
+              chunkOffset += 2;
+            }
+            glyphs.mapOffset = chunkDV.getUint16(chunkOffset, true);
+            chunkOffset += 2;
+          }
+          for (var i = 0; i < glyphs.length; i++) {
+            if (chunkOffset !== glyphs[i].offset) {
+              throw new Error('unexpected data');
+            }
+            glyphs[i] = read_path(chunk, chunkOffset, true, true);
+            chunkOffset = glyphs[i].endOffset;
+          }
+          if (chunkOffset !== glyphs.mapOffset) {
+            throw new Error('unexpected data');
+          }
+          if (has16BitChars) {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i].char = String.fromCodePoint(chunkDV.getUint16(chunkOffset, true));
+              chunkOffset += 2;
+            }
+          }
+          else {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i].char = String.fromCharCode(chunk[chunkOffset++]);
+            }
+          }
+          if (hasLayout) {
+            font.ascent = chunkDV.getInt16(chunkOffset, true);
+            chunkOffset += 2;
+            font.descent = chunkDV.getInt16(chunkOffset, true);
+            chunkOffset += 2;
+            font.leadingHeight = chunkDV.getInt16(chunkOffset, true);
+            chunkOffset += 2;
+            var advanceOffset = chunkOffset;
+            chunkOffset += 2 * glyphs.length;
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i].advance = chunkDV.getInt16(advanceOffset + i*2, true);
+              chunkOffset = (glyphs[i].bounds = read_twip_rect(chunk, chunkOffset)).endOffset;
+            }
+            var kerning = font.kerning = new Array(chunkDV.getUint16(chunkOffset));
+            chunkOffset += 2;
+            if (has16BitChars) {
+                kerning[i] = {
+                  chars: String.fromCodePoint(chunkDV.getUint16(chunkOffset), chunkDV.getUint16(chunkOffset+2)),
+                  adjustment: chunkDV.getUint16(chunkOffset + 4),
+                };
+                chunkOffset += 6;
+            }
+            else {
+              for (var i = 0; i < kerning.length; i++) {
+                kerning[i] = {
+                  chars: String.fromCharCode(chunk[chunkOffset], chunk[chunkOffset+1]),
+                  adjustment: chunkDV.getUint16(chunkOffset + 2),
+                };
+                chunkOffset += 4;
+              }
+            }
+          }
+          if (chunkOffset !== chunk.length) {
+            console.warn('unexpected data after DefineFont2');
+          }
+          break;
         default:
           console.log(chunkType, chunk);
       }
