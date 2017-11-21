@@ -843,7 +843,7 @@ function(
           }
           else {
             for (var i = 0; i < glyphs.length; i++) {
-              glyphs[i] = {offset: chunkDV.getUint16chunkOffset, true)};
+              glyphs[i] = {offset: chunkDV.getUint16(chunkOffset, true)};
               chunkOffset += 2;
             }
             glyphs.mapOffset = chunkDV.getUint16(chunkOffset, true);
