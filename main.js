@@ -435,8 +435,10 @@ function(
           }
           var attr = {};
           if (context.streamParts.format === 'mp3') {
-            attr['sample-skip'] = chunk[0] | (chunk[1] << 2);
-            chunk = chunk.subarray(2);
+            var dv = new DataView(chunk.buffer, chunk.byteOffset, 4);
+            attr['sample-count'] = dv.getUint16(0, true);
+            attr['sample-skip'] = dv.getInt16(2, true);
+            chunk = chunk.subarray(4);
           }
           attr.bytes = chunk.length;
           context.streamParts.push(chunk);
