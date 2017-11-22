@@ -48,7 +48,9 @@ function(
                   }
                   else fill = '#000';
                 }
-                el.setAttribute('fill', fill);
+                if (fill !== '#000') {
+                  el.setAttribute('fill', fill);
+                }
               }
               svg.appendChild(el);
             }
