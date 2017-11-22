@@ -676,7 +676,7 @@ define(function() {
             }
             this.onclosespriteframe();
           }
-          endLoop: for (;;) switch (this.onrawtag(spriteSource)) {
+          endLoop: for (;;) switch (this.onrawtag(source)) {
             case TAG_END:
               this.onrawchunk(source.readSubarray(this.chunkLength));
               break endLoop;
