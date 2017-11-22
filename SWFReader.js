@@ -582,8 +582,8 @@ define(function() {
           this.onprotect();
           break;
         case TAG_PLACE_OBJECT_2:
-          var z = source.readUint16LE();
           var flags = source.readUint8();
+          var z = source.readUint16LE();
           var action = flags & 1 ? (flags & 2 ? 'replace' : 'update') : 'insert';
           var settings = {};
           if (flags & 2) {
