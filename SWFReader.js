@@ -857,7 +857,6 @@ define(function() {
             else {
               var matrix = this.readSWFMatrix();
               var stops = this.readSWFGradientStops(NO_ALPHA);
-              offset = gradient.endOffset;
               fillStyles[i] = {
                 type: (fillStyle === 10) ? 'linearGradient' : 'radialGradient',
                 matrix: matrix,
