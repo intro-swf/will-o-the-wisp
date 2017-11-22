@@ -1243,8 +1243,8 @@ define(function() {
       this.strokeEdge = this.strokeEdges[i];
     },
     move: function(x, y) {
-      this.x += x;
-      this.y += y;
+      this.x = x;
+      this.y = y;
     },
     line: function(dx, dy) {
       var x = this.x + dx, y = this.y + dy;
