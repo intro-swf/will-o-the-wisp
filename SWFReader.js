@@ -101,6 +101,9 @@ define(function() {
     // onframelabel(label <string>)
     onframelabel: NULLFUNC,
     
+    // onunhandledtag(tag <int>, data <Uint8Array>)
+    onunhandledtag: NULLFUNC,
+    
     read: function(source) {
       // TODO: support Blob/URL sources?
       if (!(source instanceof Uint8Array)) {
@@ -677,6 +680,9 @@ define(function() {
         case TAG_FRAME_LABEL:
           this.onframelabel(source.readByteString('\0'));
           source.warnIfMore();
+          break;
+        default:
+          this.onunhandledtag(chunkType, source);
           break;
       }
     },
