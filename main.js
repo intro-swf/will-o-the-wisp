@@ -33,6 +33,14 @@ function(
             fillStyles = segment.fillStyles || fillStyles;
             strokeStyles = segment.strokeStyles || strokeStyles;
             var fill = fillStyles[segment.i_fill];
+            if (typeof fill !== 'string') {
+              if (fill.type === 'radialGradient' || fill.type === 'linearGradient') {
+                fill = fill.stops[0].color;
+              }
+              else {
+                fill = '#000';
+              }
+            }
             var stroke = strokeStyles[segment.i_stroke];
             var buf = [];
             for (var j = 0; j < segment.length; j++) {
@@ -40,7 +48,7 @@ function(
             }
             var path = document.createSVGElement('path');
             path.setAttribute('d', buf.join(' '));
-            if (typeof fill === 'string' && fill !== '#000') {
+            if (fill !== '#000') {
               path.setAttribute('fill', fill);
             }
             if (stroke.width > 0 && stroke.stroke !== 'none' && stroke.stroke !== 'transparent') {
