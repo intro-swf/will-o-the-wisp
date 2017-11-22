@@ -122,7 +122,7 @@ define(function() {
             case TAG_SOUND_STREAM_HEAD:
             case TAG_SOUND_STREAM_HEAD_2:
               if (this.stream) this.onclosestream();
-              var streamSource = source.subarray(this.chunkLength);
+              var streamSource = source.readSubarray(this.chunkLength);
               this.stream = streamSource.readSWFStreamHead();
               streamSource.warnIfMore();
               this.onopenstream();
@@ -644,7 +644,7 @@ define(function() {
               case TAG_SOUND_STREAM_HEAD:
               case TAG_SOUND_STREAM_HEAD_2:
                 if (this.spriteStream) this.onclosespritestream();
-                var streamSource = source.subarray(this.chunkLength);
+                var streamSource = source.readSubarray(this.chunkLength);
                 this.spriteStream = streamSource.readSWFStreamHead();
                 streamSource.warnIfMore();
                 this.onopenspritestream();
