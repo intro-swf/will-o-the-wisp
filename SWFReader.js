@@ -630,7 +630,7 @@ define(function() {
           this.spriteID = source.readUint16LE();
           this.spriteFrameCount = source.readUint16LE();
           this.onopensprite();
-          for (var j = 0; j < this.spriteFrameCount; j++)
+          for (var j = 0; j < this.spriteFrameCount; j++) {
             this.spriteFrameNumber = j;
             this.onopenspriteframe();
             frameLoop: for (;;) switch (this.onrawtag(source)) {
