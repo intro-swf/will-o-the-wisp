@@ -33,7 +33,7 @@ function(
         jpegTables = tables.slice(0, -2);
       },
       ondefine: function(id, type, def) {
-        if (type === 'image') {
+        if (type === 'bitmap') {
           if (def.type === 'image/jpeg; encoding-tables=no') {
             if (!jpegTables) {
               throw new Error('no jpeg tables found')
