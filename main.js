@@ -49,7 +49,7 @@ function(
                     var grad = document.createSVGElement(fill.mode + 'Gradient');
                     grad.setAttribute('id', 'grad' + nextGradID++);
                     grad.setAttribute('gradientUnits', 'userSpaceOnUse');
-                    if (fill.mode === 'linear') {
+                    if (fill.mode === 'radial') {
                       grad.setAttribute('r', 16384);
                     }
                     else {
