@@ -4,8 +4,8 @@ requirejs.config({
 });
 
 require([
-  'domReady!', // use domReady.js plugin to require DOM readiness
-  'SWFReader',
+  'domReady!' // use domReady.js plugin to require DOM readiness
+  ,'SWFReader'
 ],
 function(
   domReady // unused value
