@@ -787,11 +787,11 @@ define(function() {
       var r = this[o], g = this[o+1], b = this[o+2];
       if (NO_ALPHA) {
         this.offset = o+3;
-        return makeCSSColor(r,g,b,255);
+        return new SWFColor(r,g,b,255);
       }
       var a = this[o+3];
       this.offset = o+4;
-      return makeCSSColor(r,g,b,a);
+      return new SWFColor(r,g,b,a);
     },
     readSWFMatrix: function() {
       var matrix = new SWFMatrix;
@@ -1107,26 +1107,6 @@ define(function() {
     return +(v*100/255).toFixed(1) + '%';
   }  
   
-  function makeCSSColor(r,g,b,a) {
-    if (a !== 255) {
-      if (a === 0 && r === 0 && g === 0 && b === 0) {
-        return 'transparent';
-      }
-      return ('rgba('
-        + r + ',' + g + ',' + b
-        + ', ' + percentFromByte(a)
-        + ')');
-    }
-    if ((r>>4)==(r&15)&&(g>>4)==(g&15)&&(b>>4)==(b&15)) {
-      return '#'
-        + (r&15).toString(16)
-        + (g&15).toString(16)
-        + (b&15).toString(16);
-    }
-    var rgb = (r << 16) | (g << 8) | b;
-    return '#' + ('0000000' + rgb.toString(16)).slice(-6);
-  }
-  
   function SWFRect() {
   }
   SWFRect.prototype = {
@@ -1429,10 +1409,53 @@ define(function() {
     },
   };
   
+  function SWFColor(r, g, b, a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+  }
+  SWFColor.prototype = {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 255,
+    toString: function() {
+      return this.cssColor;
+    },
+    get solidColor() {
+      var r = this.r, g = this.g, b = this.b;
+      if ((r>>4)==(r&15)&&(g>>4)==(g&15)&&(b>>4)==(b&15)) {
+        return '#'
+          + (r&15).toString(16)
+          + (g&15).toString(16)
+          + (b&15).toString(16);
+      }
+      var rgb = (r << 16) | (g << 8) | b;
+      return '#' + ('0000000' + rgb.toString(16)).slice(-6);
+    },
+    get opacity() {
+      return this.a/255;
+    },
+    get cssColor() {
+      if (this.a !== 255) {
+        if (this.a === 0 && this.r === 0 && this.g === 0 && this.b === 0) {
+          return 'transparent';
+        }
+        return ('rgba('
+          + this.r + ',' + this.g + ',' + this.b
+          + ', ' + percentFromByte(this.a)
+          + ')');
+      }
+      return this.solidColor;
+    },
+  };
+  
   SWFReader.Rect = SWFRect;
   SWFReader.Matrix = SWFMatrix;
   SWFReader.ColorTransform = SWFColorTransform;
   SWFReader.Path = SWFPath;
+  SWFReader.Color = SWFColor;
   
   return SWFReader;
 
