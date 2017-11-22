@@ -843,8 +843,10 @@ define(function() {
             break;
           case 0x10:
           case 0x12:
+            var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
             if (PAIRS) {
-              var a = {stops:[]}, b = {stops:[]};
+              var a = {type:'gradient', mode:mode, stops:[]};
+              var b = {type:'gradient', mode:mode, stops:[]};
               a.matrix = this.readSWFMatrix();
               b.matrix = this.readSWFMatrix();
               var stops = this.readSWFGradientStops(NO_ALPHA, true);
@@ -858,7 +860,8 @@ define(function() {
               var matrix = this.readSWFMatrix();
               var stops = this.readSWFGradientStops(NO_ALPHA);
               fillStyles[i] = {
-                type: (fillStyle === 0x10) ? 'linearGradient' : 'radialGradient',
+                type: 'gradient',
+                mode: mode,
                 matrix: matrix,
                 stops: stops,
               };
