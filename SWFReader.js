@@ -1380,7 +1380,7 @@ define(function() {
       this.segment.push(new SWFPathRecord('q', [cx,cy, x,y]));
     },
     move: function(x, y) {
-      this.segment.push(new SWFPathRecord('m', [x, y]));
+      this.segment.push(new SWFPathRecord('M', [x, y]));
     },
     i_fill0: function(i_fill) {
       this.segment.i_fill0 = i_fill;
@@ -1414,7 +1414,7 @@ define(function() {
         for (var i_step = 0; i_step < segment.length; i_step++) {
           var step = segment[i_step];
           switch (step.type) {
-            case 'm': converter.move.apply(converter, step.values); break;
+            case 'M': converter.move.apply(converter, step.values); break;
             case 'l': converter.line.apply(converter, step.values); break;
             case 'q': converter.curve.apply(converter, step.values); break;
           }
