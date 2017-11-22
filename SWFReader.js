@@ -978,6 +978,9 @@ define(function() {
             currentX += this.readSWFBits(coordBitCount, true);
             currentY += this.readSWFBits(coordBitCount, true);
           }
+          else {
+            currentX = currentY = 0;
+          }
           segments.push(segment = [{type:'M', values:[currentX, currentY]}]);
           if (flags & 2) {
             i_fill2 = segment.i_fill2 = this.readSWFBits(fillIndexBits, false);
@@ -997,7 +1000,6 @@ define(function() {
             segment.strokeStyles = this.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
             fillIndexBits = this.readSWFBits(4, false);
             lineIndexBits = this.readSWFBits(4, false);
-            currentX = currentY = 0;
           }
         }
       }
