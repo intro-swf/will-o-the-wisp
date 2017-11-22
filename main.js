@@ -39,13 +39,22 @@ function(
               if (path.mode === 'stroke') {
                 el.setAttribute('fill', 'none');
                 var stroke = monoPaths[i].strokeStyles[path.i_stroke];
-                el.setAttribute('stroke', stroke.color);
+                el.setAttribute('stroke', stroke.color.solidColor);
+                if (stroke.color.opacity !== 1) {
+                  el.setAttribute('stroke-opacity', stroke.color.opacity);
+                }
                 el.setAttribute('stroke-width', stroke.width);
               }
               else {
                 var fill = monoPaths[i].fillStyles[path.i_fill];
-                if (typeof fill !== 'string') {
-                  if (fill.type === 'gradient') {
+                switch (fill.type) {
+                  case 'color':
+                    el.setAttribute('fill', fill.solidColor);
+                    if (fill.opacity !== 1) {
+                      el.setAttribute('fill-opacity', fill.opacity);
+                    }
+                    break;
+                  case 'gradient':
                     var grad = document.createSVGElement(fill.mode + 'Gradient');
                     grad.setAttribute('id', 'grad' + nextGradID++);
                     grad.setAttribute('gradientUnits', 'userSpaceOnUse');
@@ -60,18 +69,21 @@ function(
                       grad.setAttribute('gradientTransform', fill.matrix.toString());
                     }
                     for (var i_stop = 0; i_stop < fill.stops.length; i_stop++) {
+                      var stop = fill.stops[i_stop];
                       var stopEl = document.createSVGElement('stop');
-                      stopEl.setAttribute('offset', fill.stops[i_stop].ratio);
-                      stopEl.setAttribute('stop-color', fill.stops[i_stop].color);
+                      stopEl.setAttribute('offset', stop.ratio);
+                      stopEl.setAttribute('stop-color', stop.color.solidColor);
+                      if (stop.color.opacity !== 1) {
+                        stopEl.setAttribute('stop-opacity', stop.color.opacity);
+                      }
                       grad.appendChild(stopEl);
                     }
                     svg.appendChild(grad);
                     fill = 'url("#' + grad.getAttribute('id') + '")';
-                  }
-                  else fill = '#000';
-                }
-                if (fill !== '#000') {
-                  el.setAttribute('fill', fill);
+                    break;
+                  case 'bitmap':
+                    // TODO
+                    break;
                 }
               }
               svg.appendChild(el);
