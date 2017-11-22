@@ -238,9 +238,9 @@ define(function() {
         case TAG_DEFINE_FONT:
           var id = source.readUint16LE();
           var dv = new DataView(source.buffer, source.byteOffset, source.byteLength);
-          var glyphs = new Array(dv.readUint16(2, true) / 2);
+          var glyphs = new Array(dv.getUint16(2, true) / 2);
           for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
-            source.offset = 2 + dv.readUint16(2 + i_glyph*2, true);
+            source.offset = 2 + dv.getUint16(2 + i_glyph*2, true);
             glyphs[i_glyph] = {path: this.readSVGPath()};
           }
           this.ondefine(id, 'font', {glyphs:glyphs});
