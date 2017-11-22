@@ -540,7 +540,7 @@ define(function() {
               }
             }
           }
-          // memsrc.warnIfMore(); /* seems common to have extra data here? */
+          // source.warnIfMore(); /* seems common to have extra data here? */
           this.ondefine(id, 'button', button);
           break;
         case TAG_DEFINE_BUTTON_SOUND:
