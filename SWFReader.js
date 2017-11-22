@@ -1322,7 +1322,7 @@ define(function() {
     },
     toPaths: function() {
       var paths = [];
-      for (var i_fill = 1; i_fill < this.fillEdges; i_fill++) {
+      for (var i_fill = 1; i_fill < this.fillEdges.length; i_fill++) {
         var segments = this.fillEdges[i_fill];
         if (segments.length === 0) continue;
         var path = this.segmentsToPath(segments);
@@ -1330,7 +1330,7 @@ define(function() {
         path.i_fill = i_fill;
         paths.push(path);
       }
-      for (var i_stroke = 1; i_stroke < this.strokeEdges; i_fill++) {
+      for (var i_stroke = 1; i_stroke < this.strokeEdges.length; i_fill++) {
         var segments = this.strokeEdges[i_stroke];
         if (segments.length === 0) continue;
         var path = this.segmentsToPath(segments);
