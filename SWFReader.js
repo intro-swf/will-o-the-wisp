@@ -827,7 +827,7 @@ define(function() {
         count = this.readUint16LE();
       }
       var fillStyles = new Array(count+1);
-      fillStyles[0] = 'none';
+      fillStyles[0] = PAIRS ? ['none', 'none'] : 'none';
       var fillStyle;
       for (var i = 1; i < fillStyles.length; i++) {
         switch (fillStyle = this.readUint8()) {
@@ -902,6 +902,7 @@ define(function() {
       }
       var strokeStyles = new Array(1 + count);
       strokeStyles[0] = {width:0, stroke:'none'};
+      if (PAIRS) strokeStyles[0] = [strokeStyles[0], strokeStyles[0]];
       if (PAIRS) for (var i = 1; i < strokeStyles.length; i++) {
         var a = {}, b = {};
         a.width = this.readUint16LE();
