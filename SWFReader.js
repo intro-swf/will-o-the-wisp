@@ -858,7 +858,7 @@ define(function() {
               var matrix = this.readSWFMatrix();
               var stops = this.readSWFGradientStops(NO_ALPHA);
               fillStyles[i] = {
-                type: (fillStyle === 10) ? 'linearGradient' : 'radialGradient',
+                type: (fillStyle === 0x10) ? 'linearGradient' : 'radialGradient',
                 matrix: matrix,
                 stops: stops,
               };
@@ -867,14 +867,17 @@ define(function() {
           case 0x40:
           case 0x41:
             var bitmapID = this.readUint16LE();
+            var mode = (fillStyle === 0x40) ? 'tiled' : 'clipped',
             if (PAIRS) {
               var a = {
                 type: 'bitmap',
+                mode: mode,
                 matrix: this.readSWFMatrix(),
                 bitmapID: bitmapID,
               };
               var b = {
                 type: 'bitmap',
+                mode: mode,
                 matrix: this.readSWFMatrix(),
                 bitmapID: bitmapID,
               };
@@ -883,6 +886,7 @@ define(function() {
             else {
               fillStyles[i] = {
                 type: 'bitmap',
+                mode: mode,
                 matrix: this.readSWFMatrix(),
                 bitmapID: bitmapID,
               };
