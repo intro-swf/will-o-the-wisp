@@ -191,34 +191,39 @@ define(function() {
           shape.bounds = source.readSWFRect();
           const EXTENDED_LENGTH = chunkType >= TAG_DEFINE_SHAPE_2;
           const NO_ALPHA = chunkType < TAG_DEFINE_SHAPE_3;
-          shape.fillStyles = source.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
-          shape.strokeStyles = source.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
+          var fillStyles = source.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
+          var strokeStyles = source.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
           shape.path = source.readSWFPath(EXTENDED_LENGTH, NO_ALPHA);
+          shape.path.initialStyles(fillStyles, strokeStyles);
           source.warnIfMore();
           this.ondefine(id, 'shape', shape);
           break;
         case TAG_DEFINE_MORPH_SHAPE:
           var id = source.readUint16LE();
-          var fromShape = {fillStyles:[], strokeStyles:[]};
-          var toShape = {fillStyles:[], strokeStyles:[]};
+          var fromShape = {};
+          var toShape = {};
           fromShape.bounds = source.readSWFRect();
           toShape.bounds = source.readSWFRect();
           var endPathOffset = source.offset + source.readUint32LE();
           if (endPathOffset === source.offset) {
             endPathOffset = source.length;
           }
-          var fillStyles = source.readSWFFillStyles(true, false, true);
-          for (var i = 0; i < fillStyles.length; i++) {
-            fromShape.fillStyles.push(fillStyles[i][0]);
-            toShape.fillStyles.push(fillStyles[i][1]);
+          var fillStylePairs = source.readSWFFillStyles(true, false, true);
+          var fromFillStyles = [], toFillStyles = [];
+          for (var i = 0; i < fillStylePairs.length; i++) {
+            fromFillStyles.push(fillStylePairs[i][0]);
+            toFillStyles.push(fillStylePairs[i][1]);
           }
-          var strokeStyles = source.readSWFStrokeStyles(true, false, true);
-          for (var i = 0; i < strokeStyles.length; i++) {
-            fromShape.strokeStyles.push(strokeStyles[i][0]);
-            toShape.strokeStyles.push(strokeStyles[i][1]);
+          var strokeStylePairs = source.readSWFStrokeStyles(true, false, true);
+          var fromStrokeStyles = [], toStrokeStyles = [];
+          for (var i = 0; i < strokeStylePairs.length; i++) {
+            fromStrokeStyles.push(strokeStylePairs[i][0]);
+            toStrokeStyles.push(strokeStylePairs[i][1]);
           }
           fromShape.path = source.readSWFPath(true, false);
+          fromShape.path.initialStyles(fromFillStyles, fromStrokeStyles);
           toShape.path = source.readSWFPath(true, false);
+          toShape.path.initialStyles(toFillStyles, toStrokeStyles);
           this.ondefine(id, 'morph', fromShape, toShape);
           break;
         case TAG_DEFINE_BITS:
@@ -1214,10 +1219,138 @@ define(function() {
     },
   };
   
+  function SWFPathConverter(fillStyles, strokeStyles) {
+    this.fillStyles = fillStyles;
+    this.strokeStyles = strokeStyles;
+    this.fillEdges = new Array(fillStyles.length);
+    this.strokeEdges = new Array(strokeStyles.length);
+    for (var i = 1; i < fillStyles.length; i++) {
+      this.fillEdges[i] = [];
+    }
+    for (var i = 1; i < strokeStyles.length; i++) {
+      this.strokeEdges[i] = [];
+    }
+  }
+  SWFPathConverter.prototype = {
+    x:0, y:0,
+    i_fill0: function(i) {
+      this.fillEdge0 = this.fillEdges[i];
+    },
+    i_fill1: function(i) {
+      this.fillEdge1 = this.fillEdges[i];
+    },
+    i_stroke: function(i) {
+      this.strokeEdge = this.strokeEdges[i];
+    },
+    move: function(x, y) {
+      this.x += x;
+      this.y += y;
+    },
+    line: function(dx, dy) {
+      var x = this.x + dx, y = this.y + dy;
+      if (this.fillEdge0) {
+        this.fillEdge0.push({x1:x, y1:y, x2:this.x, y2:this.y}]);
+      }
+      if (this.fillEdge1) {
+        this.fillEdge1.push({x1:this.x, y1:this.y, x2:x, y2:y}]);
+      }
+      if (this.strokeEdge) {
+        this.strokeEdge.push({x1:this.x, y1:this.y, x2:x, y2:y});
+      }
+      this.x = x;
+      this.y = y;
+    },
+    curve: function(dcx, dcy, dx, dy) {
+      var cx = this.x + dcx, cy = this.y + dcy;
+      var x = this.x + dx, y = this.y + dy;
+      if (this.fillEdge0) {
+        this.fillEdge0.push({x1:x, y1:y, control:[cx, cy], x2:this.x, y2:this.y});
+      }
+      if (this.fillEdge1) {
+        this.fillEdge1.push({x1:this.x, y1:this.y, control:[cx, cy], x2:x, y2:y});
+      }
+      if (this.strokeEdge) {
+        this.strokeEdge.push({x1:this.x, y1:this.y, control:[cx, cy], x2:x, y2:y});
+      }
+      this.x = x;
+      thix.y = y;
+    },
+    segmentsToPath: function(segments) {
+      var i_seg = 0, seg = segments[0];
+      var x = seg.x1, y = seg.y1;
+      var path = [{type:'m', values:[x, y]}];
+      for (;;) {
+        if (seg.control) {
+          path.push({type:'q', values:[
+            seg.control[0] - x,
+            seg.control[1] - y,
+            seg.x2 - x,
+            seg.y2 - y,
+          ]});
+        }
+        else if (seg.x2 === x) {
+          path.push({type:'v', values:[
+            seg.y2 - y,
+          ]});
+        }
+        else if (seg.y2 === y) {
+          path.push({type:'h', values:[
+            seg.x2 - x,
+          ]});
+        }
+        else {
+          path.push({type:'l', values:[
+            seg.x2 - x,
+            seg.y2 - y,
+          ]});
+        }
+        x = seg.x2;
+        y = seg.y2;
+        var nextSeg = segments[++i_seg];
+        if (!nextSeg) break;
+        if (x !== nextSeg.x1 || y !== nextSeg.y1) {
+          path.push({type:'m', values: [
+            nextSeg.x1 - x,
+            nextSeg.y1 - y,
+          ]});
+          x = nextSeg.x1;
+          y = nextSeg.y1;
+        }
+        seg = nextSeg;
+      }
+      return path;
+    },
+    toPaths: function() {
+      var paths = [];
+      for (var i_fill = 1; i_fill < this.fillEdges; i_fill++) {
+        var segments = this.fillEdges[i_fill];
+        if (segments.length === 0) continue;
+        var path = this.segmentsToPath(segments);
+        path.mode = 'fill';
+        path.i_fill = i_fill;
+        paths.push(path);
+      }
+      for (var i_stroke = 1; i_stroke < this.strokeEdges; i_fill++) {
+        var segments = this.strokeEdges[i_stroke];
+        if (segments.length === 0) continue;
+        var path = this.segmentsToPath(segments);
+        path.mode = 'stroke';
+        path.i_stroke = i_stroke;
+        paths.push(path);
+      }
+    },
+  };
+  
   function SWFPath() {
     this.records = [];
   }
   SWFPath.prototype = {
+    fillStyles: ['none', '#000'],
+    strokeStyles: ['none'],
+    initialStyles: function(fillStyles, strokeStyles) {
+      this.fillStyles = fillStyles;
+      this.strokeStyles = strokeStyles;
+    },
     newSegment: function() {
       this.segments.push(this.segment = []);
     },
@@ -1238,6 +1371,41 @@ define(function() {
     },
     i_stroke: function(i_stroke) {
       this.segment.i_stroke = i_stroke;
+    },
+    newStyles: function(fillStyles, strokeStyles) {
+      this.segment.fillStyles = fillStyles;
+      this.segment.strokeStyles = strokeStyles;
+    },
+    toMonoPaths: function() {
+      var converter = new SWFPathConverter(this.fillStyles, this.strokeStyles);
+      var output = [];
+      for (var i_segment = 0; i_segment < this.segments.length; i_segment++) {
+        var segment = this.segments[i_segment];
+        if ('fillStyles' in segment) {
+          output.push({
+            fillStyles: converter.fillStyles,
+            strokeStyles: converter.strokeStyles,
+            paths: converter.toPaths(),
+          });
+          converter = new SWFPathConverter(segment.fillStyles, segment.strokeStyles);
+        }
+        if ('i_fill0' in segment) converter.i_fill0(segment.i_fill0);
+        if ('i_fill1' in segment) converter.i_fill1(segment.i_fill1);
+        if ('i_stroke' in segment) converter.i_stroke(segment.i_stroke);
+        for (var i_step = 0; i_step < segment.length; i_step++) {
+          var step = segment[i_step];
+          switch (step.type) {
+            case 'm': converter.move.apply(converter, step.values); break;
+            case 'l': converter.line.apply(converter, step.values); break;
+            case 'q': converter.curve.apply(converter, step.values); break;
+          }
+        }
+      }
+      output.push({
+        fillStyles: converter.fillStyles,
+        strokeStyles: converter.strokeStyles,
+        paths: converter.toPaths(),
+      });
     },
   };
   
