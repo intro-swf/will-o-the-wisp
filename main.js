@@ -16,13 +16,14 @@ function(
   
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
-    var SWFReader = new SWFReader({
+    var reader = new SWFReader({
       ondefine: function(id, type, def) {
         if (type === 'shape') {
           console.log(def);
         }
       },
     });
+    reader.read(bytes);
   }
   
   // function called on a blob containing swf data
