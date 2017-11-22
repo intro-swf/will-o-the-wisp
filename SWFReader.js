@@ -977,10 +977,10 @@ define(function() {
             path.move(x, y);
           }
           if (flags & 2) {
-            path.i_fill1(this.readSWFBits(fillIndexBits, false));
+            path.i_fill0(this.readSWFBits(fillIndexBits, false));
           }
           if (flags & 4) {
-            path.i_fill0(this.readSWFBits(fillIndexBits, false));
+            path.i_fill1(this.readSWFBits(fillIndexBits, false));
           }
           if (flags & 8) {
             path.i_stroke(this.readSWFBits(lineIndexBits, false));
