@@ -79,7 +79,7 @@ function(
                       grad.appendChild(stopEl);
                     }
                     svg.appendChild(grad);
-                    fill = 'url("#' + grad.getAttribute('id') + '")';
+                    el.setAttribute('fill', 'url("#' + grad.getAttribute('id') + '")');
                     break;
                   case 'bitmap':
                     // TODO
