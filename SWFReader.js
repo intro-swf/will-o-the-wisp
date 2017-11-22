@@ -1090,7 +1090,7 @@ define(function() {
       stream.playback = playback;
       stream.samplesPerBlock = this.readUint16LE();
       if (stream.format === 'mp3') {
-        stream.seekSamples = source.readInt16LE();
+        stream.seekSamples = this.readInt16LE();
       }
       return stream;
     },
