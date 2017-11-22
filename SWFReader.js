@@ -998,6 +998,7 @@ define(function() {
             segment.strokeStyles = this.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
             fillIndexBits = this.readSWFBits(4, false);
             lineIndexBits = this.readSWFBits(4, false);
+            currentX = currentY = 0;
           }
         }
       }
