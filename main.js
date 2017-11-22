@@ -19,6 +19,7 @@ function(
   };
   
   var nextGradID = 1;
+  var nextClip = 1;
   
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
@@ -89,9 +90,7 @@ function(
                       grad.setAttribute('x1', -16384);
                       grad.setAttribute('x2', 16384);
                     }
-                    if (!fill.matrix.isIdentity) {
-                      grad.setAttribute('gradientTransform', fill.matrix.toString());
-                    }
+                    grad.setAttribute('gradientTransform', fill.matrix.toString());
                     for (var i_stop = 0; i_stop < fill.stops.length; i_stop++) {
                       var stop = fill.stops[i_stop];
                       var stopEl = document.createSVGElement('stop');
@@ -106,7 +105,20 @@ function(
                     el.setAttribute('fill', 'url("#' + grad.getAttribute('id') + '")');
                     break;
                   case 'bitmap':
-                    // TODO
+                    if (fill.mode === 'clipped') {
+                      var clip = document.createSVGElement('clipPath');
+                      clip.setAttribute('id', 'clip' + nextClip++);
+                      clip.appendChild(el);
+                      el = clip;
+                      var img = document.createSVGElement('image');
+                      img.setAttribute('href', bitmapURLs[id]);
+                      img.setAttribute('transform', fill.matrix.toString());
+                      img.setAttribute('clip-path', 'url("#' + clip.getAttribute('id') + '")');
+                      svg.appendChild(img);
+                    }
+                    else {
+                      console.log('TODO: tiled bitmaps');
+                    }
                     break;
                 }
               }
