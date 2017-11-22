@@ -34,7 +34,7 @@ function(
             strokeStyles = segment.strokeStyles || strokeStyles;
             var fill = fillStyles[segment.i_fill];
             if (typeof fill !== 'string') {
-              if (fill.type === 'radialGradient' || fill.type === 'linearGradient') {
+              if (fill.type === 'gradient') {
                 fill = fill.stops[0].color;
               }
               else {
