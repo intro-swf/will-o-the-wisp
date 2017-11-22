@@ -22,7 +22,32 @@ function(
   
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
+    var jpegTables;
+    var imageURLs = {};
+
     var reader = new SWFReader({
+      onunhandledtag: function(id, data) {
+        console.log('unhandled', id, data);
+      },
+      onjpegtables: function(tables) {
+        jpegTables = tables.slice(0, -2);
+      },
+      ondefine: function(id, type, def) {
+        if (type === 'image') {
+          if (def.type === 'image/jpeg; encoding-tables=no') {
+            if (!jpegTables) {
+              throw new Error('no jpeg tables found')
+            }
+            var jpegBlob = new Blob([jpegTables, def.slice(2)], 'image/jpeg');
+            var jpegURL = URL.createObjectURL(jpegBlob);
+            imageURLs[id] = jpegURL;
+            var img = document.createElement('IMG');
+            img.src = jpegURL;
+            document.body.appendChild(img);
+          }
+        }
+      },
+      /*
       ondefine: function(id, type, def) {
         if (type === 'shape') {
           var svg = document.createSVGElement('svg');
@@ -91,6 +116,7 @@ function(
           }
           document.body.appendChild(svg);
         }
+        */
       },
     });
     reader.read(bytes);
