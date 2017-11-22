@@ -18,6 +18,8 @@ function(
     return this.createElementNS('http://www.w3.org/2000/svg', name);
   };
   
+  var nextGradID = 1;
+  
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
     var reader = new SWFReader({
@@ -44,7 +46,27 @@ function(
                 var fill = monoPaths[i].fillStyles[path.i_fill];
                 if (typeof fill !== 'string') {
                   if (fill.type === 'gradient') {
-                    fill = fill.stops[0].color;
+                    var grad = document.createSVGElement(fill.mode + 'Gradient');
+                    grad.setAttribute('id', 'grad' + nextGradID++);
+                    grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+                    if (fill.mode === 'linear') {
+                      grad.setAttribute('r', 16384);
+                    }
+                    else {
+                      grad.setAttribute('x1', -16384);
+                      grad.setAttribute('x2', 16384);
+                    }
+                    if (!fill.matrix.isIdentity) {
+                      grad.setAttribute('gradientTransform', fill.matrix.toString());
+                    }
+                    for (var i = 0; i < fill.stops.length; i++) {
+                      var stop = document.createSVGElement('stop');
+                      stop.setAttribute('offset', stop.ratio);
+                      stop.setAttribute('stop-color', stop.color);
+                      grad.appendChild(stop);
+                    }
+                    svg.appendChild(grad);
+                    fill = 'url("#' + grad.getAttribute('id') + '")';
                   }
                   else fill = '#000';
                 }
