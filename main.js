@@ -111,7 +111,10 @@ function(
                       clip.appendChild(el);
                       el = clip;
                       var img = document.createSVGElement('image');
-                      img.setAttribute('href', bitmapURLs[id]);
+                      if (!(fill.bitmapID in bitmapURLs)) {
+                        throw new Error('no bitmap url found');
+                      }
+                      img.setAttribute('href', bitmapURLs[fill.bitmapID]);
                       img.setAttribute('transform', fill.matrix.toString());
                       img.setAttribute('clip-path', 'url("#' + clip.getAttribute('id') + '")');
                       svg.appendChild(img);
