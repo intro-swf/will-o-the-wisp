@@ -14,6 +14,7 @@ define(function() {
     ,TAG_REMOVE_OBJECT = 5
       ,TAG_REMOVE_OBJECT_2 = 28
     ,TAG_DEFINE_BITS = 6
+      ,TAG_DEFINE_BITS_2 = 21
     ,TAG_DEFINE_BUTTON = 7
       ,TAG_DEFINE_BUTTON_2 = 34
     ,TAG_JPEG_TABLES = 8
@@ -232,6 +233,11 @@ define(function() {
         case TAG_DEFINE_BITS:
           var id = source.readUint16LE();
           var file = new Blob([source.subarray(source.offset)], {type:'image/jpeg; encoding-tables=no'});
+          this.ondefine(id, 'bitmap', file);
+          break;
+        case TAG_DEFINE_BITS_2:
+          var id = source.readUint16LE();
+          var file = new Blob([source.subarray(source.offset)], {type:'image/jpeg'});
           this.ondefine(id, 'bitmap', file);
           break;
         case TAG_JPEG_TABLES:
