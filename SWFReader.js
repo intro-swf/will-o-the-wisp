@@ -1420,6 +1420,7 @@ define(function() {
     g: 0,
     b: 0,
     a: 255,
+    type: 'color',
     toString: function() {
       return this.cssColor;
     },
