@@ -384,7 +384,6 @@ define(function() {
             else {
               // glyph record
               var count = b & 0x7F;
-              var textValue = '';
               var glyphs = segment.glyphs = new Uint32Array(count);
               var advance = segment.advance = new Int32Array(count);
               for (var i_glyph = 0; i_glyph < count; i_glyph++) {
