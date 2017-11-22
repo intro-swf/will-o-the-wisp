@@ -34,6 +34,7 @@ function(
               var path = monoPaths[i].paths[j];
               el.setAttribute('d', path.map(v => v.type + v.values.join(' ')).join(''));
               if (path.mode === 'stroke') {
+                el.setAttribute('fill', 'none');
                 var stroke = monoPaths[i].strokeStyles[path.i_stroke];
                 el.setAttribute('stroke', stroke.color);
                 el.setAttribute('stroke-width', stroke.width);
