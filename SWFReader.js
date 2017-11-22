@@ -117,7 +117,7 @@ define(function() {
             case TAG_END:
               throw new Error('not enough frames (expected '+this.frameCount+', found '+i+')');
             case TAG_SHOW_FRAME:
-              this.onrawchunk(chunkType, source.readSubarray(this.chunkSize));
+              this.onrawchunk(chunkType, source.readSubarray(this.chunkLength));
               break frameLoop;
             case TAG_SOUND_STREAM_HEAD:
             case TAG_SOUND_STREAM_HEAD_2:
@@ -140,7 +140,7 @@ define(function() {
               this.onrawstreamchunk(source, this.stream);
               continue frameLoop;
             default:
-              this.onrawchunk(chunkType, source.readSubarray(this.chunkSize));
+              this.onrawchunk(chunkType, source.readSubarray(this.chunkLength));
               continue frameLoop;
           }
           this.oncloseframe();
