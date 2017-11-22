@@ -141,7 +141,7 @@ define(function() {
         }
         endLoop: for (;;) switch (this.onrawtag(source)) {
           case TAG_END:
-            this.onrawchunk(source.readSubarray(this.chunkLength));
+            this.onrawchunk(TAG_END, source.readSubarray(this.chunkLength));
             break endLoop;
           default:
             throw new Error('unexpected data after final frame');
@@ -630,13 +630,14 @@ define(function() {
           for (var j = 0; j < this.spriteFrameCount; j++) {
             this.spriteFrameNumber = j;
             this.onopenspriteframe();
-            frameLoop: for (;;) switch (this.onrawtag(source)) {
+            var subChunkType;
+            frameLoop: for (;;) switch (subChunkType = this.onrawtag(source)) {
               case TAG_END:
                 throw new Error(
                 'sprite '+this.spriteID+': not enough frames'
                 + ' (expected '+this.spriteFrameCount+', found '+j+')');
               case TAG_SHOW_FRAME:
-                this.onrawchunk(source.readSubarray(this.chunkLength));
+                this.onrawchunk(TAG_SHOW_FRAME, source.readSubarray(this.chunkLength));
                 break frameLoop;
               case TAG_PLACE_OBJECT:
               case TAG_PLACE_OBJECT_2:
@@ -645,7 +646,7 @@ define(function() {
               case TAG_DO_ACTION:
               case TAG_PLAY_SOUND:
               case TAG_FRAME_LABEL:
-                this.onrawchunk(source.readSubarray(this.chunkLength));
+                this.onrawchunk(subChunkType, source.readSubarray(this.chunkLength));
                 continue frameLoop;
               case TAG_SOUND_STREAM_HEAD:
               case TAG_SOUND_STREAM_HEAD_2:
@@ -666,7 +667,7 @@ define(function() {
           }
           endLoop: for (;;) switch (this.onrawtag(source)) {
             case TAG_END:
-              this.onrawchunk(source.readSubarray(this.chunkLength));
+              this.onrawchunk(TAG_END, source.readSubarray(this.chunkLength));
               break endLoop;
             default:
               throw new Error('sprite '+this.spriteID+': unexpected data after final frame');
