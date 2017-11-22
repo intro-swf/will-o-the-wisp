@@ -1017,7 +1017,8 @@ define(function() {
         var a = NO_ALPHA ? 0 : this.readSWFBits(valueBits, true);
         transform.add(r, g, b, a);
       }
-      return transorm;
+      this.flushSWFBits();
+      return transform;
     },
     readSWFAudioFormat: function() {
       var sound = {};
