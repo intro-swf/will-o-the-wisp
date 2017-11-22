@@ -867,7 +867,7 @@ define(function() {
           case 0x40:
           case 0x41:
             var bitmapID = this.readUint16LE();
-            var mode = (fillStyle === 0x40) ? 'tiled' : 'clipped',
+            var mode = (fillStyle === 0x40) ? 'tiled' : 'clipped';
             if (PAIRS) {
               var a = {
                 type: 'bitmap',
