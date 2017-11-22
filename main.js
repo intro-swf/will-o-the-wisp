@@ -51,8 +51,8 @@ function(
             if (fill !== '#000') {
               path.setAttribute('fill', fill);
             }
-            if (stroke.width > 0 && stroke.stroke !== 'none' && stroke.stroke !== 'transparent') {
-              path.setAttribute('stroke', stroke.stroke);
+            if (stroke.width > 0 && stroke.color !== 'transparent') {
+              path.setAttribute('stroke', stroke.color);
               path.setAttribute('stroke-width', stroke.width);
             }
             svg.appendChild(path);
