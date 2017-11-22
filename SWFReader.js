@@ -380,13 +380,13 @@ define(function() {
                 segment.color = source.readSWFColor(true);
               }
               if (hasX) {
-                segment.dx = source.readInt16();
+                segment.dx = source.readInt16LE();
               }
               if (hasY) {
-                segment.dy = source.readInt16();
+                segment.dy = source.readInt16LE();
               }
               if (hasFont) {
-                segment.fontHeight = source.readUint16();
+                segment.fontHeight = source.readUint16LE();
               }
             }
             else if (b === 0) break;
@@ -405,7 +405,7 @@ define(function() {
           }
           this.ondefine(id, 'text', text);
           break;
-        case DEFINE_EDIT_TEXT:
+        case TAG_DEFINE_EDIT_TEXT:
           var id = source.readUint16LE();
           var edit = {bounds: source.readSWFRect()};
           var flags1 = source.readUint8();
@@ -435,7 +435,7 @@ define(function() {
             edit.maxLength = source.readUint16LE();
           }
           if (hasLayout) {
-            switch (chunk[chunkOffset++]) {
+            switch (source.readUint8()) {
               case 0: edit.align = 'left'; break;
               case 1: edit.align = 'right'; break;
               case 2: edit.align = 'center'; break;
@@ -590,7 +590,7 @@ define(function() {
           this.passwordMD5 = source.length ? source.readByteString(source.length) : null;
           this.onprotect();
           break;
-        case PLACE_OBJECT_2:
+        case TAG_PLACE_OBJECT_2:
           var z = source.readUint16LE();
           var flags = source.readUint8();
           var action = flags & 1 ? (flags & 2 ? 'replace' : 'update') : 'insert';
@@ -633,7 +633,7 @@ define(function() {
           for (var j = 0; j < this.spriteFrameCount; j++)
             this.spriteFrameNumber = j;
             this.onopenspriteframe();
-            frameLoop: for (;;) switch (this.onrawtag(spriteSource)) {
+            frameLoop: for (;;) switch (this.onrawtag(source)) {
               case TAG_END:
                 throw new Error(
                 'sprite '+this.spriteID+': not enough frames'
@@ -646,7 +646,7 @@ define(function() {
               case TAG_REMOVE_OBJECT:
               case TAG_REMOVE_OBJECT_2:
               case TAG_DO_ACTION:
-              case TAG_START_SOUND:
+              case TAG_PLAY_SOUND:
               case TAG_FRAME_LABEL:
                 this.onrawchunk(source.readSubarray(this.chunkLength));
                 continue frameLoop;
@@ -763,7 +763,7 @@ define(function() {
     readUTF16LE: function(n) {
       var str = '';
       for (var i = 0; i < n; i++) {
-        str += String.fromCodePoint(this.readUint16());
+        str += String.fromCodePoint(this.readUint16LE());
       }
       return str;
     },
@@ -888,7 +888,7 @@ define(function() {
             break;
           case 0x40:
           case 0x41:
-            var bitmapID = this.readUint16();
+            var bitmapID = this.readUint16LE();
             if (PAIRS) {
               var a = {
                 type: 'bitmap',
