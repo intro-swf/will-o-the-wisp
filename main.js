@@ -39,7 +39,7 @@ function(
                 el.setAttribute('stroke-width', stroke.width);
               }
               else {
-                var fill = monoPaths[i].fillStyles[path.i_stroke];
+                var fill = monoPaths[i].fillStyles[path.i_fill];
                 if (typeof fill !== 'string') {
                   if (fill.type === 'gradient') {
                     fill = fill.stops[0].color;
