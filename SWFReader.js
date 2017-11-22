@@ -1262,7 +1262,7 @@ define(function() {
     },
     curve: function(dcx, dcy, dx, dy) {
       var cx = this.x + dcx, cy = this.y + dcy;
-      var x = this.x + dx, y = this.y + dy;
+      var x = cx + dx, y = cy + dy;
       if (this.fillEdge0) {
         this.fillEdge0.push({x1:x, y1:y, control:[cx, cy], x2:this.x, y2:this.y});
       }
