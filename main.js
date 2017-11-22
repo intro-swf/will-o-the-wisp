@@ -46,10 +46,7 @@ function(
             document.body.appendChild(img);
           }
         }
-      },
-      /*
-      ondefine: function(id, type, def) {
-        if (type === 'shape') {
+        else if (type === 'shape') {
           var svg = document.createSVGElement('svg');
           svg.setAttribute('id', 'shape' + id);
           svg.setAttribute('viewBox', [def.bounds.left, def.bounds.top, def.bounds.width, def.bounds.height].join(' '));
@@ -117,7 +114,6 @@ function(
           document.body.appendChild(svg);
         }
       },
-      */
     });
     reader.read(bytes);
   }
