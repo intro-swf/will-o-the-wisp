@@ -996,6 +996,7 @@ define(function() {
           }
         }
       }
+      this.flushSWFBits();
       return segments;
     },
     readSWFColorTransform: function(NO_ALPHA) {
