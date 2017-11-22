@@ -223,11 +223,11 @@ define(function() {
           break;
         case TAG_DEFINE_BITS:
           var id = source.readUint16LE();
-          var file = new Blob(source.subarray(source.offset), {type:'image/jpeg; encoding-tables=no'});
+          var file = new Blob([source.subarray(source.offset)], {type:'image/jpeg; encoding-tables=no'});
           this.ondefine(id, 'bitmap', file);
           break;
         case TAG_JPEG_TABLES:
-          var file = new Blob(source, {type:'image/jpeg; encoding-tables=only'});
+          var file = new Blob([source], {type:'image/jpeg; encoding-tables=only'});
           this.onjpegtables(file);
           break;
         case TAG_SET_BACKGROUND_COLOR:
