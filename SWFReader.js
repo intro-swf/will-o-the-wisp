@@ -976,13 +976,13 @@ define(function() {
           }
           segments.push(segment = [{type:'M', values:[currentX, currentY]}]);
           if (flags & 2) {
-            i_fill = segment.i_fill = this.readSWFBits(fillIndexBits, false);
-          }
-          else segment.i_fill = i_fill;
-          if (flags & 4) {
             i_fill2 = segment.i_fill2 = this.readSWFBits(fillIndexBits, false);
           }
           else segment.i_fill2 = i_fill2;
+          if (flags & 4) {
+            i_fill = segment.i_fill = this.readSWFBits(fillIndexBits, false);
+          }
+          else segment.i_fill = i_fill;
           if (flags & 8) {
             i_stroke = segment.i_stroke = this.readSWFBits(lineIndexBits, false);
           }
