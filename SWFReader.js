@@ -967,6 +967,7 @@ define(function() {
         }
         else {
           // not edge record flag
+          segments.push(segment = []);
           var flags = this.readSWFBits(5, false);
           if (flags === 0) break; // end of shape data
           if (flags & 1) {
@@ -974,8 +975,8 @@ define(function() {
             var coordBitCount = this.readSWFBits(5, false);
             currentX += this.readSWFBits(coordBitCount, true);
             currentY += this.readSWFBits(coordBitCount, true);
+            segment.origin = [currentX, currentY];
           }
-          segments.push(segment = [{type:'M', values:[currentX, currentY]}]);
           if (flags & 2) {
             i_fill2 = segment.i_fill2 = this.readSWFBits(fillIndexBits, false);
           }
