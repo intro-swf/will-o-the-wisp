@@ -1330,7 +1330,7 @@ define(function() {
         path.i_fill = i_fill;
         paths.push(path);
       }
-      for (var i_stroke = 1; i_stroke < this.strokeEdges.length; i_fill++) {
+      for (var i_stroke = 1; i_stroke < this.strokeEdges.length; i_stroke++) {
         var segments = this.strokeEdges[i_stroke];
         if (segments.length === 0) continue;
         var path = this.segmentsToPath(segments);
