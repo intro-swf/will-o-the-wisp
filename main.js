@@ -38,7 +38,7 @@ function(
             if (!jpegTables) {
               throw new Error('no jpeg tables found')
             }
-            var jpegBlob = new Blob([jpegTables, def.slice(2)], 'image/jpeg');
+            var jpegBlob = new File([jpegTables, def.slice(2)], id+'.jpg', {type:'image/jpeg'});
             var jpegURL = URL.createObjectURL(jpegBlob);
             imageURLs[id] = jpegURL;
             var img = document.createElement('IMG');
