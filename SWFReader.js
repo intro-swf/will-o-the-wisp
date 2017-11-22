@@ -217,8 +217,8 @@ define(function() {
             fromShape.strokeStyles.push(strokeStyles[i][0]);
             toShape.strokeStyles.push(strokeStyles[i][1]);
           }
-          fromShape.path = source.readSWFPath(true, true);
-          toShape.path = source.readSWFPath(true, true);
+          fromShape.path = source.readSWFPath(true, false);
+          toShape.path = source.readSWFPath(true, false);
           this.ondefine(id, 'morph', fromShape, toShape);
           break;
         case TAG_DEFINE_BITS:
