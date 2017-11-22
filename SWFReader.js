@@ -1249,10 +1249,10 @@ define(function() {
     line: function(dx, dy) {
       var x = this.x + dx, y = this.y + dy;
       if (this.fillEdge0) {
-        this.fillEdge0.push({x1:x, y1:y, x2:this.x, y2:this.y}]);
+        this.fillEdge0.push({x1:x, y1:y, x2:this.x, y2:this.y});
       }
       if (this.fillEdge1) {
-        this.fillEdge1.push({x1:this.x, y1:this.y, x2:x, y2:y}]);
+        this.fillEdge1.push({x1:this.x, y1:this.y, x2:x, y2:y});
       }
       if (this.strokeEdge) {
         this.strokeEdge.push({x1:this.x, y1:this.y, x2:x, y2:y});
