@@ -241,7 +241,7 @@ define(function() {
           var glyphs = new Array(dv.getUint16(2, true) / 2);
           for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
             source.offset = 2 + dv.getUint16(2 + i_glyph*2, true);
-            glyphs[i_glyph] = {path: this.readSVGPath()};
+            glyphs[i_glyph] = {path: source.readSVGPath()};
           }
           this.ondefine(id, 'font', {glyphs:glyphs});
           break;
@@ -302,7 +302,7 @@ define(function() {
             if (source.offset !== glyphs[i]) {
               throw new Error('unexpected data');
             }
-            glyphs[i] = this.readSWFPath(true, true);
+            glyphs[i] = source.readSWFPath(true, true);
           }
           if (source.offset !== mapOffset) {
             throw new Error('unexpected data');
@@ -450,7 +450,7 @@ define(function() {
         case TAG_DEFINE_SOUND:
           var id = source.readUint16LE();
           var sound = source.readSWFAudioFormat();
-          sound.sampleCount = this.readUint32LE();
+          sound.sampleCount = source.readUint32LE();
           if (sound.format === 'mp3') {
             sound.seekSamples = source.readUint16LE();
           }
