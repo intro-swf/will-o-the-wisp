@@ -27,35 +27,29 @@ function(
           svg.setAttribute('viewBox', [def.bounds.left, def.bounds.top, def.bounds.width, def.bounds.height].join(' '));
           svg.setAttribute('width', def.bounds.width/20);
           svg.setAttribute('height', def.bounds.height/20);
-          var fillStyles = def.fillStyles, strokeStyles = def.strokeStyles;
-          for (var i = 0; i < def.path.length; i++) {
-            var segment = def.path[i];
-            fillStyles = segment.fillStyles || fillStyles;
-            strokeStyles = segment.strokeStyles || strokeStyles;
-            var fill = fillStyles[segment.i_fill];
-            if (typeof fill !== 'string') {
-              if (fill.type === 'gradient') {
-                fill = fill.stops[0].color;
+          var monoPaths = def.path.toMonoPaths();
+          for (var i = 0; i < monoPaths.length; i++) {
+            for (var j = 0; j < monoPaths[i].paths.length; j++) {
+              var el = document.createSVGElement('path');
+              var path = monoPaths[i].paths[j];
+              el.setAttribute('d', path.map(v => v.type + v.values.join(' ')).join(''));
+              if (path.mode === 'stroke') {
+                var stroke = monoPaths[i].strokeStyles[path.i_stroke];
+                el.setAttribute('stroke', stroke.color);
+                el.setAttribute('stroke-width', stroke.width);
               }
               else {
-                fill = '#000';
+                var fill = monoPaths[i].fillStyles[path.i_stroke];
+                if (typeof fill !== 'string') {
+                  if (fill.type === 'gradient') {
+                    fill = fill.stops[0].color;
+                  }
+                  else fill = '#000';
+                }
+                el.setAttribute('fill', fill);
               }
+              svg.appendChild(el);
             }
-            var stroke = strokeStyles[segment.i_stroke];
-            var buf = [];
-            for (var j = 0; j < segment.length; j++) {
-              buf.push(segment[j].type + segment[j].values.join(' '));
-            }
-            var path = document.createSVGElement('path');
-            path.setAttribute('d', buf.join(' '));
-            if (fill !== '#000') {
-              path.setAttribute('fill', fill);
-            }
-            if (stroke.width > 0 && stroke.color !== 'transparent') {
-              path.setAttribute('stroke', stroke.color);
-              path.setAttribute('stroke-width', stroke.width);
-            }
-            svg.appendChild(path);
           }
           document.body.appendChild(svg);
         }
