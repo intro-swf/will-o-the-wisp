@@ -474,7 +474,6 @@ define(function() {
             var memsrc = source.readSubarray(membersLength - 2);
             var flags, member;
             while (flags = memsrc.readUint8()) {
-              if (flags === 0) break;
               members.push(member = {});
               if (flags & 1) member.up = true;
               if (flags & 2) member.over = true;
