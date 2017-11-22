@@ -1342,7 +1342,7 @@ define(function() {
   };
   
   function SWFPath() {
-    this.records = [];
+    this.segments = [];
   }
   SWFPath.prototype = {
     fillStyles: ['none', '#000'],
