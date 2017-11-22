@@ -122,22 +122,13 @@ define(function() {
             case TAG_SOUND_STREAM_HEAD:
             case TAG_SOUND_STREAM_HEAD_2:
               if (this.stream) this.onclosestream();
-              this.playback = source.readSWFAudioFormat();
-              if (this.playback.format !== 'pcm') {
-                console.warn('invalid playback format specified');
-              }
-              delete this.playback.format;
-              delete this.playback.endianness;
-              this.stream = source.readSWFAudioFormat();
-              this.stream.samplesPerBlock = source.readUint16LE();
-              if (this.stream.format === 'mp3') {
-                this.stream.seekSamples = source.readInt16LE();
-              }
-              source.warnIfMore();
+              var streamSource = source.subarray(this.chunkLength);
+              this.stream = streamSource.readSWFStreamHead();
+              streamSource.warnIfMore();
               this.onopenstream();
               continue frameLoop;
             case TAG_SOUND_STREAM_BLOCK:
-              this.onrawstreamchunk(source, this.stream);
+              this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.stream);
               continue frameLoop;
             default:
               this.onrawchunk(chunkType, source.readSubarray(this.chunkLength));
@@ -653,22 +644,13 @@ define(function() {
               case TAG_SOUND_STREAM_HEAD:
               case TAG_SOUND_STREAM_HEAD_2:
                 if (this.spriteStream) this.onclosespritestream();
-                this.spritePlayback = source.readSWFAudioFormat();
-                if (this.spritePlayback.format !== 'pcm') {
-                  console.warn('invalid playback format specified');
-                }
-                delete this.spritePlayback.format;
-                delete this.spritePlayback.endianness;
-                this.spriteStream = source.readSWFAudioFormat();
-                this.spriteStream.samplesPerBlock = source.readUint16LE();
-                if (this.spriteStream.format === 'mp3') {
-                  this.spriteStream.seekSamples = source.readInt16LE();
-                }
-                source.warnIfMore();
+                var streamSource = source.subarray(this.chunkLength);
+                this.spriteStream = streamSource.readSWFStreamHead();
+                streamSource.warnIfMore();
                 this.onopenspritestream();
                 continue frameLoop;
               case TAG_SOUND_STREAM_BLOCK:
-                this.onrawstreamchunk(source, this.sampleStream);
+                this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.sampleStream);
                 continue frameLoop;
               default:
                 throw new Error(
@@ -1094,6 +1076,23 @@ define(function() {
       }
       action.mode = (flags & 0x20) ? 'stop' : 'play';
       return action;
+    },
+    readSWFStreamHead: function() {
+      var playback = this.readSWFAudioFormat();
+      if (playback.format !== 'pcm') {
+        console.warn('invalid playback format specified: ' + playback.format);
+      }
+      else {
+        delete playback.format;
+        delete playback.endianness;
+      }
+      var stream = this.readSWFAudioFormat();
+      stream.playback = playback;
+      stream.samplesPerBlock = this.readUint16LE();
+      if (stream.format === 'mp3') {
+        stream.seekSamples = source.readInt16LE();
+      }
+      return stream;
     },
     warnIfMore: function(msg) {
       if (this.offset < this.length) {
