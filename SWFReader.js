@@ -666,7 +666,6 @@ define(function() {
           if (this.spriteStream) {
             this.onclosespritestream();
             delete this.spriteStream;
-            delete this.spriteFormat;
           }
           this.onclosesprite();
           break;
