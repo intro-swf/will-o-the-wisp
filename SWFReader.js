@@ -904,7 +904,7 @@ define(function() {
         count = this.readUint16LE();
       }
       var strokeStyles = new Array(1 + count);
-      strokeStyles[0] = {width:0, stroke:'none'};
+      strokeStyles[0] = {width:0, color:'transparent'};
       if (PAIRS) strokeStyles[0] = [strokeStyles[0], strokeStyles[0]];
       if (PAIRS) for (var i = 1; i < strokeStyles.length; i++) {
         var a = {}, b = {};
@@ -917,7 +917,7 @@ define(function() {
       else for (var i = 1; i < strokeStyles.length; i++) {
         var width = this.readUint16LE();
         var color = this.readSWFColor(NO_ALPHA);
-        strokeStyles[i] = {width:width, stroke:color};
+        strokeStyles[i] = {width:width, color:color};
       }
       return strokeStyles;
     },
