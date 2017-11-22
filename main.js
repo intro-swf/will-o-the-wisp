@@ -59,11 +59,11 @@ function(
                     if (!fill.matrix.isIdentity) {
                       grad.setAttribute('gradientTransform', fill.matrix.toString());
                     }
-                    for (var i = 0; i < fill.stops.length; i++) {
-                      var stop = document.createSVGElement('stop');
-                      stop.setAttribute('offset', stop.ratio);
-                      stop.setAttribute('stop-color', stop.color);
-                      grad.appendChild(stop);
+                    for (var i_stop = 0; i_stop < fill.stops.length; i_stop++) {
+                      var stopEl = document.createSVGElement('stop');
+                      stopEl.setAttribute('offset', fill.stops[i_stop].ratio);
+                      stopEl.setAttribute('stop-color', fill.stops[i_stop].color);
+                      grad.appendChild(stopEl);
                     }
                     svg.appendChild(grad);
                     fill = 'url("#' + grad.getAttribute('id') + '")';
