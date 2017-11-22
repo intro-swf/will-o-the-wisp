@@ -1407,6 +1407,7 @@ define(function() {
         strokeStyles: converter.strokeStyles,
         paths: converter.toPaths(),
       });
+      return output;
     },
   };
   
