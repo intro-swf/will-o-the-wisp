@@ -82,6 +82,8 @@ function(
                     grad.setAttribute('gradientUnits', 'userSpaceOnUse');
                     if (fill.mode === 'radial') {
                       grad.setAttribute('r', 16384);
+                      grad.setAttribute('cx', 0);
+                      grad.setAttribute('cy', 0);
                     }
                     else {
                       grad.setAttribute('x1', -16384);
