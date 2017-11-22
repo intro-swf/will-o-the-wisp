@@ -25,6 +25,8 @@ function(
         if (type === 'shape') {
           var svg = document.createSVGElement('svg');
           svg.setAttribute('viewBox', [def.bounds.left, def.bounds.top, def.bounds.width, def.bounds.height].join(' '));
+          svg.setAttribute('width', def.bounds.width/20);
+          svg.setAttribute('height', def.bounds.height/20);
           var fillStyles = def.fillStyles, strokeStyles = def.strokeStyles;
           for (var i = 0; i < def.path.length; i++) {
             var segment = def.path[i];
