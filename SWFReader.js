@@ -914,7 +914,7 @@ define(function() {
       else for (var i = 1; i < strokeStyles.length; i++) {
         var width = this.readUint16LE();
         var color = this.readSWFColor(NO_ALPHA);
-        strokeStyles[i] = {width:width, color:color};
+        strokeStyles[i] = {width:width, stroke:color};
       }
       return strokeStyles;
     },
