@@ -1325,6 +1325,24 @@ define(function() {
       for (var i_fill = 1; i_fill < this.fillEdges.length; i_fill++) {
         var segments = this.fillEdges[i_fill];
         if (segments.length === 0) continue;
+        var seg = segments[0];
+        var i_seg = 0;
+        while (++i_seg < segments.length) {
+          var nextSeg = segments[i_seg];
+          if (seg.x2 !== nextSeg.x1 || seg.y2 !== nextSeg.y1) {
+            var j_seg = i_seg;
+            while (++j_seg < segments.length) {
+              var laterSeg = segments[j_seg];
+              if (seg.x2 === laterSeg.x1 && seg.y2 === laterSeg.y1) {
+                nextSeg = laterSeg;
+                segments.splice(j_seg, 1);
+                segments.splice(i_seg, 0, nextSeg);
+                break;
+              }
+            }
+          }
+          seg = nextSeg;
+        }
         var path = this.segmentsToPath(segments);
         path.mode = 'fill';
         path.i_fill = i_fill;
