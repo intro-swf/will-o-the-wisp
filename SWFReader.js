@@ -927,8 +927,7 @@ define(function() {
     readSWFPath: function(EXTENDED_LENGTH, NO_ALPHA) {
       var fillIndexBits = this.readSWFBits(4, false);
       var lineIndexBits = this.readSWFBits(4, false);
-      var currentX = 0, currentY = 0;
-      var segments = [], segment, i_fill = 0, i_fill2 = 0, i_stroke = 0;
+      var path = new SWFPath;
       for (;;) {
         if (this.readSWFBits(1, false)) {
           // edge record flag
@@ -939,21 +938,15 @@ define(function() {
               // general line flag
               var x = this.readSWFBits(coordBits, true);
               var y = this.readSWFBits(coordBits, true);
-              segment.push({type:'l', values:[x, y]});
-              currentX += x;
-              currentY += y;
+              path.line(x, y);
+            }
+            else if (this.readSWFBits(1, false)) {
+              // vertical
+              path.line(0, this.readSWFBits(coordBits, true));
             }
             else {
-              if (this.readSWFBits(1, false)) {
-                var v = this.readSWFBits(coordBits, true);
-                segment.push({type:'v', values:[v]});
-                currentY += v;
-              }
-              else {
-                var h = this.readSWFBits(coordBits, true);
-                segment.push({type:'h', values:[h]});
-                currentX += h;
-              }
+              // horizontal
+              path.line(this.readSWFBits(coordBits, true), 0);
             }
           }
           else {
@@ -963,46 +956,42 @@ define(function() {
             var controlY = this.readSWFBits(coordBits, true);
             var anchorX = this.readSWFBits(coordBits, true);
             var anchorY = this.readSWFBits(coordBits, true);
-            segment.push({type:'q', values:[controlX,controlY, anchorX,anchorY]});
-            currentX += anchorX;
-            currentY += anchorY;
+            path.curve(controlX,controlY, anchorX,anchorY);
           }
         }
         else {
           // not edge record flag
+          path.newSegment();
           var flags = this.readSWFBits(5, false);
           if (flags === 0) break; // end of shape data
           if (flags & 1) {
             // move-to flag
             var coordBitCount = this.readSWFBits(5, false);
-            currentX += this.readSWFBits(coordBitCount, true);
-            currentY += this.readSWFBits(coordBitCount, true);
+            var x = this.readSWFBits(coordBitCount, true);
+            var y = this.readSWFBits(coordBitCount, true);
+            path.move(x, y);
           }
-          segments.push(segment = [{type:'M', values:[currentX, currentY]}]);
           if (flags & 2) {
-            i_fill2 = segment.i_fill2 = this.readSWFBits(fillIndexBits, false);
+            path.i_fill1(this.readSWFBits(fillIndexBits, false));
           }
-          else segment.i_fill2 = i_fill2;
           if (flags & 4) {
-            i_fill = segment.i_fill = this.readSWFBits(fillIndexBits, false);
+            path.i_fill0(this.readSWFBits(fillIndexBits, false));
           }
-          else segment.i_fill = i_fill;
           if (flags & 8) {
-            i_stroke = segment.i_stroke = this.readSWFBits(lineIndexBits, false);
+            path.i_stroke(this.readSWFBits(lineIndexBits, false));
           }
-          else segment.i_stroke = i_stroke;
           if (flags & 0x10) {
             this.flushSWFBits();
-            segment.fillStyles = this.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
-            segment.strokeStyles = this.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
+            var fillStyles = this.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
+            var strokeStyles = this.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
+            path.newStyles(fillStyles, strokeStyles);
             fillIndexBits = this.readSWFBits(4, false);
             lineIndexBits = this.readSWFBits(4, false);
-            currentX = currentY = 0;
           }
         }
       }
       this.flushSWFBits();
-      return segments;
+      return path;
     },
     readSWFColorTransform: function(NO_ALPHA) {
       var transform = new SWFColorTransform;
@@ -1207,17 +1196,55 @@ define(function() {
     toString: function() {
       // feColorMatrix format
       return [
-          this.multiplyR, 0, 0, 0, this.addR / 255,
-          0, this.multiplyG, 0, 0, this.addG / 255,
-          0, 0, this.multiplyB, 0, this.addB / 255,
-          0, 0, 0, this.multiplyA, this.addA / 255,
+          this.mulR, 0, 0, 0, this.addR / 255,
+          0, this.mulG, 0, 0, this.addG / 255,
+          0, 0, this.mulB, 0, this.addB / 255,
+          0, 0, 0, this.mulA, this.addA / 255,
         ].join(' ');
+    },
+  };
+  
+  function SWFPathRecord(type, values) {
+    this.type = type;
+    this.values = values;
+  }
+  SWFPathRecord.prototype = {
+    toString: function() {
+      return this.type + this.values.join(' ');
+    },
+  };
+  
+  function SWFPath() {
+    this.records = [];
+  }
+  SWFPath.prototype = {
+    newSegment: function() {
+      this.segments.push(this.segment = []);
+    },
+    line: function(x, y) {
+      this.segment.push(new SWFPathRecord('l', [x, y]));
+    },
+    curve: function(cx,cy, x,y) {
+      this.segment.push(new SWFPathRecord('q', [cx,cy, x,y]));
+    },
+    move: function(x, y) {
+      this.segment.push(new SWFPathRecord('m', [x, y]));
+    },
+    i_fill0: function(i_fill) {
+      this.segment.i_fill0 = i_fill;
+    },
+    i_fill1: function(i_fill) {
+      this.segment.i_fill1 = i_fill;
+    },
+    i_stroke: function(i_stroke) {
+      this.segment.i_stroke = i_stroke;
     },
   };
   
   SWFReader.Rect = SWFRect;
   SWFReader.Matrix = SWFMatrix;
   SWFReader.ColorTransform = SWFColorTransform;
+  SWFReader.Path = SWFPath;
   
   return SWFReader;
 
