@@ -966,9 +966,9 @@ define(function() {
         }
         else {
           // not edge record flag
-          path.newSegment();
           var flags = this.readSWFBits(5, false);
           if (flags === 0) break; // end of shape data
+          path.newSegment();
           if (flags & 1) {
             // move-to flag
             var coordBitCount = this.readSWFBits(5, false);
