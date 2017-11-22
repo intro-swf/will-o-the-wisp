@@ -516,7 +516,7 @@ define(function() {
               case 8: key = 'Backspace'; break;
               case 13: key = 'Enter'; break;
               case 14: key = 'ArrowUp'; break;
-              case 15: key = 'ArrowDown': break;
+              case 15: key = 'ArrowDown'; break;
               case 16: key = 'PageUp'; break;
               case 17: key = 'PageDown'; break;
               case 18: key = 'Tab'; break;
