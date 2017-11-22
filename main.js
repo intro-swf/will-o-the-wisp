@@ -116,8 +116,8 @@ function(
           }
           document.body.appendChild(svg);
         }
-        */
       },
+      */
     });
     reader.read(bytes);
   }
