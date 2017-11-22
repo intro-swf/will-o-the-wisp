@@ -14,12 +14,40 @@ function(
   
   'use strict';
   
+  document.createSVGElement = function(name) {
+    return this.createElementNS('http://www.w3.org/2000/svg', name);
+  };
+  
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
     var reader = new SWFReader({
       ondefine: function(id, type, def) {
         if (type === 'shape') {
-          console.log(def);
+          var svg = document.createSVGElement('svg');
+          svg.setAttribute('viewBox', [def.bounds.left, def.bounds.top, def.bounds.width, def.bounds.height].join(' '));
+          var fillStyles = def.fillStyles, strokeStyles = def.strokeStyles;
+          for (var i = 0; i < def.path.length; i++) {
+            var segment = def.path[i];
+            fillStyles = segment.fillStyles || fillStyles;
+            strokeStyles = segment.strokeStyles || strokeStyles;
+            var fill = fillStyles[segment.i_fill];
+            var stroke = strokeStyles[segment.i_stroke];
+            var buf = [];
+            for (var j = 0; j < segment.length; j++) {
+              buf.push(segment[j].type + segment[j].values.join(' '));
+            }
+            var path = document.createSVGElement('path');
+            path.setAttribute('d', buf.join(' '));
+            if (typeof fill === 'string' && fill !== '#000') {
+              path.setAttribute('fill', fill);
+            }
+            if (stroke.width > 0 && stroke.stroke !== 'none' && stroke.stroke !== 'transparent') {
+              path.setAttribute('stroke', stroke.stroke);
+              path.setAttribute('stroke-width', stroke.width);
+            }
+            svg.appendChild(path);
+          }
+          document.body.appendChild(svg);
         }
       },
     });
