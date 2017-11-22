@@ -237,7 +237,16 @@ define(function() {
           break;
         case TAG_DEFINE_BITS_2:
           var id = source.readUint16LE();
-          var file = new Blob([source.subarray(source.offset)], {type:'image/jpeg'});
+          var pos = 2, parts;
+          while (pos < source.length) {
+            if (source[pos] === 0xFF && source[pos+1] === 0xD9
+                && source[pos+2] === 0xFF && source[pos+3] === 0xD8) {
+              parts = [source.subarray(2, pos), source.subarray(pos + 4)];
+              break;
+            }
+          }
+          parts = parts || [source.subarray(2)];
+          var file = new Blob(parts, {type:'image/jpeg'});
           this.ondefine(id, 'bitmap', file);
           break;
         case TAG_JPEG_TABLES:
@@ -724,6 +733,12 @@ define(function() {
     readUint16LE: function() {
       var o = this.offset;
       var v = this[o] | (this[o+1] << 8);
+      this.offset += 2;
+      return v;
+    },
+    readUint16BE: function() {
+      var o = this.offset;
+      var v = (this[o] << 8) | this[o+1];
       this.offset += 2;
       return v;
     },
