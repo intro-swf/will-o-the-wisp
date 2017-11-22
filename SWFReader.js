@@ -533,10 +533,10 @@ define(function() {
             }
             for (var i = 0; i < tnames.length; i++) {
               if (tnames[i] in transitions) {
-                transitions[tname[i]].actions.push(bytecode);
+                transitions[tnames[i]].actions.push(bytecode);
               }
               else {
-                transitions[tname[i]] = {actions: [bytecode]};
+                transitions[tnames[i]] = {actions: [bytecode]};
               }
             }
           }
