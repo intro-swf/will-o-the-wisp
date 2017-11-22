@@ -1338,6 +1338,7 @@ define(function() {
         path.i_stroke = i_stroke;
         paths.push(path);
       }
+      return paths;
     },
   };
   
