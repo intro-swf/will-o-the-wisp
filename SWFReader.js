@@ -241,7 +241,7 @@ define(function() {
           var glyphs = new Array(dv.getUint16(2, true) / 2);
           for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
             source.offset = 2 + dv.getUint16(2 + i_glyph*2, true);
-            glyphs[i_glyph] = {path: source.readSVGPath()};
+            glyphs[i_glyph] = {path: source.readSWFPath()};
           }
           this.ondefine(id, 'font', {glyphs:glyphs});
           break;
