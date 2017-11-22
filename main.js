@@ -23,7 +23,7 @@ function(
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
     var jpegTables;
-    var imageURLs = {};
+    var bitmapURLs = {};
 
     var reader = new SWFReader({
       onunhandledtag: function(id, data) {
@@ -38,13 +38,13 @@ function(
             if (!jpegTables) {
               throw new Error('no jpeg tables found')
             }
-            var jpegBlob = new File([jpegTables, def.slice(2)], id+'.jpg', {type:'image/jpeg'});
-            var jpegURL = URL.createObjectURL(jpegBlob);
-            imageURLs[id] = jpegURL;
-            var img = document.createElement('IMG');
-            img.src = jpegURL;
-            document.body.appendChild(img);
+            def = new File([jpegTables, def.slice(2)], id+'.jpg', {type:'image/jpeg'});
           }
+          var url = URL.createObjectURL(def);
+          bitmapURLs[id] = url;
+          var img = document.createElement('IMG');
+          img.src = url;
+          document.body.appendChild(img);
         }
         else if (type === 'shape') {
           var svg = document.createSVGElement('svg');
