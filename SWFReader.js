@@ -207,12 +207,12 @@ define(function() {
           if (endPathOffset === source.offset) {
             endPathOffset = source.length;
           }
-          var fillStyles = source.readSWFFillStyles(true, true, true);
+          var fillStyles = source.readSWFFillStyles(true, false, true);
           for (var i = 0; i < fillStyles.length; i++) {
             fromShape.fillStyles.push(fillStyles[i][0]);
             toShape.fillStyles.push(fillStyles[i][1]);
           }
-          var strokeStyles = source.readSWFStrokeStyles(true, true, true);
+          var strokeStyles = source.readSWFStrokeStyles(true, false, true);
           for (var i = 0; i < strokeStyles.length; i++) {
             fromShape.strokeStyles.push(strokeStyles[i][0]);
             toShape.strokeStyles.push(strokeStyles[i][1]);
