@@ -1273,7 +1273,7 @@ define(function() {
         this.strokeEdge.push({x1:this.x, y1:this.y, control:[cx, cy], x2:x, y2:y});
       }
       this.x = x;
-      thix.y = y;
+      this.y = y;
     },
     segmentsToPath: function(segments) {
       var i_seg = 0, seg = segments[0];
