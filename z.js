@@ -1210,10 +1210,7 @@ define(function() {
           totalLength++;
           continue;
         }
-        if (code === 256) {
-          console.log('total:', totalLength);
-          break;
-        }
+        if (code === 256) break;
         var length;
         if (code < 265) {
           length = code - 254;
@@ -1245,10 +1242,7 @@ define(function() {
           var extraBits = (code-2) >>> 1;
           distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readZBits(extraBits);
         }
-        console.log(totalLength, totalLength-distance, length);
         totalLength += length;
-        continue;
-        console.log(outputParts.reduce((a,b) => a + b.length, 0), length, distance);
         var start_i = outputParts.length-1;
         while (outputParts[start_i].length < distance) {
           distance -= outputParts[start_i--].length;
