@@ -320,7 +320,7 @@ define('zutil', function() {
 });
 
 // Adapted from Mark Adler's zlib inflate.c decompression
-define(['zutil', 'CodeTableView'], function(zutil, CodeTableView) {
+define('inflate', ['zutil', 'CodeTableView'], function(zutil, CodeTableView) {
 
   'use strict';
   
