@@ -232,7 +232,12 @@ define(function() {
     return outputParts;
   };
   
-  return {
+  var lib;
+  
+  return lib = {
+    load: function(name, parentRequire, onload, config) {
+      onload(lib);
+    },
     inflate: function(bytes) {
       var parts = bytes.decompressZParts();
       if (parts.length === 1) return parts[0];
