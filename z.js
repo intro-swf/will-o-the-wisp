@@ -240,7 +240,7 @@ define(function() {
           writeOffset += part.length;
         } while (write_i < end_i);
         outputParts.splice(start_i, end_i - start_i, concat);
-        if ((length - offset) > concat.length) {
+        if (length > (concat.length - offset)) {
           concat = concat.subarray(offset);
           do {
             outputParts.push(concat);
