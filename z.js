@@ -220,9 +220,11 @@ define(function() {
         var end_i = start_i + 1;
         do {
           concatLength += outputParts[end_i++].length;
+          if (end_i === outputParts.length) {
+            break;
+          }
         } while (concatLength < length);
         var concat = new Uint8Array(concatLength);
-        outputParts.push(concat.subarray(offset, offset+length));
         var write_i = start_i, writeOffset = 0;
         do {
           var part = outputParts[write_i++];
@@ -230,6 +232,19 @@ define(function() {
           writeOffset += part.length;
         } while (write_i < end_i);
         outputParts.splice(start_i, end_i - start_i, concat);
+        if (length > concat.length) {
+          concat = concat.subarray(offset);
+          do {
+            outputParts.push(concat);
+            length -= concat.length;
+          } until (length < concat.length);
+          if (length !== 0) {
+            outputParts.push(concat.subarray(0, length));
+          }
+        }
+        else {
+          outputParts.push(concat.subarray(offset, offset+length));
+        }
       }
     } while (!finalBlock);
     this.flushZBits();
