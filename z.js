@@ -137,7 +137,7 @@ define(function() {
       throw new Error('preset dictionary not supported');
     }
     var outputParts = [];
-    var finalBlock;
+    var finalBlock, totalLength = 0;
     do {
       finalBlock = this.readZBits(1);
       var litLenTree, distTree;
@@ -206,6 +206,9 @@ define(function() {
           var extraBits = (code-2) >>> 1;
           distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readZBits(extraBits);
         }
+        console.log(totalLength-distance, length);
+        totalLength += length;
+        continue;
         console.log(outputParts.reduce((a,b) => a + b.length, 0), length, distance);
         var start_i = outputParts.length-1;
         while (outputParts[start_i].length < distance) {
