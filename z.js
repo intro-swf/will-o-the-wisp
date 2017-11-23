@@ -1020,7 +1020,7 @@ define('inflate', ['zutil', 'CodeTableView'], function(zutil, CodeTableView) {
 
 });
 
-define(['inflate'], function(inflate) {
+if (0) define(['inflate'], function(inflate) {
   var lib = {
     load: function(name, parentRequire, onload, config) {
       onload(lib);
@@ -1032,7 +1032,7 @@ define(['inflate'], function(inflate) {
   return lib;
 });
 
-if (0) define(function() {
+define(function() {
 
   'use strict';
   
