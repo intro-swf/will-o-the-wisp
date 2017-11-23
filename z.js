@@ -209,8 +209,7 @@ define(function() {
         }
         var start_i = outputParts.length-1;
         while (outputParts[start_i].length < distance) {
-          start_i--;
-          distance -= outputParts[start_i].length;
+          distance -= outputParts[start_i--].length;
         }
         if (length <= distance) {
           if (length === outputParts[start_i].length) {
