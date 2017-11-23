@@ -50,6 +50,9 @@ define(function() {
             console.log('cannot free ' + ptr);
             return;
           }
+          if (freeMe.end === nextFree) {
+            nextFree = freeMe.start;
+          }
           delete byPtr[ptr];
           allocated.splice(allocated.indexOf(freeMe), 1);
         }
