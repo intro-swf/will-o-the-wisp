@@ -206,6 +206,7 @@ define(function() {
           var extraBits = (code-2) >>> 1;
           distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readZBits(extraBits);
         }
+        console.log(outputParts.reduce((a,b) => a + b.length, 0), length, distance);
         var start_i = outputParts.length-1;
         while (outputParts[start_i].length < distance) {
           distance -= outputParts[start_i--].length;
@@ -242,12 +243,13 @@ define(function() {
         outputParts.splice(start_i, end_i - start_i, concat);
         if (length > (concat.length - offset)) {
           concat = concat.subarray(offset);
+          var writeLength = length;
           do {
             outputParts.push(concat);
-            length -= concat.length;
-          } while (length >= concat.length);
-          if (length !== 0) {
-            outputParts.push(concat.subarray(0, length));
+            writeLength -= concat.length;
+          } while (writeLength >= concat.length);
+          if (writeLength !== 0) {
+            outputParts.push(concat.subarray(0, writeLength));
           }
         }
         else if (length < concat.length) {
