@@ -1199,7 +1199,7 @@ define(['inflate'], function(inflate) {
       onload(lib);
     },
     inflate: function (compressed) {
-      return inflate.inflate(compressed);
+      return inflate(compressed);
     },
   };
   return lib;
