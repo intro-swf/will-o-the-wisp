@@ -14,7 +14,7 @@ define(function() {
     TINFL_FLAG_COMPUTE_ADLER32 = 8;
   
   lib.load = function load(name, parentRequire, onload, config) {
-    var xhr = new XmlHttpRequest;
+    var xhr = new XMLHttpRequest;
     xhr.open('GET', 'miniz.wasm');
     xhr.responseType = 'arraybuffer';
     xhr.onerror = function onerror(e) {
