@@ -116,7 +116,7 @@ define(function() {
         onload.error(e);
       });
     };
-    xhr.connect();
+    xhr.send();
   };
   
   return lib;
