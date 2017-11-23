@@ -1109,7 +1109,7 @@ define(function() {
   })();
   
   Uint8Array.prototype.readZBits = function(n) {
-    if (this.bitCount < n) {
+    while (this.bitCount < n) {
       this.bitBuf |= this.readUint8() << this.bitCount;
       this.bitCount += 8;
     }
