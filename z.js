@@ -67,7 +67,7 @@ define(function() {
   
   Uint8Array.prototype.readZBits = function(n) {
     if (this.bitCount < n) {
-      this.bitBuf |= this.readUint8() << 8;
+      this.bitBuf |= this.readUint8() << this.bitCount;
       this.bitCount += 8;
     }
     var v = this.bitBuf & ((1 << n) - 1);
