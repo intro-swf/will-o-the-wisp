@@ -1,4 +1,4 @@
-define(function() {
+define(['z!'], function(z) {
 
   'use strict';
   
@@ -15,6 +15,7 @@ define(function() {
       ,TAG_REMOVE_OBJECT_2 = 28
     ,TAG_DEFINE_BITS = 6
       ,TAG_DEFINE_BITS_2 = 21
+      ,TAG_DEFINE_BITS_LOSSLESS = 20
     ,TAG_DEFINE_BUTTON = 7
       ,TAG_DEFINE_BUTTON_2 = 34
     ,TAG_JPEG_TABLES = 8
@@ -248,6 +249,30 @@ define(function() {
           parts = parts || [source.subarray(2)];
           var file = new Blob(parts, {type:'image/jpeg'});
           this.ondefine(id, 'bitmap', file);
+          break;
+        case TAG_DEFINE_BITS_LOSSLESS:
+          var id = source.readUint16LE();
+          var format = source.readUint8();
+          var width = source.readUint16LE();
+          var height = source.readUint16LE();
+          var paletteSize = (format === 3) ? source.getUint8() + 1 : 0;
+          var compressed = source.subarray(source.offset);
+          var uncompressedLength;
+          switch (format) {
+            case 3:
+              uncompressedLength = paletteSize * 3 + ((width + 3) & ~3) * height;
+              break;
+            case 4:
+              uncompressedLength = ((width*2 + 3) & ~3) * height;
+              break;
+            case 5:
+              uncompressedLength = width*4 * height;
+              break;
+            default:
+              throw new Error('unknown bitmap format');
+          }
+          var uncompressed = z.inflate(compressed, uncompressedLength);
+          console.log(uncompressed);
           break;
         case TAG_JPEG_TABLES:
           var file = new Blob([source], {type:'image/jpeg; encoding-tables=only'});
