@@ -215,7 +215,12 @@ define(function() {
             outputParts.push(outputParts[start_i]);
             continue;
           }
-          outputParts.push(outputParts[start_i].subarray(-distance, length-distance));
+          if (length === distance) {
+            outputParts.push(outputParts[start_i].subarray(-distance));
+          }
+          else {
+            outputParts.push(outputParts[start_i].subarray(-distance, length-distance));
+          }
           continue;
         }
         var concatLength = outputParts[start_i].length;
