@@ -237,7 +237,7 @@ define(function() {
           do {
             outputParts.push(concat);
             length -= concat.length;
-          } until (length < concat.length);
+          } while (length >= concat.length);
           if (length !== 0) {
             outputParts.push(concat.subarray(0, length));
           }
