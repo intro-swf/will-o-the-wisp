@@ -6,6 +6,7 @@ define(function() {
     var bitWidthCounts = new Array();
     for (var i = 0; i < codeBitWidths.length; i++) {
       var bitWidth = codeBitWidths[i];
+      if (bitWidth === 0) continue;
       if (bitWidth >= bitWidthCounts.length) {
         var oldLength = bitWidthCounts.length;
         bitWidthCounts.length = bitWidth + 1;
