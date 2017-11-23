@@ -255,7 +255,7 @@ define(['z!'], function(z) {
           var format = source.readUint8();
           var width = source.readUint16LE();
           var height = source.readUint16LE();
-          var paletteSize = (format === 3) ? source.getUint8() + 1 : 0;
+          var paletteSize = (format === 3) ? source.readUint8() + 1 : 0;
           var compressed = source.subarray(source.offset);
           var uncompressedLength;
           switch (format) {
