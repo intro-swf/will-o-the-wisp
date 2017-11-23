@@ -247,7 +247,7 @@ define(function() {
           }
         }
         else if (length < concat.length) {
-          concat = concat.subarray(offset, offset+length);
+          outputParts.push(concat.subarray(offset, offset+length));
         }
         else {
           outputParts.push(concat);
