@@ -43,8 +43,8 @@ define(function() {
           nextFree += size;
           allocated.push(byPtr[ptr] = {start:ptr, end:nextFree});
           return ptr;
-        },
-        free: function(ptr) {
+        }
+        function free(ptr) {
           var freeMe = byPtr[ptr];
           if (!freeMe) {
             console.log('cannot free ' + ptr);
