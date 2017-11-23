@@ -92,7 +92,7 @@ define(function() {
         })
         .then(function(instance) {
           memory = instance.exports.memory;
-          memBase = memory.buffer.byteLength;
+          memBase = nextFree = memory.buffer.byteLength;
           var tinfl_decompress_mem_to_mem = instance.exports.tinfl_decompress_mem_to_mem;
           onload({
             inflate: function(bytes, finalLength) {
