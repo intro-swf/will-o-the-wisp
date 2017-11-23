@@ -20,7 +20,7 @@ define(function() {
     xhr.onerror = function onerror(e) {
       onload.error(e.error);
     };
-    xhr.onload = function onload(e) {
+    xhr.onload = function(e) {
       WebAssembly.compile(this.response)
       .then(function(module) {
         var memory, memBase, nextFree, allocated = [], byPtr = {};
