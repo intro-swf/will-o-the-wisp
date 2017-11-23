@@ -240,7 +240,11 @@ define(function() {
           concat.set(part, writeOffset);
           writeOffset += part.length;
         } while (write_i < end_i);
+        var prelength = outputParts.reduce((a,b) => a + b.length, 0);
         outputParts.splice(start_i, end_i - start_i, concat);
+        if (prelength !== outputParts.reduce((a,b) => a + b.length, 0)) {
+          throw new Error('len changed');
+        }
         if (length > (concat.length - offset)) {
           concat = concat.subarray(offset);
           var writeLength = length;
