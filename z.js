@@ -81,12 +81,14 @@ define(function() {
           return newPtr;
         }
         return WebAssembly.instantiate(module, {
-          __assert_fail: __assert_fail,
-          malloc: malloc,
-          free: free,
-          memcpy: memcpy,
-          memset: memset,
-          realloc: realloc,
+          env: {
+            __assert_fail: __assert_fail,
+            malloc: malloc,
+            free: free,
+            memcpy: memcpy,
+            memset: memset,
+            realloc: realloc,
+          },
         })
         .then(function(instance) {
           memory = instance.exports.memory;
