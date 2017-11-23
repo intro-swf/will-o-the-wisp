@@ -82,7 +82,6 @@ define(function() {
     var v = this.bitBuf & ((1 << n) - 1);
     this.bitBuf >>>= n;
     this.bitCount -= n;
-    console.log(('00000000000000000000000000000000' + v.toString(2)).slice(-n));
     return v;
   };
   Uint8Array.prototype.flushZBits = function() {
