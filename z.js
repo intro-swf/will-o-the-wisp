@@ -68,7 +68,7 @@ define(function() {
       a[i] = new Uint8Array([i]);
     }
     return a;
-  });
+  })();
   
   Uint8Array.prototype.readZBits = function(n) {
     if (this.bitCount < n) {
