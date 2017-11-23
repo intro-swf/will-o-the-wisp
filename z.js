@@ -32,7 +32,11 @@ define(function() {
       var bitWidth = codeBitWidths[i];
       if (bitWidth === 0) continue;
       var code = nextCodeOfWidth[bitWidth]++;
-      var rootIndex = code >>> (bitWidth - minBitWidth);
+      var rootCode = code >>> (bitWidth - minBitWidth);
+      var rootIndex = 0;
+      for (var b = 0; b < minBitWidth; b++) {
+        rootIndex |= ((rootCode >>> b) & 1) << (minBitWidth-(b+1));
+      }
       if (bitWidth === minBitWidth) {
         tree[rootIndex] = i;
         continue;
