@@ -149,6 +149,7 @@ define(function() {
             throw new Error('corrupt data');
           }
           outputParts.push(this.readSubarray(len));
+          totalLength += len;
           continue;
         case 1:
           litLenTree = FIXED_LIT_LEN_TREE;
@@ -172,6 +173,7 @@ define(function() {
         var code = this.readZTreeCode(litLenTree);
         if (code < 256) {
           outputParts.push(BYTE_LITERALS[code]);
+          totalLength++;
           continue;
         }
         if (code === 256) break;
