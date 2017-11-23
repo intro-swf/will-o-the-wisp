@@ -246,8 +246,11 @@ define(function() {
             outputParts.push(concat.subarray(0, length));
           }
         }
+        else if (length < concat.length) {
+          concat = concat.subarray(offset, offset+length);
+        }
         else {
-          outputParts.push(concat.subarray(offset, offset+length));
+          outputParts.push(concat);
         }
       }
     } while (!finalBlock);
