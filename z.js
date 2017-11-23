@@ -1320,7 +1320,7 @@ define(function() {
     inflate: function(bytes) {
       var parts = bytes.decompressZParts();
       if (parts.length === 1) return parts[0];
-      var concat = new Uint8Array(parts.reduce(function(part, len) {
+      var concat = new Uint8Array(parts.reduce(function(len, part) {
         return len + part.length;
       }, 0));
       var offset = 0;
