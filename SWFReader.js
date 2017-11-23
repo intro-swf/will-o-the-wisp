@@ -1,4 +1,4 @@
-define(['z!'], function(z) {
+define(['z!'], function(zlib) {
 
   'use strict';
   
@@ -271,7 +271,7 @@ define(['z!'], function(z) {
             default:
               throw new Error('unknown bitmap format');
           }
-          var uncompressed = z.inflate(compressed, uncompressedLength);
+          var uncompressed = zlib.inflate(compressed, uncompressedLength);
           console.log(uncompressed);
           break;
         case TAG_JPEG_TABLES:
