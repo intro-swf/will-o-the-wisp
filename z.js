@@ -104,7 +104,7 @@ define(function() {
                 free(toPtr);
                 throw new Error('failed');
               }
-              var result = new Uint8Array(new Uint8Array(memory.buffer, toPtr, finalLength));
+              var result = new Uint8Array(new Uint8Array(memory.buffer, toPtr, written));
               free(fromPtr);
               free(toPtr);
               return result;
