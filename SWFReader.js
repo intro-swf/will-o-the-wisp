@@ -785,6 +785,12 @@ define(['z!'], function(zlib) {
       this.offset += 4;
       return v >>> 0;
     },
+    readUint32BE: function() {
+      var o = this.offset;
+      var v = this[o+3] | (this[o+2] << 8) | (this[o+1] << 16) | (this[o] << 24);
+      this.offset += 4;
+      return v >>> 0;
+    },
     readByteString: function(n) {
       if (n === '\0') {
         var endOffset = this.offset;
