@@ -95,6 +95,7 @@ define(function() {
           memBase = nextFree = memory.buffer.byteLength;
           var tinfl_decompress_mem_to_mem = instance.exports.tinfl_decompress_mem_to_mem;
           onload({
+            instance: instance,
             inflate: function(bytes, finalLength) {
               var fromPtr = malloc(bytes.length);
               new Uint8Array(memory.buffer, fromPtr, bytes.length).set(bytes);
