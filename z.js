@@ -836,6 +836,7 @@ define('inflate', ['zutil', 'CodeTableView'], function(zutil, CodeTableView) {
           }
           // #endif
           mode = 24 /* MATCH */;
+          console.log(this.offset, this.length);
           //continue inflation;
         case 24 /* MATCH */:
           if (put.length === 0) break inflation;
