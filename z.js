@@ -222,7 +222,7 @@ define(function() {
         var concatLength = outputParts[start_i].length;
         var offset = concatLength - distance;
         var end_i = start_i + 1;
-        do {
+        if (end_i < outputParts.length) do {
           concatLength += outputParts[end_i++].length;
           if (end_i === outputParts.length) {
             break;
