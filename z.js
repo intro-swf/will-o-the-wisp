@@ -62,8 +62,12 @@ define(function() {
     .fill(5));
   const BIT_WIDTH_PERMUTATION = new Uint8Array([
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
-  const BYTE_LITERALS = new Array(256).map(function(_, i) {
-    return new Uint8Array([i]);
+  const BYTE_LITERALS = (function() {
+    var a = new Array(256);
+    for (var i = 0; i < 256; i++) {
+      a[i] = new Uint8Array([i]);
+    }
+    return a;
   });
   
   Uint8Array.prototype.readZBits = function(n) {
