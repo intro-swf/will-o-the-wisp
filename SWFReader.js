@@ -1617,7 +1617,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       var rowBytes = 1 + rows[0].length;
       var IDAT = new Uint8Array(rows.length * rowBytes);
       for (var i = 0; i < rows.length; i++) {
-        IDAT.set(i*rowBytes + 1, rows[i]);
+        IDAT.set(rows[i], i*rowBytes + 1);
       }
       IDAT = IDAT.toZStoredParts();
       chunk('IDAT', IDAT);
