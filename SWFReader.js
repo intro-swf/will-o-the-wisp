@@ -1,4 +1,4 @@
-define(['z!'], function(zlib) {
+define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
 
   'use strict';
   
@@ -768,73 +768,6 @@ define(['z!'], function(zlib) {
   };
   
   Object.assign(Uint8Array.prototype, {
-    offset: 0,
-    readSubarray: function(n) {
-      var sub = this.subarray(this.offset, this.offset + n);
-      this.offset += n;
-      return sub;
-    },
-    readUint8: function() {
-      return this[this.offset++];
-    },
-    readInt8: function() {
-      return this[this.offset++] << 24 >> 24;
-    },
-    readUint16LE: function() {
-      var o = this.offset;
-      var v = this[o] | (this[o+1] << 8);
-      this.offset += 2;
-      return v;
-    },
-    readUint16BE: function() {
-      var o = this.offset;
-      var v = (this[o] << 8) | this[o+1];
-      this.offset += 2;
-      return v;
-    },
-    readInt16LE: function() {
-      var o = this.offset;
-      var v = this[o] | (this[o+1] << 24 >> 16);
-      this.offset += 2;
-      return v;
-    },
-    readInt32LE: function() {
-      var o = this.offset;
-      var v = this[o] | (this[o+1] << 8) | (this[o+2] << 16) | (this[o+3] << 24);
-      this.offset += 4;
-      return v;
-    },
-    readUint32LE: function() {
-      var o = this.offset;
-      var v = this[o] | (this[o+1] << 8) | (this[o+2] << 16) | (this[o+3] << 24);
-      this.offset += 4;
-      return v >>> 0;
-    },
-    readUint32BE: function() {
-      var o = this.offset;
-      var v = this[o+3] | (this[o+2] << 8) | (this[o+1] << 16) | (this[o] << 24);
-      this.offset += 4;
-      return v >>> 0;
-    },
-    readByteString: function(n) {
-      if (n === '\0') {
-        var endOffset = this.offset;
-        while (this[endOffset]) endOffset++;
-        var v = String.fromCharCode.apply(null, this.subarray(this.offset, endOffset));
-        this.offset = endOffset + 1;
-        return v;
-      }
-      var v = String.fromCharCode.apply(null, this.subarray(this.offset, this.offset + n));
-      this.offset += n;
-      return v;
-    },
-    readUTF16LE: function(n) {
-      var str = '';
-      for (var i = 0; i < n; i++) {
-        str += String.fromCodePoint(this.readUint16LE());
-      }
-      return str;
-    },
     bitBuf: 0,
     bitCount: 0,
     flushSWFBits: function() {
