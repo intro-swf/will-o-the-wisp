@@ -53,6 +53,12 @@ define(function() {
       this.offset += 2;
       return v;
     },
+    readInt16BE: function() {
+      var o = this.offset;
+      var v = (this[o] << 8) | this[o+1];
+      this.offset += 2;
+      return v << 16 >> 16;
+    },
     readInt16LE: function() {
       var o = this.offset;
       var v = this[o] | (this[o+1] << 24 >> 16);
