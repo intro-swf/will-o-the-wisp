@@ -288,7 +288,7 @@ define(['z!'], function(zlib) {
               }
               palette = new Uint32Array(palette.buffer, palette.byteOffset, paletteSize);
               var rows = new Array(height);
-              var pixels = uncompressed.subarray(paletteSize * 4);
+              var pixels = uncompressed.subarray(paletteSize * 3);
               for (var i = 0; i < height; i++) {
                 rows[i] = pixels.subarray(rowBytes*i, rowBytes*i + width);
               }
