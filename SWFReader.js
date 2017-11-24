@@ -115,7 +115,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       try {
         this.onrawfilesignature(source);
         if (this.isCompressed) {
-          source = zlib.inflate(source.subarray(source.offset), this.uncompressedFileSize - 8);
+          source = zlib.inflate(
+            source.subarray(source.offset),
+            this.uncompressedFileSize - source.offset);
         }
         this.onrawfileheader(source);
         this.onopenmovie();
