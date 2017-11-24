@@ -1,5 +1,4 @@
-
-define(function() {
+define(['dataExtensions!'], function(dataExtensions) {
 
   'use strict';
   
