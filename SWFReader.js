@@ -1634,7 +1634,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     }
 
     chunk('IEND', new Uint8Array(0));
-    return new Blob(parts, 'image/png');
+    return new Blob(parts, {type:'image/png'});
   }
   
   SWFReader.Rect = SWFRect;
