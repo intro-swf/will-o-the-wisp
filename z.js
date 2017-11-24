@@ -235,7 +235,7 @@ define(function() {
           if (end_i === outputParts.length) {
             break;
           }
-        } while (concatLength < length);
+        } while (concatLength < (length + offset));
         var concat = new Uint8Array(concatLength);
         var write_i = start_i, writeOffset = 0;
         do {
