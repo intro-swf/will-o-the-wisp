@@ -1537,7 +1537,7 @@ define(['z!'], function(zlib) {
   };
   
   function makeImageBlob(bpp, rows, palette) {
-    var header = new DataView(new ArrayBuffer(62));
+    var header = new DataView(new ArrayBuffer(54));
     var parts = [header];
     var paletteLength;
     if (palette) {
@@ -1545,9 +1545,9 @@ define(['z!'], function(zlib) {
       paletteLength = palbytes.length/4;
       var palbmp = new Uint8Array(palbytes.length);
       for (var i = 0; i < paletteLength; i++) {
-        palbmp[i*4 + 3] = palbytes[i*4]; // blue
-        palbmp[i*4 + 2] = palbytes[i*4 + 1]; // green
-        palbmp[i*4 + 1] = palbytes[i*4 + 2]; // red
+        palbmp[i*4 + 2] = palbytes[i*4 + 0];
+        palbmp[i*4 + 1] = palbytes[i*4 + 1];
+        palbmp[i*4 + 0] = palbytes[i*4 + 2];
       }
       parts.push(palbmp);
     }
@@ -1573,7 +1573,6 @@ define(['z!'], function(zlib) {
     header.setInt32(22, rows.length, true); // height
     header.setUint16(26, 1, true); // planes
     header.setUint16(28, bpp, true); // bpp
-    header.setUint32(54, 0xFFFFFF, true);
     if (paletteLength) header.setUint32(46, paletteLength, true);
     return new Blob(parts, {type:'image/bmp'});
   }
