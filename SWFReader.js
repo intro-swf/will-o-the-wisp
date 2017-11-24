@@ -1613,26 +1613,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     }
 
     {
-      var IDAT;
-      for (var i = 1; i < rows.length; i++) {
-        var row1 = rows[i-1], row2 = rows[i];
-        if (row1.buffer !== row2.buffer
-        || row1.byteOffset + row1.byteLength !== row2.byteOffset) {
-          break;
-        }
-      }
-      if (i === rows.length) {
-        IDAT = new Uint8Array(
-          rows[0].buffer,
-          rows[0].byteOffset,
-          rows[0].byteLength * rows.length);
-      }
-      else {
-        var rowBytes = rows[0].byteLength;
-        IDAT = new Uint8Array(rowBytes * rows.length);
-        for (var i = 0; i < rows.length; i++) {
-          IDAT.set(rows[i], rowBytes * i);
-        }
+      // all rows must be prepended with filter byte
+      var rowBytes = 1 + rows[0].length;
+      var IDAT = new Uint8Array(rows.length * rowBytes);
+      for (var i = 0; i < rows.length; i++) {
+        IDAT.set(i*rowBytes + 1, rows[i]);
       }
       IDAT = IDAT.toZStoredParts();
       chunk('IDAT', IDAT);
