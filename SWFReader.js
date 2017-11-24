@@ -1556,12 +1556,12 @@ define(['z!'], function(zlib) {
     if (rowBytes & 3) {
       var padding = new Uint8Array(4 - rowBytes&3);
       rowBytes += padding.length;
-      for (var i = rows.length-1; i >= 0; i++) {
+      for (var i = rows.length-1; i >= 0; i--) {
         parts.push(rows[i], padding);
       }
     }
     else {
-      for (var i = rows.length-1; i >= 0; i++) {
+      for (var i = rows.length-1; i >= 0; i--) {
         parts.push(rows[i]);
       }
     }
