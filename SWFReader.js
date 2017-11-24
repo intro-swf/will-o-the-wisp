@@ -1545,9 +1545,9 @@ define(['z!'], function(zlib) {
       paletteLength = palbytes.length/4;
       var palbmp = new Uint8Array(palbytes.length);
       for (var i = 0; i < paletteLength; i++) {
-        palbmp[i*4] = palbytes[i*4]; // blue
-        palbmp[i*4 + 1] = palbytes[i*4 + 1]; // green
-        palbmp[i*4 + 2] = palbytes[i*4 + 2]; // red
+        palbmp[i*4 + 3] = palbytes[i*4]; // blue
+        palbmp[i*4 + 2] = palbytes[i*4 + 1]; // green
+        palbmp[i*4 + 1] = palbytes[i*4 + 2]; // red
       }
       parts.push(palbmp);
     }
