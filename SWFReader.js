@@ -38,6 +38,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_SPRITE = 39
     ,TAG_FRAME_LABEL = 43
     ,TAG_DEFINE_MORPH_SHAPE = 46
+    ,TAG_FILE_ATTRIBUTES = 69
   ;
   
   function SWFReader(init) {
@@ -51,6 +52,13 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     // .frameCount <int>
     // .uncompressedFileSize <int>
     onopenmovie: NULLFUNC,
+    
+    // .useNetwork <bool>
+    // .useSWFRelativeURLs <bool>
+    // .suppressCrossDomainCaching <bool>
+    // .allowABC <bool>
+    // .hasMetadata <bool>
+    onfileattributes: NULLFUNC,
     
     // return value is Promise result
     onclosemovie: NULLFUNC,
@@ -200,6 +208,15 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_SHOW_FRAME:
         case TAG_END:
           source.warnIfMore();
+          break;
+        case TAG_FILE_ATTRIBUTES:
+          var byte = source.readUint8();
+          if (byte & 1) this.useNetwork = true;
+          if (byte & 2) this.useSWFRelativeURLs = true;
+          if (byte & 4) this.suppressCrossDomainCaching = true;
+          if (byte & 8) this.allowABC = true;
+          if (byte & 0x10) this.hasMetadata = true;
+          this.onfileattributes();
           break;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
