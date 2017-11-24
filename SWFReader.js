@@ -1542,7 +1542,7 @@ define(['z!'], function(zlib) {
     var paletteLength;
     if (palette) {
       var palbytes = new Uint8Array(palette.buffer, palette.byteOffset, palette.byteLength);
-      paletteLength = palbytes/4;
+      paletteLength = palbytes.length/4;
       var palbmp = new Uint8Array(palbytes.length);
       for (var i = 0; i < paletteLength; i++) {
         palbmp[i*4] = palbytes[i*4 + 2]; // blue
