@@ -270,6 +270,25 @@ define(['dataExtensions!'], function(dataExtensions) {
     outputParts.adler32 = this.readUint32BE();
     return outputParts;
   };
+  Uint8Array.prototype.toZStoredParts = function() {
+    var blockCount = Math.ceil(this.length / 0x10000);
+    var buf = new ArrayBuffer(2 + 4 + 5*blockCount);
+    var head = new DataView(buf, 0, 2);
+    var adler = new DataView(buf, 2, 4);
+    head.setUint16(0, 0x78DA);
+    var parts = [head];
+    for (var i = 0; i < blockCount; i++) {
+      var block = this.subarray(0x1000*i, 0x1000*(i+1));
+      var blockHead = new DataView(buf, 2 + 4 + i*5, 5);
+      if (i+1 === blockCount) blockHead.setUint8(0, 1);
+      blockHead.setUint16(1, block.length);
+      blockHead.setUint16(3, ~block.length);
+      parts.push(blockHead, block);
+    }
+    adler.setUint32(0, this.getAdler32());
+    parts.push(adler);
+    return parts;
+  };
   
   var lib;
   
