@@ -113,6 +113,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         throw new TypeError('source must be byte array');
       }
       try {
+        this.onrawfilesignature(source);
+        if (this.isCompressed) {
+          source = zlib.inflate(source.subarray(source.offset), this.uncompressedFileSize - 8);
+        }
         this.onrawfileheader(source);
         this.onopenmovie();
         for (var i = 0; i < this.frameCount; i++) {
@@ -160,14 +164,16 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       }
     },
     
-    onrawfileheader: function(source) {
+    onrawfilesignature: function(source) {
       switch (source.readByteString(3)) {
-        case 'FWS': this.compressed = false; break;
-        case 'CWS': this.compressed = true; break;
+        case 'FWS': this.isCompressed = false; break;
+        case 'CWS': this.isCompressed = true; break;
         default: throw new Error('invalid file header');
       }
       this.version = source.readUint8();
       this.uncompressedFileSize = source.readUint32LE();
+    },
+    onrawfileheader: function(source) {
       this.frameBounds = source.readSWFRect();
       this.framesPerSecond = source.readUint16LE() / 0x100;
       this.frameCount = source.readUint16LE();
