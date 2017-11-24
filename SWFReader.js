@@ -1584,7 +1584,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
 
     {
       var IHDR = new DataView(new ArrayBuffer(13));
-      var width = rows[0].length / bpp, height = rows.length;
+      var width = rows[0].length * 8 / bpp, height = rows.length;
       IHDR.setUint32(0, width);
       IHDR.setUint32(4, height);
       IHDR.setUint8(8, bpp);
