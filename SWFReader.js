@@ -39,6 +39,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_FRAME_LABEL = 43
     ,TAG_DEFINE_MORPH_SHAPE = 46
     ,TAG_FILE_ATTRIBUTES = 69
+    ,TAG_DEFINE_SCALING_GRID = 78
   ;
   
   function SWFReader(init) {
@@ -814,6 +815,12 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_FRAME_LABEL:
           this.onframelabel(source.readByteString('\0'));
           source.warnIfMore();
+          break;
+        case TAG_DEFINE_SCALING_GRID:
+          var spriteOrButtonID = source.readUint16LE();
+          this.onupdate(spriteOrButtonID, 'scalable', {
+            scalingGrid: source.readSWFRect(),
+          });
           break;
         default:
           this.onunhandledtag(chunkType, source);
