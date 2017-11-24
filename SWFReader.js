@@ -1556,16 +1556,21 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       var info = new ArrayBuffer(8);
       var lenDV = new DataView(info, 0, 4);
       var crcDV = new DataView(info, 4, 4);
+      var crc = new Uint8Array([
+        name.charCodeAt(0),
+        name.charCodeAt(1),
+        name.charCodeAt(2),
+        name.charCodeAt(3)]).getCRC32();
       if (typeof buf.byteLength === 'number') {
         lenDV.setUint32(0, buf.byteLength);
         if (!(buf instanceof Uint8Array)) {
           buf = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
         }
-        crcDV.setUint32(0, buf.getCRC32());
+        crcDV.setUint32(0, buf.getCRC32(crc));
         parts.push(lenDV, name, buf, crcDV);
       }
       else {
-        var len = 0, crc = 0;
+        var len = 0;
         parts.push(lenDV, name);
         for (var i = 0; i < buf.length; i++) {
           var part = buf[i];
