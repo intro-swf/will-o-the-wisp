@@ -16,6 +16,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_BITS = 6
       ,TAG_DEFINE_BITS_2 = 21
       ,TAG_DEFINE_BITS_LOSSLESS = 20
+      ,TAG_DEFINE_BITS_LOSSLESS_2 = 36
     ,TAG_DEFINE_BUTTON = 7
       ,TAG_DEFINE_BUTTON_2 = 34
     ,TAG_JPEG_TABLES = 8
@@ -293,6 +294,44 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 rows[i] = pixels.subarray(rowBytes*i, rowBytes*i + width);
               }
               bitmapFile = makeImageBlob(8, rows, palette);
+              break;
+            default:
+              throw new Error('NYI: lossless mode ' + format);
+          }
+          this.ondefine(id, 'bitmap', bitmapFile);
+          break;
+        case TAG_DEFINE_BITS_LOSSLESS_2:
+          var id = source.readUint16LE();
+          var format = source.readUint8();
+          var width = source.readUint16LE();
+          var height = source.readUint16LE();
+          var paletteSize = (format === 3) ? source.readUint8() + 1 : 0;
+          var compressed = source.subarray(source.offset);
+          var uncompressedLength;
+          var rowBytes;
+          switch (format) {
+            case 3:
+              rowBytes = (width + 3) & ~3;
+              uncompressedLength = paletteSize * 4 + rowBytes * height;
+              break;
+            case 5:
+              rowBytes = width*4;
+              uncompressedLength = rowBytes * height;
+              break;
+            default:
+              throw new Error('unknown bitmap format');
+          }
+          var uncompressed = zlib.inflate(compressed, uncompressedLength);
+          var bitmapFile;
+          switch (format) {
+            case 3:
+              var palette = new Uint32Array(uncompressed.buffer, uncompressed.byteOffset, paletteSize);
+              var rows = new Array(height);
+              var pixels = uncompressed.subarray(paletteSize * 4);
+              for (var i = 0; i < height; i++) {
+                rows[i] = pixels.subarray(rowBytes*i, rowBytes*i + width);
+              }
+              bitmapFile = makeAlphaBitmapBlob(8, rows, palette);
               break;
             default:
               throw new Error('NYI: lossless mode ' + format);
@@ -1508,6 +1547,94 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     header.setUint16(28, bpp, true); // bpp
     if (paletteLength) header.setUint32(46, paletteLength, true);
     return new Blob(parts, {type:'image/bmp'});
+  }
+  
+  function makeAlphaBitmapBlob(bpp, rows, palette) {
+    var parts = [new Uint8Array([0x89]), 'PNG\r\n\x1A\n'];
+
+    function chunk(name, buf) {
+      var info = new ArrayBuffer(8);
+      var lenDV = new DataView(info, 0, 4);
+      var crcDV = new DataView(info, 4, 4);
+      if (typeof buf.byteLength === 'number') {
+        lenDV.setUint32(0, buf.byteLength);
+        if (!(buf instanceof Uint8Array)) {
+          buf = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+        }
+        crcDV.setUint32(0, buf.getCRC32());
+        parts.push(lenDV, name, buf, crcDV);
+      }
+      else {
+        var len = 0, crc = 0;
+        parts.push(lenDV, name);
+        for (var i = 0; i < buf.length; i++) {
+          var part = buf[i];
+          len += buf[i].byteLength;
+          if (!(part instanceof Uint8Array)) {
+            part = new Uint8Array(part.buffer, part.byteOffset, part.byteLength);
+          }
+          crc = part.getCRC32(crc);
+          parts.push(part);
+        }
+        lenDV.setUint32(0, len);
+        crcDV.setUint32(0, crc);
+        parts.push(crcDV);
+      }
+    }
+
+    {
+      var IHDR = new DataView(new ArrayBuffer(13));
+      var width = rows[0].length / bpp, height = rows.length;
+      IHDR.setUint32(0, width);
+      IHDR.setUint32(4, height);
+      IHDR.setUint8(8, bpp);
+      const PALETTE_USED=1, COLOR_USED=2, ALPHA_USED=4;
+      IHDR.setUint8(9, PALETTE_USED | COLOR_USED); // tRNS not represented here
+      chunk('IHDR', IHDR);
+    }
+
+    {
+      var PLTE = new Uint8Array(3 * palette.length);
+      var tRNS = new Uint8Array(palette.length);
+      var palbytes = new Uint8Array(palette.buffer, palette.byteOffset, palette.byteLength);
+      for (var i = 0; i < palette.length; i++) {
+        PLTE[i*3 + 0] = palbytes[i*4 + 0];
+        PLTE[i*3 + 1] = palbytes[i*4 + 1];
+        PLTE[i*3 + 2] = palbytes[i*4 + 2];
+        tRNS[i] = palbytes[i*4 + 3];
+      }
+      chunk('PLTE', PLTE);
+      chunk('tRNS', tRNS);
+    }
+
+    {
+      var IDAT;
+      for (var i = 1; i < rows.length; i++) {
+        var row1 = rows[i-1], row2 = rows[i];
+        if (row1.buffer !== row2.buffer
+        || row1.byteOffset + row1.byteLength !== row2.byteOffset) {
+          break;
+        }
+      }
+      if (i === rows.length) {
+        IDAT = new Uint8Array(
+          rows[0].buffer,
+          rows[0].byteOffset,
+          rows[0].byteLength * rows.length);
+      }
+      else {
+        var rowBytes = rows[0].byteLength;
+        IDAT = new Uint8Array(rowBytes * rows.length);
+        for (var i = 0; i < rows.length; i++) {
+          IDAT.set(rows[i], rowBytes * i);
+        }
+      }
+      IDAT = IDAT.toZStoredParts();
+      chunk('IDAT', IDAT);
+    }
+
+    chunk('IEND', new Uint8Array(0));
+    return new Blob(parts, 'image/png');
   }
   
   SWFReader.Rect = SWFRect;
