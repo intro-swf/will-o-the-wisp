@@ -290,7 +290,7 @@ define(['z!'], function(zlib) {
               var rows = new Array(height);
               var pixels = uncompressed.subarray(paletteSize * 4);
               for (var i = 0; i < height; i++) {
-                rows.push(pixels.subarray(rowBytes*i, rowBytes*i + width));
+                rows[i] = pixels.subarray(rowBytes*i, rowBytes*i + width);
               }
               bitmapFile = makeImageBlob(8, rows, palette);
               break;
