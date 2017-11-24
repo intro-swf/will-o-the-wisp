@@ -115,9 +115,13 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       try {
         this.onrawfilesignature(source);
         if (this.isCompressed) {
+          var uncompressedLength = this.uncompressedFileSize - source.offset;
           source = zlib.inflate(
             source.subarray(source.offset),
-            this.uncompressedFileSize - source.offset);
+            uncompressedLength);
+          if (source.length !== uncompressedLength) {
+            throw new Error('decompression size mismatch');
+          }
         }
         this.onrawfileheader(source);
         this.onopenmovie();
