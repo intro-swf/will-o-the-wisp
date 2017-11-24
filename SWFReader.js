@@ -258,21 +258,46 @@ define(['z!'], function(zlib) {
           var paletteSize = (format === 3) ? source.readUint8() + 1 : 0;
           var compressed = source.subarray(source.offset);
           var uncompressedLength;
+          var rowBytes;
           switch (format) {
             case 3:
-              uncompressedLength = paletteSize * 3 + ((width + 3) & ~3) * height;
+              rowBytes = (width + 3) & ~3;
+              uncompressedLength = paletteSize * 3 + rowBytes * height;
               break;
             case 4:
-              uncompressedLength = ((width*2 + 3) & ~3) * height;
+              rowBytes = (width*2 + 3) & ~3;
+              uncompressedLength = rowBytes * height;
               break;
             case 5:
-              uncompressedLength = width*4 * height;
+              rowBytes = width*4;
+              uncompressedLength = rowBytes * height;
               break;
             default:
               throw new Error('unknown bitmap format');
           }
           var uncompressed = zlib.inflate(compressed, uncompressedLength);
-          console.log(uncompressed);
+          var bitmapFile;
+          switch (format) {
+            case 3:
+              var palette = new Uint8Array(paletteSize * 4);
+              for (var i = 0; i < paletteSize; i++) {
+                palette[i*4] = uncompressed[i*3];
+                palette[i*4 + 1] = uncompressed[i*3 + 1];
+                palette[i*4 + 2] = uncompressed[i*3 + 2];
+                palette[i*4 + 3] = 0xff;
+              }
+              palette = new Uint32Array(palette.buffer, palette.byteOffset, paletteSize);
+              var rows = new Array(height);
+              var pixels = uncompressed.subarray(paletteSize * 4);
+              for (var i = 0; i < height; i++) {
+                rows.push(pixels.subarray(rowBytes*i, rowBytes*i + width));
+              }
+              bitmapFile = makeImageBlob(8, rows, palette);
+              break;
+            default:
+              throw new Error('NYI: lossless mode ' + format);
+          }
+          this.ondefine(id, 'bitmap', bitmapFile);
           break;
         case TAG_JPEG_TABLES:
           var file = new Blob([source], {type:'image/jpeg; encoding-tables=only'});
@@ -1510,6 +1535,48 @@ define(['z!'], function(zlib) {
       return this.solidColor;
     },
   };
+  
+  function makeImageBlob(bpp, rows, palette) {
+    var header = new DataView(new ArrayBuffer(62));
+    var parts = [header];
+    var paletteLength;
+    if (palette) {
+      var palbytes = new Uint8Array(palette.buffer, palette.byteOffset, palette.byteLength);
+      paletteLength = palbytes/4;
+      var palbmp = new Uint8Array(palbytes.length);
+      for (var i = 0; i < paletteLength; i++) {
+        palbmp[i*4] = palbytes[i*4 + 2]; // blue
+        palbmp[i*4 + 1] = palbytes[i*4 + 1]; // green
+        palbmp[i*4 + 2] = palbytes[i*4]; // red
+      }
+      parts.push(palbmp);
+    }
+    else paletteLength = 0;
+    var rowBytes = rows[0].length;
+    if (rowBytes & 3) {
+      var padding = new Uint8Array(4 - rowBytes&3);
+      rowBytes += padding.length;
+      for (var i = rows.length-1; i >= 0; i++) {
+        parts.push(rows[i], padding);
+      }
+    }
+    else {
+      for (var i = rows.length-1; i >= 0; i++) {
+        parts.push(rows[i]);
+      }
+    }
+    header.setUint16(0, ('B'.charCodeAt(0) << 8) | 'M'.charCodeAt(0), false);
+    header.setUint32(2, header.byteLength + paletteLength*4 + rowBytes * rows.length, true);
+    header.setUint32(10, header.byteLength + paletteLength*4, true);
+    header.setUint32(14, 40, true); // BITMAPINFOHEADER
+    header.setUint32(18, rows[0].length * 8 / bpp, true); // width
+    header.setInt32(22, rows.length, true); // height
+    header.setUint16(26, 1, true); // planes
+    header.setUint16(28, bpp, true); // bpp
+    header.setUint32(54, 0xFFFFFF, true);
+    if (paletteLength) header.setUint32(46, paletteLength, true);
+    return new Blob(parts, {type:'image/bmp'});
+  }
   
   SWFReader.Rect = SWFRect;
   SWFReader.Matrix = SWFMatrix;
