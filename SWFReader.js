@@ -1040,8 +1040,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         var stop = points[i] = {ratio: percentFromByte(this.readUint8())};
         stop.color = this.readSWFColor(NO_ALPHA);
       }
-      points.spreadMode = ['pad', 'reflect', 'repeat'](flags >>> 6);
-      points.interpolationMode = ['normal', 'linear']((flags >>> 4) & 3);
+      points.spreadMode = ['pad', 'reflect', 'repeat'][flags >>> 6];
+      points.interpolationMode = ['normal', 'linear'][(flags >>> 4) & 3];
       return points;
     },
     readSWFFillStyles: function(EXTENDED_LENGTH, NO_ALPHA, PAIRS) {
