@@ -34,28 +34,35 @@ function(
         jpegTables = tables.slice(0, -2);
       },
       onopenstream: function() {
+        var stream = this.stream;
         var audioEl = document.createElement('AUDIO');
-        audioEl.src = URL.createObjectURL(this.mediaSource = new MediaSource);
         audioEl.controls = true;
         document.body.appendChild(audioEl);
-        if (this.stream.format === 'mp3') {
-          this.sourceBuffer = this.mediaSource.addSourceBuffer('audio/mpeg');
-          this.sourceBuffer.mediaSource = this.mediaSource;
-          this.sourceBuffer.whenReady = Promise.resolve(this.sourceBuffer);
-        }
+        this.whenSourceBufferAvailable = new Promise(function(resolve, reject) {
+          var mediaSource = new MediaSource;
+          mediaSource.onsourceopen = function(e) {
+            if (stream.format === 'mp3') {
+              var sourceBuffer = this.addSourceBuffer('audio/mpeg');
+              sourceBuffer.mediaSource = this;
+              resolve(sourceBuffer);
+            }
+          };
+          audioEl.src = URL.createObjectURL(mediaSource);
+        });
       },
       onstream: function(bytes, extra) {
-        this.sourceBuffer.whenReady.then(function(sourceBuffer) {
+        this.whenSourceBufferAvailable.then(function(sourceBuffer) {
           return new Promise(function(resolve, reject) {
-            sourceBuffer.appendBuffer(bytes);
             sourceBuffer.addEventListener('updateend', function onupdateend() {
-              resolve(sourceBuffer);
+              this.removeEventListener('updateend', onupdateend);
+              resolve(this);
             });
+            sourceBuffer.appendBuffer(bytes);
           });
         });
       },
       onclosestream: function() {
-        this.sourceBuffer.whenReady.then(function(sourceBuffer) {
+        this.whenSourceBufferAvailable.then(function(sourceBuffer) {
           sourceBuffer.mediaSource.endOfStream();
         });
       },
