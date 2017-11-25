@@ -20,11 +20,13 @@ function(
   
   var nextGradID = 1;
   var nextClip = 1;
+  var ac = new AudioContext();
   
   // function called on a Uint8Array containing swf data
   function init_bytes(bytes) {
     var jpegTables;
     var bitmapURLs = {};
+    var startTime = -1;
 
     var reader = new SWFReader({
       onunhandledtag: function(id, data) {
@@ -32,6 +34,23 @@ function(
       },
       onjpegtables: function(tables) {
         jpegTables = tables.slice(0, -2);
+      },
+      onstream: function(bytes, extra) {
+        var buffer;
+        if (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength) {
+          buffer = bytes.buffer;
+        }
+        else {
+          buffer = new Uint8Array(bytes).buffer;
+        }
+        ac.decodeAudioData(buffer)
+        .then(function(buffer) {
+          var src = ac.createBufferSource(buffer);
+          if (startTime === -1) startTime = ac.currentTime;
+          src.connect(ac.destination);
+          src.start(startTime);
+          startTime += buffer.duration;
+        });
       },
       ondefine: function(id, type, def) {
         if (type === 'bitmap') {
