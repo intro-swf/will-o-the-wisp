@@ -14,8 +14,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       ,TAG_PLACE_OBJECT_2 = 26
     ,TAG_REMOVE_OBJECT = 5
       ,TAG_REMOVE_OBJECT_2 = 28
+    // DEFINE_BITS tags always use long length?
     ,TAG_DEFINE_BITS = 6
       ,TAG_DEFINE_BITS_2 = 21
+      ,TAG_DEFINE_BITS_3 = 35
+      ,TAG_DEFINE_BITS_4 = 90
       ,TAG_DEFINE_BITS_LOSSLESS = 20
       ,TAG_DEFINE_BITS_LOSSLESS_2 = 36
     ,TAG_DEFINE_BUTTON = 7
@@ -278,18 +281,28 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           this.ondefine(id, 'bitmap', file);
           break;
         case TAG_DEFINE_BITS_2:
+        case TAG_DEFINE_BITS_3:
+        case TAG_DEFINE_BITS_4:
           var id = source.readUint16LE();
-          var pos = 2, parts;
-          while (pos < source.length) {
-            if (source[pos] === 0xFF && source[pos+1] === 0xD9
-                && source[pos+2] === 0xFF && source[pos+3] === 0xD8) {
-              parts = [source.subarray(2, pos), source.subarray(pos + 4)];
+          var preAlphaLength = (chunkType >= TAG_DEFINE_BITS_3) ? source.readUint32LE() : -1;
+          var deblockingFilterParameter = (chunkType >= TAG_DEFINE_BITS_4) ? source.readUint16() / 0x100 : null;
+          if (preAlphaLength === -1) preAlphaLength = source.length - source.offset;
+          var preAlpha = source.readSubarray(preAlphaLength);
+          var pos = 0, parts;
+          while (pos < preAlpha.length) {
+            if (preAlpha[pos] === 0xFF && preAlpha[pos+1] === 0xD9
+                && preAlpha[pos+2] === 0xFF && preAlpha[pos+3] === 0xD8) {
+              parts = [preAlpha.subarray(0, pos), preAlpha.subarray(pos + 4)];
               break;
             }
             pos++;
           }
-          parts = parts || [source.subarray(2)];
+          parts = parts || [preAlpha];
           var file = new Blob(parts, {type:'image/jpeg'});
+          if (source.offset !== source.length) {
+            // TODO: get width and height from the data, create a PNG for the mask
+            file.alphaMask = zlib.inflate(source.subarray(source.offset));
+          }
           this.ondefine(id, 'bitmap', file);
           break;
         case TAG_DEFINE_BITS_LOSSLESS:
