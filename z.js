@@ -144,8 +144,8 @@ define(['dataExtensions!'], function(dataExtensions) {
       switch (this.readZBits(2)) {
         case 0:
           this.flushZBits();
-          var len = this.readUint16BE();
-          if (~len !== this.readInt16BE()) {
+          var len = this.readUint16LE();
+          if (~len !== this.readInt16LE()) {
             throw new Error('corrupt data');
           }
           outputParts.push(this.readSubarray(len));
@@ -281,8 +281,8 @@ define(['dataExtensions!'], function(dataExtensions) {
       var block = this.subarray(0x1000*i, 0x1000*(i+1));
       var blockHead = new DataView(buf, 2 + 4 + i*5, 5);
       if (i+1 === blockCount) blockHead.setUint8(0, 1);
-      blockHead.setUint16(1, block.length);
-      blockHead.setUint16(3, ~block.length);
+      blockHead.setUint16(1, block.length, true);
+      blockHead.setUint16(3, ~block.length, true);
       parts.push(blockHead, block);
     }
     adler.setUint32(0, this.getAdler32());
