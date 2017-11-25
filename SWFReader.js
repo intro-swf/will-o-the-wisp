@@ -48,6 +48,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_FILE_ATTRIBUTES = 69
     ,TAG_DEFINE_SCALING_GRID = 78
     ,TAG_EXPORT = 56
+    ,TAG_DEBUG_ID = 63
   ;
 
   const EVT_ONLOAD = 1
@@ -147,6 +148,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     
     // onexport(id <int>, name <string>)
     onexport: NULLFUNC,
+    
+    // .debugID <string>
+    ondebugid: NULLFUNC,
     
     read: function(source) {
       // TODO: support Blob/URL sources?
@@ -935,6 +939,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             this.onexport(id, symbolName);
           }
           source.warnIfMore();
+          break;
+        case TAG_DEBUG_ID:
+          this.debugID = source.readByteString(source.length);
+          this.ondebugid();
           break;
         default:
           this.onunhandledtag(chunkType, source);
