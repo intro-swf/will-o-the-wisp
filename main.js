@@ -181,6 +181,7 @@ function(
         else if (type === 'sound') {
           var audio = document.createElement('AUDIO');
           audio.src = URL.createObjectURL(def.file);
+          audio.controls = true;
           document.body.appendChild(audio);
         }
       },
