@@ -287,7 +287,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_DEFINE_BITS_4:
           var id = source.readUint16LE();
           var preAlphaLength = (chunkType >= TAG_DEFINE_BITS_3) ? source.readUint32LE() : -1;
-          var deblockingFilterParameter = (chunkType >= TAG_DEFINE_BITS_4) ? source.readUint16() / 0x100 : null;
+          var deblockingFilterParameter = (chunkType >= TAG_DEFINE_BITS_4) ? source.readUint16LE() / 0x100 : null;
           if (preAlphaLength === -1) preAlphaLength = source.length - source.offset;
           var preAlpha = source.readSubarray(preAlphaLength);
           var pos = 0, parts;
@@ -746,7 +746,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_PROTECT:
         case TAG_ENABLE_DEBUGGER:
         case TAG_ENABLE_DEBUGGER_2:
-          if (chunkType >= TAG_ENABLE_DEBUGGER_2) source.readUint16(); // reserved
+          if (chunkType >= TAG_ENABLE_DEBUGGER_2) source.readUint16LE(); // reserved
           this.passwordMD5 = source.length ? source.readByteString(source.length) : null;
           this.onprotect();
           break;
