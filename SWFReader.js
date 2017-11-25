@@ -9,6 +9,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_SHAPE = 2
       ,TAG_DEFINE_SHAPE_2 = 22
       ,TAG_DEFINE_SHAPE_3 = 32
+      ,TAG_DEFINE_SHAPE_4 = 83
     ,TAG_PLACE_OBJECT = 4
       ,TAG_PLACE_OBJECT_2 = 26
     ,TAG_REMOVE_OBJECT = 5
@@ -222,13 +223,22 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
         case TAG_DEFINE_SHAPE_3:
+        case TAG_DEFINE_SHAPE_4:
           var id = source.readUint16LE();
           var shape = {};
           shape.bounds = source.readSWFRect();
           const EXTENDED_LENGTH = chunkType >= TAG_DEFINE_SHAPE_2;
           const NO_ALPHA = chunkType < TAG_DEFINE_SHAPE_3;
+          const EXTENDED_STROKE = chunkType >= TAG_DEFINE_SHAPE_4;
+          if (EXTENDED_STROKE) {
+            shape.fillBounds = source.readSWFRect();
+            var flags = source.readUint8();
+            if (flags & 1) shape.hasNonScalingStrokes = true;
+            if (flags & 2) shape.hasScalingStrokes = true;
+            if (flags & 4) shape.useFillWindingRule = true;
+          }
           var fillStyles = source.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
-          var strokeStyles = source.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
+          var strokeStyles = source.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA, false, EXTENDED_STROKE);
           shape.path = source.readSWFPath(EXTENDED_LENGTH, NO_ALPHA);
           shape.path.initialStyles(fillStyles, strokeStyles);
           source.warnIfMore();
@@ -925,80 +935,12 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       }
       var fillStyles = new Array(count+1);
       fillStyles[0] = PAIRS ? ['none', 'none'] : 'none';
-      var fillStyle;
       for (var i = 1; i < fillStyles.length; i++) {
-        switch (fillStyle = this.readUint8()) {
-          case 0x00:
-            if (PAIRS) {
-              var a = this.readSWFColor(NO_ALPHA);
-              var b = this.readSWFColor(NO_ALPHA);
-              fillStyles[i] = [a, b];
-            }
-            else {
-              fillStyles[i] = this.readSWFColor(NO_ALPHA);
-            }
-            break;
-          case 0x10:
-          case 0x12:
-            var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
-            if (PAIRS) {
-              var a = {type:'gradient', mode:mode, stops:[]};
-              var b = {type:'gradient', mode:mode, stops:[]};
-              a.matrix = this.readSWFMatrix();
-              b.matrix = this.readSWFMatrix();
-              var stops = this.readSWFGradientStops(NO_ALPHA, true);
-              while (stops.length > 0) {
-                a.stops.push(stops.shift());
-                b.stops.push(stops.shift());
-              }
-              fillStyles[i] = [a, b];
-            }
-            else {
-              var matrix = this.readSWFMatrix();
-              var stops = this.readSWFGradientStops(NO_ALPHA);
-              fillStyles[i] = {
-                type: 'gradient',
-                mode: mode,
-                matrix: matrix,
-                stops: stops,
-              };
-            }
-            break;
-          case 0x40:
-          case 0x41:
-            var bitmapID = this.readUint16LE();
-            var mode = (fillStyle === 0x40) ? 'tiled' : 'clipped';
-            if (PAIRS) {
-              var a = {
-                type: 'bitmap',
-                mode: mode,
-                matrix: this.readSWFMatrix(),
-                bitmapID: bitmapID,
-              };
-              var b = {
-                type: 'bitmap',
-                mode: mode,
-                matrix: this.readSWFMatrix(),
-                bitmapID: bitmapID,
-              };
-              fillStyles[i] = [a, b];
-            }
-            else {
-              fillStyles[i] = {
-                type: 'bitmap',
-                mode: mode,
-                matrix: this.readSWFMatrix(),
-                bitmapID: bitmapID,
-              };
-            }
-            break;
-          default:
-            throw new Error('unknown fill mode');
-        }
+        fillStyles[i] = this.readSWFFillStyle(NO_ALPHA, PAIRS);
       }
       return fillStyles;
     },
-    readSWFStrokeStyles: function(EXTENDED_LENGTH, NO_ALPHA, PAIRS) {
+    readSWFStrokeStyles: function(EXTENDED_LENGTH, NO_ALPHA, PAIRS, EXTENDED_STROKE) {
       var count = this.readUint8();
       if (count === 255 && EXTENDED_LENGTH) {
         count = this.readUint16LE();
@@ -1015,11 +957,106 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         strokeStyles[i] = [a, b];
       }
       else for (var i = 1; i < strokeStyles.length; i++) {
-        var width = this.readUint16LE();
-        var color = this.readSWFColor(NO_ALPHA);
-        strokeStyles[i] = {width:width, color:color};
+        var width: this.readUint16LE();
+        var stroke;
+        if (EXTENDED_STROKE) {
+          stroke = this.readSWFExtendedStrokeStyle(NO_ALPHA, PAIRS);
+        }
+        else {
+          stroke = {};
+        }
+        stroke.color = this.readSWFColor(NO_ALPHA);
+        strokeStyles[i] = stroke;
       }
       return strokeStyles;
+    },
+    readSWFExtendedStrokeStyle: function(NO_ALPHA, PAIRS) {
+      var info = {};
+      var flags = this.readUint8();
+      if (flags & 1) info.pixelHinting = true;
+      if (flags & 2) info.noYScale = true;
+      if (flags & 4) info.noXScale = true;
+      var hasFill = flags & 8;
+      info.joinStyle = ['round', 'bevel', 'miter'][(flags >>> 4) & 3];
+      info.startCapStyle = ['none', 'round', 'square'][flags >>> 6];
+      flags = this.readUint8();
+      info.endCapStyle = ['none', 'round', 'square'][flags & 3];
+      if (flags & 4) info.noClose = true;
+      if (info.joinStyle == 'miter') {
+        info.miterLimitFactor = this.readUint16LE() / 0x100;
+      }
+      if (hasFill) {
+        info.strokeFill = this.readSWFFillStyle(NO_ALPHA, PAIRS);
+      }
+      return info;
+    },
+    readSWFFillStyle: function(NO_ALPHA, PAIRS) {
+      var fillStyle = this.readUint8();
+      switch (fillStyle) {
+        case 0x00:
+          if (PAIRS) {
+            var a = this.readSWFColor(NO_ALPHA);
+            var b = this.readSWFColor(NO_ALPHA);
+            return [a, b];
+          }
+          return this.readSWFColor(NO_ALPHA);
+        case 0x10:
+        case 0x12:
+          var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
+          if (PAIRS) {
+            var a = {type:'gradient', mode:mode, stops:[]};
+            var b = {type:'gradient', mode:mode, stops:[]};
+            a.matrix = this.readSWFMatrix();
+            b.matrix = this.readSWFMatrix();
+            var stops = this.readSWFGradientStops(NO_ALPHA, true);
+            while (stops.length > 0) {
+              a.stops.push(stops.shift());
+              b.stops.push(stops.shift());
+            }
+            return [a, b];
+          }
+          else {
+            var matrix = this.readSWFMatrix();
+            var stops = this.readSWFGradientStops(NO_ALPHA);
+            return {
+              type: 'gradient',
+              mode: mode,
+              matrix: matrix,
+              stops: stops,
+            };
+          }
+          break;
+        case 0x40:
+        case 0x41:
+          var bitmapID = this.readUint16LE();
+          var mode = (fillStyle === 0x40) ? 'tiled' : 'clipped';
+          if (PAIRS) {
+            var a = {
+              type: 'bitmap',
+              mode: mode,
+              matrix: this.readSWFMatrix(),
+              bitmapID: bitmapID,
+            };
+            var b = {
+              type: 'bitmap',
+              mode: mode,
+              matrix: this.readSWFMatrix(),
+              bitmapID: bitmapID,
+            };
+            return [a, b];
+          }
+          else {
+            return {
+              type: 'bitmap',
+              mode: mode,
+              matrix: this.readSWFMatrix(),
+              bitmapID: bitmapID,
+            };
+          }
+          break;
+        default:
+          throw new Error('unknown fill mode');
+      }
     },
     readSWFPath: function(EXTENDED_LENGTH, NO_ALPHA) {
       var fillIndexBits = this.readSWFBits(4, false);
