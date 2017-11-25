@@ -118,7 +118,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     
     // ondefine(id <int>, type <string>, def <Object>)
     ondefine: NULLFUNC,
-    // onupdate(id <int>, type <string>, def <Object>)
+    // onupdate(id <int>, def <Object>)
     onupdate: NULLFUNC,
     
     // ondisplaylistaction(depth <int>, 'insert', settings <Object>)
@@ -461,7 +461,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               glyphs.push({char:source.readByteString(1)});
             }
           }
-          this.onupdate(id, 'font', font);
+          this.onupdate(id, font);
           break;
         case TAG_DEFINE_FONT_2:
           var id = source.readUint16LE();
@@ -543,7 +543,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           var id = source.readUint16LE();
           var displayName = source.readByteString('\0');
           var copyrightMessage = source.readByteString('\0');
-          this.onupdate(id, 'font', {displayName:displayName, copyrightMessage:copyrightMessage});
+          this.onupdate(id, {displayName:displayName, copyrightMessage:copyrightMessage});
           break;
         case TAG_DEFINE_TEXT:
           var id = source.readUint16LE();
@@ -773,7 +773,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             };
           }
           source.warnIfMore();
-          this.onupdate(buttonID, 'button', button);
+          this.onupdate(buttonID, button);
           break;
         case TAG_PROTECT:
         case TAG_ENABLE_DEBUGGER:
@@ -924,7 +924,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           break;
         case TAG_DEFINE_SCALING_GRID:
           var spriteOrButtonID = source.readUint16LE();
-          this.onupdate(spriteOrButtonID, 'scalable', {
+          this.onupdate(spriteOrButtonID, {
             scalingGrid: source.readSWFRect(),
           });
           break;
