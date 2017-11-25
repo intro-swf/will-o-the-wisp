@@ -903,7 +903,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 this.onopenspritestream();
                 continue frameLoop;
               case TAG_SOUND_STREAM_BLOCK:
-                this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.sampleStream);
+                this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.spriteStream);
                 continue frameLoop;
               default:
                 throw new Error(
