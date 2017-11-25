@@ -128,7 +128,7 @@ define(['dataExtensions!'], function(dataExtensions) {
     if (head%31) throw new Error('invalid zlib stream');
     var compressionMethod = (head >> 8) & 15;
     if (compressionMethod !== 8) throw new Error('invalid deflate stream');
-    var windowSize = 1 << ((head >> 12) + 7);
+    var windowSize = 1 << ((head >> 12) + 8);
     if (windowSize > 32768) throw new Error('invalid window size');
     var hasPresetDictionary = !!(head & (1 << 5));
     var compressionLevel = (head >> 6) & 3; // fastest, fast, default, max
