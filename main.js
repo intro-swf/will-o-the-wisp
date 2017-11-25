@@ -122,6 +122,19 @@ function(
                     }
                     else {
                       console.log('TODO: tiled bitmaps');
+                      // just draw clipped for now
+                      var clip = document.createSVGElement('clipPath');
+                      clip.setAttribute('id', 'clip' + nextClip++);
+                      clip.appendChild(el);
+                      el = clip;
+                      var img = document.createSVGElement('image');
+                      if (!(fill.bitmapID in bitmapURLs)) {
+                        throw new Error('no bitmap url found');
+                      }
+                      img.setAttribute('href', bitmapURLs[fill.bitmapID]);
+                      img.setAttribute('transform', fill.matrix.toString());
+                      img.setAttribute('clip-path', 'url("#' + clip.getAttribute('id') + '")');
+                      svg.appendChild(img);
                     }
                     break;
                 }
