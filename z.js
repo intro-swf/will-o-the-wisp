@@ -267,14 +267,14 @@ define(['dataExtensions!'], function(dataExtensions) {
     return outputParts;
   };
   Uint8Array.prototype.toZStoredParts = function() {
-    var blockCount = Math.ceil(this.length / 0x10000);
+    var blockCount = Math.ceil(this.length / 0xFFFF);
     var buf = new ArrayBuffer(2 + 4 + 5*blockCount);
     var head = new DataView(buf, 0, 2);
     var adler = new DataView(buf, 2, 4);
     head.setUint16(0, 0x78DA);
     var parts = [head];
     for (var i = 0; i < blockCount; i++) {
-      var block = this.subarray(0x10000*i, 0x10000*(i+1));
+      var block = this.subarray(0xFFFF*i, 0xFFFF*(i+1));
       var blockHead = new DataView(buf, 2 + 4 + i*5, 5);
       if (i+1 === blockCount) blockHead.setUint8(0, 1);
       blockHead.setUint16(1, block.length, true);
