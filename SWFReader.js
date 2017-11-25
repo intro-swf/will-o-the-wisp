@@ -457,7 +457,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           font.ansi = !!(flags & 8);
           font.shiftJIS = !!(flags & 0x10);
           if (chunkType >= TAG_DEFINE_FONT_INFO_2) {
-            font.languageCode = source.readUint16LE();
+            font.languageCode = source.readUint8();
           }
           var glyphs = font.glyphs = [];
           if (has16BitChars) {
