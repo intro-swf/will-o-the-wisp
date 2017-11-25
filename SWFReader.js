@@ -1347,13 +1347,6 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     },
     readSWFStreamHead: function() {
       var playback = this.readSWFAudioFormat();
-      if (playback.format !== 'pcm') {
-        console.warn('invalid playback format specified: ' + playback.format);
-      }
-      else {
-        delete playback.format;
-        delete playback.endianness;
-      }
       var stream = this.readSWFAudioFormat();
       stream.playback = playback;
       stream.samplesPerBlock = this.readUint16LE();
