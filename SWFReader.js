@@ -269,7 +269,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           }
           var fillStyles = source.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
           var strokeStyles = source.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA, false, EXTENDED_STROKE);
-          shape.path = source.readSWFPath(EXTENDED_LENGTH, NO_ALPHA);
+          shape.path = source.readSWFPath(EXTENDED_LENGTH, NO_ALPHA, EXTENDED_STROKE);
           shape.path.initialStyles(fillStyles, strokeStyles);
           source.warnIfMore();
           this.ondefine(id, 'shape', shape);
@@ -1181,7 +1181,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           throw new Error('unknown fill mode');
       }
     },
-    readSWFPath: function(EXTENDED_LENGTH, NO_ALPHA) {
+    readSWFPath: function(EXTENDED_LENGTH, NO_ALPHA, EXTENDED_STROKE) {
       var fillIndexBits = this.readSWFBits(4, false);
       var lineIndexBits = this.readSWFBits(4, false);
       var path = new SWFPath;
@@ -1240,7 +1240,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           if (flags & 0x10) {
             this.flushSWFBits();
             var fillStyles = this.readSWFFillStyles(EXTENDED_LENGTH, NO_ALPHA);
-            var strokeStyles = this.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA);
+            var strokeStyles = this.readSWFStrokeStyles(EXTENDED_LENGTH, NO_ALPHA, false, EXTENDED_STROKE);
             path.newStyles(fillStyles, strokeStyles);
             fillIndexBits = this.readSWFBits(4, false);
             lineIndexBits = this.readSWFBits(4, false);
