@@ -550,6 +550,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           this.onupdate(id, {displayName:displayName, copyrightMessage:copyrightMessage});
           break;
         case TAG_DEFINE_TEXT:
+        case TAG_DEFINE_TEXT_2:
           var id = source.readUint16LE();
           var text = {bounds: source.readSWFRect()};
           text.matrix = source.readSWFMatrix();
@@ -560,6 +561,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           }
           var segments = text.segments = [];
           var segment;
+          var NO_ALPHA = (chunkType < TAG_DEFINE_TEXT_2);
           for (;;) {
             var b = source.readUint8();
             if (b & 0x80) {
@@ -572,7 +574,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 segment.fontID = source.readUint16LE();
               }
               if (hasColor) {
-                segment.color = source.readSWFColor(true);
+                segment.color = source.readSWFColor(NO_ALPHA);
               }
               if (hasX) {
                 segment.dx = source.readInt16LE();
