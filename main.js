@@ -45,6 +45,7 @@ function(
           bitmapURLs[id] = url;
           var img = document.createElement('IMG');
           img.src = url;
+          if (def.hardEdges) def.setAttribute('class', 'hard-edges');
           document.body.appendChild(img);
         }
         else if (type === 'shape') {
