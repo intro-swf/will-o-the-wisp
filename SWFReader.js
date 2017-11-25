@@ -286,6 +286,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               parts = [source.subarray(2, pos), source.subarray(pos + 4)];
               break;
             }
+            pos++;
           }
           parts = parts || [source.subarray(2)];
           var file = new Blob(parts, {type:'image/jpeg'});
