@@ -661,10 +661,15 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           var id = source.readUint16LE();
           var sound = source.readSWFAudioFormat();
           sound.sampleCount = source.readUint32LE();
+          var data = source.subarray(source.offset);
           if (sound.format === 'mp3') {
             sound.seekSamples = source.readUint16LE();
+            sound.file = new File([data], id + '.mp3', {type:'audio/mpeg'});
           }
-          sound.data = source.subarray(source.offset);
+          else {
+            console.log('unsupported sound format');
+            sound.file = new File([data], id + '.dat');
+          }
           this.ondefine(id, 'sound', sound);
           break;
         case TAG_PLAY_SOUND:
