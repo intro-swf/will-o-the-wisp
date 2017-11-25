@@ -45,7 +45,8 @@ function(
         }
         ac.decodeAudioData(buffer)
         .then(function(buffer) {
-          var src = ac.createBufferSource(buffer);
+          var src = ac.createBufferSource();
+          src.buffer = buffer;
           if (startTime === -1) startTime = ac.currentTime;
           src.connect(ac.destination);
           src.start(startTime);
