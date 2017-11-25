@@ -51,7 +51,7 @@ function(
         });
       },
       onstream: function(bytes, extra) {
-        this.whenSourceBufferAvailable.then(function(sourceBuffer) {
+        this.whenSourceBufferAvailable = this.whenSourceBufferAvailable.then(function(sourceBuffer) {
           return new Promise(function(resolve, reject) {
             sourceBuffer.addEventListener('updateend', function onupdateend() {
               this.removeEventListener('updateend', onupdateend);
@@ -65,6 +65,7 @@ function(
         this.whenSourceBufferAvailable.then(function(sourceBuffer) {
           sourceBuffer.mediaSource.endOfStream();
         });
+        this.whenSourceBufferAvailable = null;
       },
       ondefine: function(id, type, def) {
         if (type === 'bitmap') {
