@@ -38,6 +38,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       ,TAG_SOUND_STREAM_HEAD_2 = 45
     ,TAG_SOUND_STREAM_BLOCK = 19
     ,TAG_PROTECT = 24
+      ,TAG_ENABLE_DEBUGGER = 58
+      ,TAG_ENABLE_DEBUGGER_2 = 64
     ,TAG_DEFINE_EDIT_TEXT = 37
     ,TAG_DEFINE_SPRITE = 39
     ,TAG_FRAME_LABEL = 43
@@ -742,6 +744,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           this.onupdate(buttonID, 'button', button);
           break;
         case TAG_PROTECT:
+        case TAG_ENABLE_DEBUGGER:
+        case TAG_ENABLE_DEBUGGER_2:
+          if (chunkType >= TAG_ENABLE_DEBUGGER_2) source.readUint16(); // reserved
           this.passwordMD5 = source.length ? source.readByteString(source.length) : null;
           this.onprotect();
           break;
