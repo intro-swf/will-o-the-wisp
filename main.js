@@ -178,6 +178,11 @@ function(
           }
           document.body.appendChild(svg);
         }
+        else if (type === 'sound') {
+          var audio = document.createElement('AUDIO');
+          audio.src = URL.createObjectURL(def.file);
+          document.body.appendChild(audio);
+        }
       },
     });
     reader.read(bytes);
