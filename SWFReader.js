@@ -823,7 +823,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               source.readUint16LE(); // usedEventFlags
               while (eventFlags = source.readUint16LE()) {
                 var action = {eventFlags:eventFlags, on:[]};
-                var len = source.readUint32() - 4;
+                var len = source.readUint32LE() - 4;
                 action.response = source.readSubarray(len);
                 actions.push(action);
               }
