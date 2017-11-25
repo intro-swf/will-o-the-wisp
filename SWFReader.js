@@ -965,6 +965,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         else {
           stroke = {};
         }
+        stroke.width = width;
         stroke.color = this.readSWFColor(NO_ALPHA);
         strokeStyles[i] = stroke;
       }
