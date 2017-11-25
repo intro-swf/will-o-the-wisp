@@ -957,7 +957,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         strokeStyles[i] = [a, b];
       }
       else for (var i = 1; i < strokeStyles.length; i++) {
-        var width: this.readUint16LE();
+        var width = this.readUint16LE();
         var stroke;
         if (EXTENDED_STROKE) {
           stroke = this.readSWFExtendedStrokeStyle(NO_ALPHA, PAIRS);
