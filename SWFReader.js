@@ -917,7 +917,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       return matrix;
     },
     readSWFGradientStops: function(NO_ALPHA, PAIRS) {
-      var count = this.readUint8();
+      var flags = this.readUint8();
+      var count = flags & 0xf;
       if (count === 0 || count > 8) {
         throw new Error('illegal number of gradient points');
       }
@@ -927,6 +928,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         var stop = points[i] = {ratio: percentFromByte(this.readUint8())};
         stop.color = this.readSWFColor(NO_ALPHA);
       }
+      points.spreadMode = ['pad', 'reflect', 'repeat'](flags >>> 6);
+      points.interpolationMode = ['normal', 'linear']((flags >>> 4) & 3);
       return points;
     },
     readSWFFillStyles: function(EXTENDED_LENGTH, NO_ALPHA, PAIRS) {
@@ -1004,13 +1007,20 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           return this.readSWFColor(NO_ALPHA);
         case 0x10:
         case 0x12:
+        case 0x13:
           var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
+          var hasFocalPoint = (fillStyle === 0x13);
           if (PAIRS) {
             var a = {type:'gradient', mode:mode, stops:[]};
             var b = {type:'gradient', mode:mode, stops:[]};
             a.matrix = this.readSWFMatrix();
             b.matrix = this.readSWFMatrix();
             var stops = this.readSWFGradientStops(NO_ALPHA, true);
+            a.spreadMode = b.spreadMode = stops.spreadMode;
+            a.interpolationMode = b.interpolationMode = stops.interpolationMode;
+            if (hasFocalPoint) {
+              a.focalPoint = b.focalPoint = this.readInt16LE() / 0x100;
+            }
             while (stops.length > 0) {
               a.stops.push(stops.shift());
               b.stops.push(stops.shift());
@@ -1020,30 +1030,43 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           else {
             var matrix = this.readSWFMatrix();
             var stops = this.readSWFGradientStops(NO_ALPHA);
-            return {
+            var style = {
               type: 'gradient',
               mode: mode,
               matrix: matrix,
               stops: stops,
+              spreadMode: stops.spreadMode,
+              interpolationMode: stops.interpolationMode,
             };
+            delete stops.spreadMode;
+            delete stops.interpolationMode;
+            if (hasFocalPoint) {
+              style.focalPoint = this.readInt16LE() / 0x100;
+            }
+            return style;
           }
           break;
         case 0x40:
         case 0x41:
+        case 0x42:
+        case 0x43:
           var bitmapID = this.readUint16LE();
-          var mode = (fillStyle === 0x40) ? 'tiled' : 'clipped';
+          var mode = (fillStyle & 1) ? 'clipped' : 'tiled';
+          var hardEdges = !!(fillStyle & 2);
           if (PAIRS) {
             var a = {
               type: 'bitmap',
               mode: mode,
               matrix: this.readSWFMatrix(),
               bitmapID: bitmapID,
+              hardEdges: hardEdges,
             };
             var b = {
               type: 'bitmap',
               mode: mode,
               matrix: this.readSWFMatrix(),
               bitmapID: bitmapID,
+              hardEdges: hardEdges,
             };
             return [a, b];
           }
@@ -1053,6 +1076,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               mode: mode,
               matrix: this.readSWFMatrix(),
               bitmapID: bitmapID,
+              hardEdges: hardEdges,
             };
           }
           break;
