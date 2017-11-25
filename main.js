@@ -37,16 +37,27 @@ function(
         var audioEl = document.createElement('AUDIO');
         audioEl.src = URL.createObjectURL(this.mediaSource = new MediaSource);
         audioEl.controls = true;
+        document.body.appendChild(audioEl);
         if (this.stream.format === 'mp3') {
           this.sourceBuffer = this.mediaSource.addSourceBuffer('audio/mpeg');
+          this.sourceBuffer.mediaSource = this.mediaSource;
+          this.sourceBuffer.whenReady = Promise.resolve(this.sourceBuffer);
         }
-        document.body.appendChild(audioEl);
       },
       onstream: function(bytes, extra) {
-        this.sourceBuffer.appendBuffer(bytes);
+        this.sourceBuffer.whenReady.then(function(sourceBuffer) {
+          return new Promise(function(resolve, reject) {
+            sourceBuffer.appendBuffer(bytes);
+            sourceBuffer.addEventListener('updateend', function onupdateend() {
+              resolve(sourceBuffer);
+            });
+          });
+        });
       },
       onclosestream: function() {
-        this.mediaSource.endOfStream();
+        this.sourceBuffer.whenReady.then(function(sourceBuffer) {
+          sourceBuffer.mediaSource.endOfStream();
+        });
       },
       ondefine: function(id, type, def) {
         if (type === 'bitmap') {
