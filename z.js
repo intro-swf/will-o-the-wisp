@@ -274,7 +274,7 @@ define(['dataExtensions!'], function(dataExtensions) {
     head.setUint16(0, 0x78DA);
     var parts = [head];
     for (var i = 0; i < blockCount; i++) {
-      var block = this.subarray(0x1000*i, 0x1000*(i+1));
+      var block = this.subarray(0x10000*i, 0x10000*(i+1));
       var blockHead = new DataView(buf, 2 + 4 + i*5, 5);
       if (i+1 === blockCount) blockHead.setUint8(0, 1);
       blockHead.setUint16(1, block.length, true);
