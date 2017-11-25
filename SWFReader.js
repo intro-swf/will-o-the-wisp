@@ -28,7 +28,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_FONT = 10
       ,TAG_DEFINE_FONT_2 = 48
       ,TAG_DEFINE_FONT_INFO = 13
-      ,TAG_DEFINE_FONT_INFO_2 = 63
+      ,TAG_DEFINE_FONT_INFO_2 = 62
       ,TAG_DEFINE_FONT_NAME = 88
     ,TAG_DEFINE_TEXT = 11
       ,TAG_DEFINE_TEXT_2 = 33
