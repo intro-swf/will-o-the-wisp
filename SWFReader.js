@@ -46,6 +46,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_MORPH_SHAPE = 46
     ,TAG_FILE_ATTRIBUTES = 69
     ,TAG_DEFINE_SCALING_GRID = 78
+    ,TAG_EXPORT = 56
   ;
   
   function SWFReader(init) {
@@ -851,6 +852,14 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           this.onupdate(spriteOrButtonID, 'scalable', {
             scalingGrid: source.readSWFRect(),
           });
+          break;
+        case TAG_EXPORT:
+          for (var count = source.readUint16LE(); count > 0; count--) {
+            var id = source.readUint16LE();
+            var symbolName = source.readByteString('\0');
+            this.onexport(id, symbolName);
+          }
+          source.warnIfMore();
           break;
         default:
           this.onunhandledtag(chunkType, source);
