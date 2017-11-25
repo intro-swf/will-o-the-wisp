@@ -747,7 +747,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_ENABLE_DEBUGGER:
         case TAG_ENABLE_DEBUGGER_2:
           if (chunkType >= TAG_ENABLE_DEBUGGER_2) source.readUint16LE(); // reserved
-          this.passwordMD5 = source.length ? source.readByteString(source.length) : null;
+          this.passwordMD5 = source.length ? source.readByteString('\0') : null;
+          source.warnIfMore();
           this.onprotect();
           break;
         case TAG_PLACE_OBJECT_2:
