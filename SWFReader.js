@@ -48,7 +48,28 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_SCALING_GRID = 78
     ,TAG_EXPORT = 56
   ;
-  
+
+  const EVT_ONLOAD = 1
+    ,EVT_ENTER_FRAME = 2
+    ,EVT_UNLOAD = 4
+    ,EVT_MOUSE_MOVE = 8
+    ,EVT_MOUSE_DOWN = 0x10
+    ,EVT_MOUSE_UP = 0x20
+    ,EVT_KEY_DOWN = 0x40
+    ,EVT_KEY_UP = 0x80
+    ,EVT_DATA = 0x100
+    ,EVT_INITIALIZE = 0x200
+    ,EVT_PRESS = 0x400
+    ,EVT_RELEASE = 0x800
+    ,EVT_RELEASE_OUTSIDE = 0x1000
+    ,EVT_ROLL_OVER = 0x2000
+    ,EVT_ROLL_OUT = 0x4000
+    ,EVT_DRAG_OVER = 0x8000
+    ,EVT_DRAG_OUT = 0x10000
+    ,EVT_KEY_PRESS = 0x20000
+    ,EVT_CONSTRUCT = 0x40000
+  ;
+
   function SWFReader(init) {
     if (init) Object.assign(this, init);
   }
@@ -781,7 +802,51 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             settings.clipDepth = source.readUint16LE();
           }
           if (flags & 0x80) {
-            throw new Error('NYI: Clip Actions');
+            source.readUint16LE(); // reserved
+            var actions = settings.actions = [];
+            var eventFlags;
+            if (this.version >= 6) {
+              source.readUint32LE(); // usedEventFlags
+              while (eventFlags = source.readUint32LE()) {
+                var action = {eventFlags:eventFlags};
+                var on = action.on = [];
+                if (eventFlags & EVT_CONSTRUCT) on.push('construct');
+                if (eventFlags & EVT_KEY_PRESS) on.push('key_press');
+                if (eventFlags & EVT_DRAG_OUT) on.push('drag_out');
+                if (eventFlags & EVT_KEY_PRESS) action.keycode = source.readUint8();
+                var len = source.readUint32() - 4;
+                action.response = source.readSubarray(len);
+                actions.push(action);
+              }
+            }
+            else {
+              source.readUint16LE(); // usedEventFlags
+              while (eventFlags = source.readUint16LE()) {
+                var action = {eventFlags:eventFlags, on:[]};
+                var len = source.readUint32() - 4;
+                action.response = source.readSubarray(len);
+                actions.push(action);
+              }
+            }
+            for (var i = 0; i < actions.length; i++) {
+              var eventFlags = actions[i].eventFlags, on = actions[i].pn;
+              if (eventFlags & EVT_DRAG_OVER) on.push('drag_over');
+              if (eventFlags & EVT_ROLL_OUT) on.push('roll_out');
+              if (eventFlags & EVT_ROLL_OVER) on.push('roll_out');
+              if (eventFlags & EVT_RELEASE_OUTSIDE) on.push('release_outside');
+              if (eventFlags & EVT_RELEASE) on.push('release');
+              if (eventFlags & EVT_PRESS) on.push('press');
+              if (eventFlags & EVT_INITIALIZE) on.push('initialize');
+              if (eventFlags & EVT_DATA) on.push('data');
+              if (eventFlags & EVT_KEY_UP) on.push('key_up');
+              if (eventFlags & EVT_KEY_DOWN) on.push('key_down');
+              if (eventFlags & EVT_MOUSE_UP) on.push('mouse_up');
+              if (eventFlags & EVT_MOUSE_DOWN) on.push('mouse_down');
+              if (eventFlags & EVT_MOUSE_MOVE) on.push('mouse_move');
+              if (eventFlags & EVT_UNLOAD) on.push('unload');
+              if (eventFlags & EVT_ENTER_FRAME) on.push('enter_frame');
+              if (eventFlags & EVT_ONLOAD) on.push('onload');
+            }
           }
           source.warnIfMore();
           this.ondisplaylistaction(z, action, settings);
