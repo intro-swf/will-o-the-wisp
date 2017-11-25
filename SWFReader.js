@@ -28,6 +28,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_DEFINE_FONT = 10
       ,TAG_DEFINE_FONT_2 = 48
       ,TAG_DEFINE_FONT_INFO = 13
+      ,TAG_DEFINE_FONT_INFO_2 = 63
       ,TAG_DEFINE_FONT_NAME = 88
     ,TAG_DEFINE_TEXT = 11
       ,TAG_DEFINE_TEXT_2 = 33
@@ -444,6 +445,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           this.ondefine(id, 'font', {glyphs:glyphs});
           break;
         case TAG_DEFINE_FONT_INFO:
+        case TAG_DEFINE_FONT_INFO_2:
           var id = source.readUint16LE();
           var font = {};
           var nameLen = source.readUint8();
@@ -454,6 +456,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           font.italic = !!(flags & 4);
           font.ansi = !!(flags & 8);
           font.shiftJIS = !!(flags & 0x10);
+          if (chunkType >= TAG_DEFINE_FONT_INFO_2) {
+            font.languageCode = source.readUint16LE();
+          }
           var glyphs = font.glyphs = [];
           if (has16BitChars) {
             while (source.offset < source.length) {
