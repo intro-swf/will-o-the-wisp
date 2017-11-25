@@ -1015,7 +1015,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     readSWFGradientStops: function(NO_ALPHA, PAIRS) {
       var flags = this.readUint8();
       var count = flags & 0xf;
-      if (count === 0 || count > 8) {
+      // max count is only enforced before DefineShape4
+      if (count === 0 /* || count > 8 */) {
         throw new Error('illegal number of gradient points');
       }
       if (PAIRS) count *= 2;
