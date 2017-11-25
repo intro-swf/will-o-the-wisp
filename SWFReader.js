@@ -149,7 +149,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     // onexport(id <int>, name <string>)
     onexport: NULLFUNC,
     
-    // .debugID <string>
+    // .debugID <Uint8Array>
     ondebugid: NULLFUNC,
     
     read: function(source) {
@@ -941,7 +941,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           source.warnIfMore();
           break;
         case TAG_DEBUG_ID:
-          this.debugID = source.readByteString(source.length);
+          this.debugID = source.readSubarray(source.length);
           this.ondebugid();
           break;
         default:
