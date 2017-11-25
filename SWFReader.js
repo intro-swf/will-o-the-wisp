@@ -814,7 +814,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 if (eventFlags & EVT_KEY_PRESS) on.push('key_press');
                 if (eventFlags & EVT_DRAG_OUT) on.push('drag_out');
                 if (eventFlags & EVT_KEY_PRESS) action.keycode = source.readUint8();
-                var len = source.readUint32() - 4;
+                var len = source.readUint32LE() - 4;
                 action.response = source.readSubarray(len);
                 actions.push(action);
               }
