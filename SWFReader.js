@@ -123,6 +123,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     // onunhandledtag(tag <int>, data <Uint8Array>)
     onunhandledtag: NULLFUNC,
     
+    // onexport(id <int>, name <string>)
+    onexport: NULLFUNC,
+    
     read: function(source) {
       // TODO: support Blob/URL sources?
       if (!(source instanceof Uint8Array)) {
