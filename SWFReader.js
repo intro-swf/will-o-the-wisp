@@ -27,10 +27,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,TAG_SET_BACKGROUND_COLOR = 9
     ,TAG_DEFINE_FONT = 10
       ,TAG_DEFINE_FONT_2 = 48
+      ,TAG_DEFINE_FONT_INFO = 13
+      ,TAG_DEFINE_FONT_NAME = 88
     ,TAG_DEFINE_TEXT = 11
       ,TAG_DEFINE_TEXT_2 = 33
     ,TAG_DO_ACTION = 12
-    ,TAG_DEFINE_FONT_INFO = 13
     ,TAG_DEFINE_SOUND = 14
     ,TAG_PLAY_SOUND = 15
     ,TAG_DEFINE_BUTTON_SOUND = 17
@@ -537,6 +538,12 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           }
           source.warnIfMore();
           this.ondefine(id, 'font', font);
+          break;
+        case TAG_DEFINE_FONT_NAME:
+          var id = source.readUint16LE();
+          var displayName = source.readByteString('\0');
+          var copyrightMessage = source.readByteString('\0');
+          this.onupdate(id, 'font', {displayName:displayName, copyrightMessage:copyrightMessage});
           break;
         case TAG_DEFINE_TEXT:
           var id = source.readUint16LE();
