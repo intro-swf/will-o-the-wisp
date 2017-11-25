@@ -829,7 +829,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               }
             }
             for (var i = 0; i < actions.length; i++) {
-              var eventFlags = actions[i].eventFlags, on = actions[i].pn;
+              var eventFlags = actions[i].eventFlags, on = actions[i].on;
               if (eventFlags & EVT_DRAG_OVER) on.push('drag_over');
               if (eventFlags & EVT_ROLL_OUT) on.push('roll_out');
               if (eventFlags & EVT_ROLL_OVER) on.push('roll_out');
