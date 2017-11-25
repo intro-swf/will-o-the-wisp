@@ -262,9 +262,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           var id = source.readUint16LE();
           var shape = {};
           shape.bounds = source.readSWFRect();
-          const EXTENDED_LENGTH = chunkType >= TAG_DEFINE_SHAPE_2;
-          const NO_ALPHA = chunkType < TAG_DEFINE_SHAPE_3;
-          const EXTENDED_STROKE = chunkType >= TAG_DEFINE_SHAPE_4;
+          var EXTENDED_LENGTH = chunkType >= TAG_DEFINE_SHAPE_2;
+          var NO_ALPHA = chunkType < TAG_DEFINE_SHAPE_3;
+          var EXTENDED_STROKE = chunkType >= TAG_DEFINE_SHAPE_4;
           if (EXTENDED_STROKE) {
             shape.fillBounds = source.readSWFRect();
             var flags = source.readUint8();
