@@ -38,7 +38,7 @@ function(
         audioEl.src = URL.createObjectURL(this.mediaSource = new MediaSource);
         audioEl.controls = true;
         if (this.stream.format === 'mp3') {
-          this.sourceBuffer = this.mediaSource.addSourceBuffer('audio/mp3');
+          this.sourceBuffer = this.mediaSource.addSourceBuffer('audio/mpeg');
         }
         document.body.appendChild(audioEl);
       },
