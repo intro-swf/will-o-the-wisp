@@ -201,7 +201,7 @@ define(function() {
     }
     OTFTable.call(this, 'name', 6 + storage.length * 12 + offset);
     var dv = new DataView(this.buffer);
-    var bytes = new Uint8Array(this.buffer);
+    var bytes = new Uint8Array(this.buffer, 6 + storage.length * 12);
     dv.setUint16(2, storage.length, false);
     dv.setUint16(4, 6 + storage.length * 12, false);
     for (var i = 0; i < strings.length; i++) {
