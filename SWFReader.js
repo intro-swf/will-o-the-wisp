@@ -1713,31 +1713,33 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 break;
               case 'l':
                 var dx = segment.values[0], dy = segment.values[1];
-                if (!dy) {
-                  if (last && (last[0] === 'hlineto' && (last.length % 2) || last[0] === 'vlineto' && !(last.length % 2))) {
-                    last.push(dy);
-                  }
-                  else {
-                    cff2.push(last = ['hlineto', dx]);
-                  }
-                }
-                else if (!dx) {
-                  if (last && (last[0] === 'vlineto' && (last.length % 2) || last[0] === 'hlineto' && !(last.length % 2))) {
-                    last.push(dx);
-                  }
-                  else {
-                    cff2.push(last = ['vlineto', dy]);
-                  }
+                if (last && last[0] === 'rlineto') {
+                  last.push(dx, dy);
                 }
                 else {
-                  if (last && last[0] === 'rlineto') {
-                    last.push(dx, dy);
-                  }
-                  else {
-                    cff2.push(last = ['rlineto', dx, dy]);
-                  }
+                  cff2.push(last = ['rlineto', dx, dy]);
                 }
                 x += dx;
+                y += dy;
+                break;
+              case 'h':
+                var dx = segment.values[0];
+                if (last && (last[0] === 'hlineto' && (last.length % 2) || last[0] === 'vlineto' && !(last.length % 2))) {
+                  last.push(dx);
+                }
+                else {
+                  cff2.push(last = ['hlineto', dx]);
+                }
+                x += dx;
+                break;
+              case 'v':
+                var dy = segment.values[0];
+                if (last && (last[0] === 'vlineto' && (last.length % 2) || last[0] === 'hlineto' && !(last.length % 2))) {
+                  last.push(dy);
+                }
+                else {
+                  cff2.push(last = ['vlineto', dy]);
+                }
                 y += dy;
                 break;
               case 'q':
