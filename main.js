@@ -209,7 +209,7 @@ function(
                 font = fonts[segment.fontID];
                 fontSize = segment.fontHeight;
               }
-              var tspan = document.createSVGElement('text');
+              var tspan = document.createSVGElement('tspan');
               tspan.setAttribute('font-size', fontSize);
               if (font.bold) tspan.setAttribute('font-weight', 'bold');
               if (font.italic) tspan.setAttribute('font-style', 'italic');
