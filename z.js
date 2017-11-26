@@ -198,9 +198,11 @@ define(['dataExtensions!'], function(dataExtensions) {
             outputParts.push(window.subarray(windowSize, wpos));
             break blockLoop;
           }
-          var section = new Uint8Array(window.subarray(wpos - windowSize, wpos));
-          window.set(section);
-          outputParts.push(section.subarray(wpos - windowSize));
+          var moveBytes = new Uint8Array(window.subarray(wpos - windowSize, windowSize));
+          var section = new Uint8Array(window.subarray(windowSize, wpos));
+          window.set(moveBytes);
+          window.set(section, moveBytes.length);
+          outputParts.push(section);
           continue codeLoop;
         }
         var length;
