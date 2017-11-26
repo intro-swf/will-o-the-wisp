@@ -202,8 +202,8 @@ function(
             text.setAttribute('x', def.bounds.left);
             text.setAttribute('y', def.bounds.top);
             var font, color = new SWFReader.Color, lastDX = 0, lastDY = 0, fontSize;
-            for (var i = 0; i < def.segments.length) {
-              var segment = def.segments[i];
+            for (var i_segment = 0; i_segment < def.segments.length; i_segment++) {
+              var segment = def.segments[i_segment];
               color = segment.color || color;
               if ('font' in segment) {
                 font = segment.font;
