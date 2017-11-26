@@ -1683,6 +1683,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       var pathGroups = this.toMonoPaths();
       var cff2 = [];
       var last = null;
+      var x = 0, y = 0;
       for (var i_group = 0; i_group < pathGroups.length; i_group++) {
         var paths = pathGroups[i_group].paths;
         for (var i_path = 0; i_path < paths.length; i_path++) {
@@ -1693,6 +1694,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             switch (segment.type) {
               case 'm':
                 var dx = segment.values[0], dy = segment.values[1];
+                if (i_seg === 0) {
+                  dx -= x;
+                  dy -= y;
+                }
                 if (!dy) {
                   cff2.push(['hmoveto', dx]);
                 }
@@ -1702,6 +1707,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 else {
                   cff2.push(['rmoveto', dx, dy]);
                 }
+                x += dx;
+                y += dy;
                 last = null;
                 break;
               case 'l':
@@ -1730,6 +1737,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                     cff2.push(last = ['rlineto', dx, dy]);
                   }
                 }
+                x += dx;
+                y += dy;
                 break;
               case 'q':
                 var dcx = segment.values[0], dcy = segment.values[1], dx = segment.values[2], dy = segment.values[3];
@@ -1741,6 +1750,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 else {
                   cff2.push(last = ['rrcurveto', dc1x,dc1y, dc2x,dc2y, dx,dy]);
                 }
+                x += dx;
+                y += dy;
                 break;
               default:
                 throw new Error('unexpected path segment type');
