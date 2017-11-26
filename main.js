@@ -199,9 +199,7 @@ function(
             if (!def.matrix.isIdentity) {
               text.setAttribute('transform', def.matrix.toString());
             }
-            text.setAttribute('x', def.bounds.left);
-            text.setAttribute('y', def.bounds.top);
-            var font, color = new SWFReader.Color, lastDX = 0, lastDY = 0, fontSize;
+            var font, color = new SWFReader.Color, lastX = def.bounds.left, lastY = def.bounds.top, fontSize;
             for (var i_segment = 0; i_segment < def.segments.length; i_segment++) {
               var segment = def.segments[i_segment];
               color = segment.color || color;
@@ -213,24 +211,21 @@ function(
               tspan.setAttribute('font-size', fontSize);
               if (font.bold) tspan.setAttribute('font-weight', 'bold');
               if (font.italic) tspan.setAttribute('font-style', 'italic');
-              if ('dx' in segment) {
-                tspan.setAttribute('x', segment.dx);
-                lastDX = 0;
+              if ('dx' in segment) lastX = def.bounds.left + segment.dx;
+              var x = [lastX];
+              for (var i_advance = 0; i_advance < segment.advance.length; i_advance++) {
+                x.push(lastX += segment.advance[i_advance]);
               }
-              if ('dy' in segment) {
-                tspan.setAttribute('y', segment.dy);
-                lastDY = 0;
-              }
-              else {
-                tspan.setAttribute('dy', lastDY);
-              }
+              x.pop();
+              tspan.setAttribute('x', x.join(' '));
+              if ('dy' in segment) lastY = def.bounds.top + segment.dy;
+              tspan.setAttribute('y', lastY);
               if (color.solidColor !== '#000') {
                 tspan.setAttribute('fill', color.solidColor);
               }
               if (color.opacity !== 1) {
                 tspan.setAttribute('fill-opacity', color.opacity);
               }
-              tspan.setAttribute('dx', lastDX + ' ' + segment.advance.slice(0, -1).join(' '));
               var textContent = [];
               for (var i_glyph = 0; i_glyph < segment.glyphs.length; i_glyph++) {
                 var glyphNumber = segment.glyphs[i_glyph];
@@ -238,8 +233,6 @@ function(
                 textContent.push(glyph.char || String.fromCodePoint(33 + glyphNumber));
               }
               tspan.textContent = textContent.join('');
-              lastDX = segment.advance[segment.advance.length-1] || 0;
-              lastDY = fontSize;
               text.appendChild(tspan);
             }
             svg.appendChild(text);
