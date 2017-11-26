@@ -203,7 +203,7 @@ define(['dataExtensions!'], function(dataExtensions) {
           window.set(moveBytes);
           window.set(section, moveBytes.length);
           outputParts.push(section);
-          continue codeLoop;
+          continue blockLoop;
         }
         var length;
         if (code < 265) {
