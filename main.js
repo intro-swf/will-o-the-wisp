@@ -205,8 +205,8 @@ function(
             for (var i_segment = 0; i_segment < def.segments.length; i_segment++) {
               var segment = def.segments[i_segment];
               color = segment.color || color;
-              if ('font' in segment) {
-                font = segment.font;
+              if ('fontID' in segment) {
+                font = fonts[segment.fontID];
                 fontSize = segment.textHeight;
               }
               var tspan = document.createSVGElement('text');
