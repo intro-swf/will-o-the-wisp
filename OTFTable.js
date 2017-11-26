@@ -346,7 +346,7 @@ define(function() {
       if (!(op[0] in charStringOpcodes)) {
         throw new Error('invalid op: ' + op[0]);
       }
-      var opcode = opcodes[op[0]];
+      var opcode = charStringOpcodes[op[0]];
       if (opcode >= 0x100) {
         output.push(opcode >>> 8, opcode & 0xff);
       }
