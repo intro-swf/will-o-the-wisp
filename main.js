@@ -26,6 +26,13 @@ function(
     var jpegTables;
     var bitmapURLs = {};
     var fonts = {};
+    
+    function make_font(font) {
+      var cff2Paths = font.glyphs.map(function(path) {
+        return path.toCFF2Path();
+      });
+      return cff2Paths;
+    }
 
     var reader = new SWFReader({
       onunhandledtag: function(id, data) {
@@ -205,6 +212,7 @@ function(
               color = segment.color || color;
               if ('fontID' in segment) {
                 font = fonts[segment.fontID];
+                font.made = font.made || make_font(font);
                 fontSize = segment.fontHeight;
               }
               var tspan = document.createSVGElement('tspan');
