@@ -1679,6 +1679,77 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       });
       return output;
     },
+    toCFF2Path: function() {
+      var paths = this.toMonoPaths().paths;
+      var cff2 = [];
+      var last = null;
+      for (var i_path = 0; i_path < paths.length; i_path++) {
+        if (paths[i_path].mode !== 'fill') continue;
+        for (var i_seg = 0; i_seg < paths[i_path].length; i_seg++) {
+          var segment = paths[i_path][i_seg];
+          var x = 0, y = 0;
+          switch (segment.type) {
+            case 'M':
+              var newX = segment.values[0], newY = segment.values[1];
+              if (newY === y) {
+                cff2.push(['hmoveto', newX - x]);
+              }
+              else if (newX === x) {
+                cff2.push(['vmoveto', newY - y]);
+              }
+              else {
+                cff2.push(['rmoveto', newX - x, newY - y]);
+              }
+              x = newX; y = newY;
+              last = null;
+              break;
+            case 'l':
+              var dx = segment.values[0], dy = segment.values[1];
+              if (!dy) {
+                if (last && (last[0] === 'hlineto' && (last.length % 2) || last[0] === 'vlineto' && !(last.length % 2))) {
+                  last.push(dy);
+                }
+                else {
+                  cff2.push(last = ['hlineto', dx]);
+                }
+              }
+              else if (!dx) {
+                if (last && (last[0] === 'vlineto' && (last.length % 2) || last[0] === 'hlineto' && !(last.length % 2))) {
+                  last.push(dx);
+                }
+                else {
+                  cff2.push(last = ['vlineto', dy]);
+                }
+              }
+              else {
+                if (last && last[0] === 'rlineto') {
+                  last.push(dx, dy);
+                }
+                else {
+                  cff2.push(last = ['rlineto', dx, dy]);
+                }
+              }
+              x += dx; y += dy;
+              break;
+            case 'q':
+              var dcx = segment.values[0], dcy = segment.values[1], dx = segment.values[2], dy = segment.values[3];
+              var dc1x =      2* dcx    /3, dc1y =      2* dcy    /3;
+              var dc2x = dx + 2*(dcx-dx)/3, dc2y = dy + 2*(dcy-dy)/3;
+              if (last && last[0] === 'rrcurveto') {
+                last.push(dc1x,dc1y, dc2x,dc2y, dx,dy);
+              }
+              else {
+                cff2.push(last = ['rrcurveto', dc1x,dc1y, dc2x,dc2y, dx,dy]);
+              }
+              x += dx; y += dy;
+              break;
+            default:
+              throw new Error('unexpected path segment type');
+          }
+        }
+      }
+      return cff2;
+    },
   };
   
   function SWFColor(r, g, b, a) {
