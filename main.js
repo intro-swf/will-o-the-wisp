@@ -189,6 +189,62 @@ function(
           case 'font':
             fonts[id] = def;
             break;
+          case 'text':
+            var svg = document.createSVGElement('svg');
+            svg.setAttribute('id', 'text' + id);
+            svg.setAttribute('viewBox', [def.bounds.left, def.bounds.top, def.bounds.width, def.bounds.height].join(' '));
+            svg.setAttribute('width', def.bounds.width/20);
+            svg.setAttribute('height', def.bounds.height/20);
+            var text = document.createSVGElement('text');
+            if (!def.matrix.isIdentity) {
+              text.setAttribute('transform', def.matrix.toString());
+            }
+            text.setAttribute('x', def.bounds.left);
+            text.setAttribute('y', def.bounds.top);
+            var font, color = new SWFReader.Color, lastDX = 0, lastDY = 0, fontSize;
+            for (var i = 0; i < def.segments.length) {
+              var segment = def.segments[i];
+              color = segment.color || color;
+              if ('font' in segment) {
+                font = segment.font;
+                fontSize = segment.textHeight;
+              }
+              var tspan = document.createSVGElement('text');
+              tspan.setAttribute('font-size', fontSize);
+              if (font.bold) tspan.setAttribute('font-weight', 'bold');
+              if (font.italic) tspan.setAttribute('font-style', 'italic');
+              if ('dx' in segment) {
+                tspan.setAttribute('x', segment.dx);
+                lastDX = 0;
+              }
+              if ('dy' in segment) {
+                tspan.setAttribute('y', segment.dy);
+                lastDY = 0;
+              }
+              else {
+                tspan.setAttribute('dy', lastDY);
+              }
+              if (color.solidColor !== '#000') {
+                tspan.setAttribute('fill', color.solidColor);
+              }
+              if (color.opacity !== 1) {
+                tspan.setAttribute('fill-opacity', color.opacity);
+              }
+              tspan.setAttribute('dx', lastDX + ' ' + segment.advance.slice(0, -1).join(' '));
+              var textContent = [];
+              for (var i_glyph = 0; i_glyph < segment.glyphs.length; i_glyph++) {
+                var glyphNumber = segment.glyphs[i_glyph];
+                var glyph = font.glyphs[glyphNumber];
+                textContent.push(glyph.char || String.fromCodePoint(33 + glyphNumber));
+              }
+              tspan.textContent = textContent.join('');
+              lastDX = segment.advance[segment.advance.length-1] || 0;
+              lastDY = fontSize;
+              text.appendChild(tspan);
+            }
+            svg.appendChild(text);
+            document.body.appendChild(svg);
+            break;
         }
       },
       onupdate: function(id, patch) {
