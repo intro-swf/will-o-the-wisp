@@ -161,7 +161,7 @@ define(['dataExtensions!'], function(dataExtensions) {
             window.set(part, windowSize - part.length);
             continue;
           }
-          window.set(window.subarray(windowSize - moveBytes, windowSize));
+          window.set(new Uint8Array(window.subarray(windowSize - moveBytes, windowSize)));
           window.set(part, moveBytes);
           continue;
         case 1:
@@ -195,11 +195,14 @@ define(['dataExtensions!'], function(dataExtensions) {
           continue;
         }
         if (code === 256) {
-          var section = window.subarray(windowSize, wpos);
-          if (!finalBlock) {
-            section = new Uint8Array(section);
+          if (finalBlock) {
+            outputParts.push(window.subarray(windowSize, wpos));
           }
-          outputParts.push(section);
+          else {
+            var section = new Uint8Array(window.subarray(wpos - windowSize, wpos));
+            window.set(section);
+            outputParts.push(section.subarray(0, wpos - windowSize));
+          }
           break;
         }
         var length;
