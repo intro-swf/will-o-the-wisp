@@ -6,10 +6,12 @@ requirejs.config({
 require([
   'domReady!' // use domReady.js plugin to require DOM readiness
   ,'SWFReader'
+  ,'OTFTable'
 ],
 function(
   domReady // unused value
   ,SWFReader
+  ,OTFTable
 ){
   
   'use strict';
@@ -28,10 +30,113 @@ function(
     var fonts = {};
     
     function make_font(font) {
-      var cff2Paths = font.glyphs.map(function(glyph) {
-        return glyph.path.toCFF2Path();
-      });
-      return cff2Paths;
+      var strings = [];
+      strings.push({platformId:0, encodingId:0, languageId:0, nameId:1, text:'Anon'});
+      if (font.bold) {
+        if (font.italic) {
+          strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Bold Italic'});
+        }
+        else {
+          strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Bold'});
+        }
+      }
+      else if (font.italic) {
+        strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Italic'});
+      }
+      else {
+        strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Regular'});
+      }
+      var info = {
+        map: {},
+        
+        flags: 0, // unsure if any are relevant?
+        unitsPerEm: 1024,
+        xMin:    0, yMin: -1024,
+        xMax: 1024, yMax:     0,
+        macStyle: (font.bold?1:0) | (font.italic?2:0),
+        smallestReadablePixelSize: 0, // not sure
+        longOffsets: false,
+        
+        ascender: 1024,
+        descender: 0,
+        lineGap: 0,
+        advanceWidthMax: 1024,
+        minLeftSideBearing: 0,
+        minRightSideBearing: 0,
+        xMaxExtent: 1024,
+        caretSlopeRise: 1,
+        caretSlopeRun: 0,
+        caretOffset: 0,
+        
+        glyphs: new Array(font.glyphs.length),
+        
+        strings: strings,
+        
+        xAvgCharWidth: 1024,
+        usWeightClass: font.bold ? 700 : 500,
+        usWidthClass: 5,
+        fsType: 0,
+        ySubscriptXSize: 512,
+        ySubscriptYSize: 512,
+        ySubscriptXOffset: 0,
+        ySubscriptYOffset: 0,
+        ySuperscriptXSize: 512,
+        ySuperscriptYSize: 512,
+        ySuperscriptXOffset: 0,
+        ySuperscriptYOffset: 512,
+        yStrikeoutSize: 64,
+        yStrikeoutPosition: 256,
+        sFamilyClass: 0,
+        // all PANOSE set to 0
+        ulUnicodeRange1: 3, // 0x00-0xFF
+        ulUnicodeRange2: 0,
+        ulUnicodeRange3: 0,
+        ulUnicodeRange4: 0,
+        vendor4CC: 'wotw',
+        fsSelection: (font.italic?1:0) | (font.bold?1<<5:0),
+        usFirstCharIndex: 0x20,
+        usLastCharIndex: 0xFFFF,
+        sTypoAscender: 1024,
+        sTypoDescender: 0,
+        sTypoLineGap: 0,
+        usWinAscent: 1024,
+        usWinDescent: 0,
+        ulCodePageRange1: 1, // Latin-1
+        ulCodePageRange2: 0,
+        sxHeight: 0,
+        sCapHeight: 0,
+        usDefaultChar: 0,
+        usBreakChar: 0x20,
+        usMaxContext: 1,
+        usLowerOpticalPointSize: 0,
+        usUpperOpticalPointSize: 0xFFFF,
+        
+        underlinePosition: 0,
+        underlineThickness: 16,
+        isMonospace: 1,
+      };
+      for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
+        var glyph = font.glyphs[i_glyph];
+        var char = glyph.char || String.fromCodePoint(33 + i_glyph);
+        info.map[char] = i_glyph;
+        info.glyphs[i_glyph] = {
+          charString: glyph.path.toCFF2Path(),
+          advanceWidth: 1024,
+          leftSideBearing: 0,
+        };
+      }
+      var otf = OTFTable.joinToFile([
+        new OTFTable.CharacterGlyphMap(info.map),
+        new OTFTable.FontHeader(info),
+        new OTFTable.HorizontalHeader(info),
+        new OTFTable.HorizontalMetrics(info),
+        new OTFTable.MaximumProfile(info),
+        new OTFTable.Naming(info),
+        new OTFTable.MetricsForOS2(info),
+        new OTFTable.PostScript(info),
+        new OTFTable.CompactFontFormat2(info),
+      ], 'font.otf');
+      return otf;
     }
 
     var reader = new SWFReader({
