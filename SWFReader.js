@@ -505,7 +505,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             if (source.offset !== glyphs[i]) {
               throw new Error('unexpected data');
             }
-            glyphs[i] = source.readSWFPath(true, true);
+            glyphs[i] = {path:source.readSWFPath(true, true)};
           }
           if (source.offset !== mapOffset) {
             throw new Error('unexpected data');
