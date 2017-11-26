@@ -95,8 +95,8 @@ define(function() {
     var format4SegCount = entries.length+1;
     var format4Len = 16 + format4SegCount * 8;
     var format6Len = 10 + totalRange * 2;
-    OTFTable.call(this, 'cmap', 4 + 3*6 + format4Len + format6Len);
-    var header = new DataView(this.buffer, 0, 4 + 3*6);
+    OTFTable.call(this, 'cmap', 4 + 3*8 + format4Len + format6Len);
+    var header = new DataView(this.buffer, 0, 4 + 3*8);
     var format4 = new DataView(this.buffer, header.byteLength, format4Len);
     var format6 = new DataView(this.buffer, header.byteLength + format4Len, format6Len);
     header.setUint16(2, 3);
