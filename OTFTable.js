@@ -91,6 +91,48 @@ define(function() {
       }
       entries.push(entry);
     }
+    var totalRange = k[k.length-1] + 1 - k[0];
+    var format4SegCount = entries.length+1;
+    var format4Len = 16 + format4SegCount * 8;
+    var format6Len = 10 + totalRange * 2;
+    OTFTable.call(this, 'cmap', 4 + 3*6 + format4Len + format6Len);
+    var header = new DataView(this.buffer, 0, 4 + 3*6);
+    var format4 = new DataView(this.buffer, header.byteLength, format4Len);
+    var format6 = new DataView(this.buffer, header.byteLength + format4Len, format6Len);
+    header.setUint16(2, 3);
+    header.setUint16(6, 3);
+    header.setUint32(8, header.byteLength);
+    header.setUint16(12, 1);
+    header.setUint32(16, header.byteLength + format4Len);
+    header.setUint16(20, 3);
+    header.setUint16(22, 1);
+    header.setUint32(24, header.byteLength);
+    format4.setUint16(0, 4);
+    format4.setUint16(2, format4Len);
+    format4.setUint16(6, format4SegCount*2);
+    var searchRange = 2 << Math.floor(Math.log2(format4SegCount));
+    format4.setUint16(8, searchRange);
+    format4.setUint16(10, format4SegCount*2 - searchRange);
+    var endCodes = new DataView(this.buffer, format4.byteOffset + 12, format4SegCount*2);
+    var startCodes = new DataView(this.buffer, endCodes.byteOffset + endCodes.byteLength + 2, format4SegCount * 2);
+    var idDeltas = new DataView(this.buffer, startCodes.byteOffset + startCodes.byteLength, format4SegCount * 2);
+    for (var i = 0; i < entries.length; i++) {
+      startCodes.setUint16(i*2, entries[i].start);
+      endCodes.setUint16(i*2, entries[i].end);
+      idDeltas.setInt16(i*2, entries[i].glyph - entries[i].start);
+    }
+    startCodes.setUint16(entries.length*2, 0xffff);
+    endCodes.setUint16(entries.length*2, 0xffff);
+    idDeltas.setInt16(entries.length*2, 1);
+    format6.setUint16(0, 6);
+    format6.setUint16(2, format6Len);
+    format6.setUint16(4, k[0]);
+    format6.setUint16(6, k[k.length-1]);
+    var glyphIDs = new DataView(this.buffer, format6.byteOffset + 8);
+    for (var i = 0; i < k.length; i++) {
+      glyphIDs.setUint16((k[i] - k[0])*2, map[k[i]]);
+    }
+    /*
     OTFTable.call(this, 'cmap', 4 + 8 + 16 + entries.length * 12);
     var dv = new DataView(this.buffer);
     dv.setUint16(2, 1, false); // encoding table count
@@ -106,6 +148,7 @@ define(function() {
       dv.setUint32(offset + 8, entries[i].glyph, false);
       offset += 12;
     }
+    */
   };
   OTFTable.CharacterGlyphMap.prototype = Object.create(OTFTable.prototype);
 
