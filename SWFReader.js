@@ -1684,9 +1684,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       var cff2 = [];
       var last = null;
       for (var i_group = 0; i_group < pathGroups.length; i_group++) {
-        var pathGroup = pathGroups[i_group];
-        for (var i_path = 0; i_path < pathGroup.length; i_path++) {
-          var path = pathGroup[i_path];
+        var paths = pathGroups[i_group].paths;
+        for (var i_path = 0; i_path < paths.length; i_path++) {
+          var path = paths[i_path];
           if (path.mode !== 'fill') continue;
           for (var i_seg = 0; i_seg < path.length; i_seg++) {
             var segment = path[i_seg];
