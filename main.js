@@ -28,8 +28,8 @@ function(
     var fonts = {};
     
     function make_font(font) {
-      var cff2Paths = font.glyphs.map(function(path) {
-        return path.toCFF2Path();
+      var cff2Paths = font.glyphs.map(function(glyph) {
+        return glyph.path.toCFF2Path();
       });
       return cff2Paths;
     }
