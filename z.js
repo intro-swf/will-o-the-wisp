@@ -201,7 +201,7 @@ define(['dataExtensions!'], function(dataExtensions) {
           else {
             var section = new Uint8Array(window.subarray(wpos - windowSize, wpos));
             window.set(section);
-            outputParts.push(section.subarray(0, wpos - windowSize));
+            outputParts.push(section.subarray(wpos - windowSize));
           }
           break;
         }
