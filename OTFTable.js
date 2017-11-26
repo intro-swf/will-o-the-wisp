@@ -199,7 +199,7 @@ define(function() {
     dv.setUint16(4, 6 + storage.length * 12, false);
     for (var i = 0; i < strings.length; i++) {
       dv.setUint16(6 + i*8 + 0, strings[i].platformId, false);
-      dv.setUint16(6 + i*8 + 2, strings[i].platformId, false);
+      dv.setUint16(6 + i*8 + 2, strings[i].encodingId, false);
       dv.setUint16(6 + i*8 + 4, strings[i].languageId, false);
       dv.setUint16(6 + i*8 + 6, storage[i].length, false);
       bytes.set(storage[i], storage[i].offset);
