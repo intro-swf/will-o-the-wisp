@@ -70,11 +70,14 @@ define(function() {
   };
 
   OTFTable.CharacterGlyphMap = function OTFCharacterGlyphMap(info) {
-    var map = {};
+    var map = {}, k = [];
     for (var i_glyph = 0; i_glyph < info.glyphs.length; i_glyph++) {
-      map[info.glyphs[i_glyph].char.codePointAt(0)] = i_glyph;
+      var glyph = info.glyphs[i_glyph];
+      var codePoint = glyph.char.codePointAt(0);
+      map[codePoint] = i_glyph;
+      k.push(codePoint);
     }
-    var k = Object.keys(map).sort(function(a, b) {
+    k.sort(function(a, b) {
       return a - b;
     });
     var entries = [];
