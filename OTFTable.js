@@ -429,7 +429,7 @@ define(function() {
       }
       for (var i = 1; i < op.length; i++) {
         if (typeof op[i] === 'number') {
-          encodeNumber(op[i]);
+          encNumber(op[i]);
         }
         else {
           encOp(op[i]);
