@@ -128,7 +128,7 @@ define(['dataExtensions!'], function(dataExtensions) {
     if (head%31) throw new Error('invalid zlib stream');
     var compressionMethod = (head >> 8) & 15;
     if (compressionMethod !== 8) throw new Error('invalid deflate stream');
-    var windowSize = 1 << ((head >> 12) + 8);
+    const windowSize = 1 << ((head >> 12) + 8);
     if (windowSize > 32768) throw new Error('invalid window size');
     var hasPresetDictionary = !!(head & (1 << 5));
     var compressionLevel = (head >> 6) & 3; // fastest, fast, default, max
@@ -136,8 +136,11 @@ define(['dataExtensions!'], function(dataExtensions) {
       var presetAdler32 = this.readUint32BE();
       throw new Error('preset dictionary not supported');
     }
+    var window = new Uint8Array(windowSize * 2);
+    var windowHalf2 = window.subarray(windowSize);
+    var wpos = 0;
     var outputParts = [];
-    var finalBlock, totalLength = 0;
+    var finalBlock;
     do {
       finalBlock = this.readZBits(1);
       var litLenTree, distTree;
@@ -148,8 +151,35 @@ define(['dataExtensions!'], function(dataExtensions) {
           if (~len !== this.readInt16LE()) {
             throw new Error('corrupt data');
           }
-          outputParts.push(this.readSubarray(len));
-          totalLength += len;
+          var part = this.readSubarray(len);
+          if (finalBlock) {
+            if (wpos) {
+              outputParts.push(window.subarray(0, wpos));
+              wpos = 0;
+            }
+            outputParts.push(part);
+          }
+          else if ((wpos + part.length) < windowSize) {
+            window.set(part, wpos);
+            wpos += part.length;
+          }
+          else if (part.length >= windowSize) {
+            if (wpos) {
+              outputParts.push(new Uint8Array(window.subarray(0, wpos)));
+            }
+            outputParts.push(part.subarray(0, -windowSize));
+            window.set(part.subarray(-windowSize));
+            wpos = windowSize;
+          }
+          else {
+            var keep = Math.min(wpos, windowSize - part.length);
+            if (keep < wpos) {
+              window.set(window.subarray(wpos - keep, wpos));
+              wpos = keep;
+            }
+            window.set(part, wpos);
+            wpos += part.length;
+          }
           continue;
         case 1:
           litLenTree = FIXED_LIT_LEN_TREE;
@@ -172,8 +202,12 @@ define(['dataExtensions!'], function(dataExtensions) {
       for (;;) {
         var code = this.readZTreeCode(litLenTree);
         if (code < 256) {
-          outputParts.push(BYTE_LITERALS[code]);
-          totalLength++;
+          window[wpos++] = code;
+          if (wpos === windowSize*2) {
+            outputParts.push(new Uint8Array(window));
+            window.set(windowHalf2);
+            wpos = windowSize;
+          }
           continue;
         }
         if (code === 256) break;
@@ -208,61 +242,23 @@ define(['dataExtensions!'], function(dataExtensions) {
           var extraBits = (code-2) >>> 1;
           distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readZBits(extraBits);
         }
-        totalLength += length;
-        var start_i = outputParts.length-1;
-        while (outputParts[start_i].length < distance) {
-          distance -= outputParts[start_i--].length;
-        }
-        if (length <= distance) {
-          if (length === outputParts[start_i].length) {
-            outputParts.push(outputParts[start_i]);
-            continue;
-          }
-          if (length === distance) {
-            outputParts.push(outputParts[start_i].subarray(-distance));
-          }
-          else {
-            outputParts.push(outputParts[start_i].subarray(-distance, length-distance));
-          }
-          continue;
-        }
-        var concatLength = outputParts[start_i].length;
-        var offset = concatLength - distance;
-        var end_i = start_i + 1;
-        if (end_i < outputParts.length) do {
-          concatLength += outputParts[end_i++].length;
-          if (end_i === outputParts.length) {
-            break;
-          }
-        } while (concatLength < (length + offset));
-        var concat = new Uint8Array(concatLength);
-        var write_i = start_i, writeOffset = 0;
-        do {
-          var part = outputParts[write_i++];
-          concat.set(part, writeOffset);
-          writeOffset += part.length;
-        } while (write_i < end_i);
-        outputParts.splice(start_i, end_i - start_i, concat);
-        if (length > (concat.length - offset)) {
-          concat = concat.subarray(offset);
-          var writeLength = length;
+        var left = windowSize*2 - wpos;
+        if (length > left) {
           do {
-            outputParts.push(concat);
-            writeLength -= concat.length;
-          } while (writeLength >= concat.length);
-          if (writeLength !== 0) {
-            outputParts.push(concat.subarray(0, writeLength));
-          }
+            window[wpos] = window[wpos - distance];
+            wpos++;
+          } while (--length > left);
+          window.set(windowHalf2);
+          wpos -= windowSize;
         }
-        else if (length < concat.length) {
-          outputParts.push(concat.subarray(offset, offset+length));
-        }
-        else {
-          outputParts.push(concat);
-        }
+        do {
+          window[wpos] = window[wpos - distance];
+          wpos++;
+        } while (--length);
       }
     } while (!finalBlock);
     this.flushZBits();
+    if (wpos) outputParts.push(window.subarray(0, wpos));
     outputParts.adler32 = this.readUint32BE();
     return outputParts;
   };
