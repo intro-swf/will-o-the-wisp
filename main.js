@@ -47,8 +47,6 @@ function(
         strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Regular'});
       }
       var info = {
-        map: {},
-        
         flags: 0, // unsure if any are relevant?
         unitsPerEm: 1024,
         xMin:    0, yMin: -1024,
@@ -117,16 +115,15 @@ function(
       };
       for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
         var glyph = font.glyphs[i_glyph];
-        var char = glyph.char || String.fromCodePoint(33 + i_glyph);
-        info.map[char] = i_glyph;
         info.glyphs[i_glyph] = {
+          char: glyph.char || String.fromCodePoint(33 + i_glyph),
           charString: glyph.path.toCFF2Path(),
           advanceWidth: 1024,
           leftSideBearing: 0,
         };
       }
       var otf = OTFTable.joinToFile([
-        new OTFTable.CharacterGlyphMap(info.map),
+        new OTFTable.CharacterGlyphMap(info),
         new OTFTable.FontHeader(info),
         new OTFTable.HorizontalHeader(info),
         new OTFTable.HorizontalMetrics(info),
