@@ -207,7 +207,7 @@ function(
               color = segment.color || color;
               if ('fontID' in segment) {
                 font = fonts[segment.fontID];
-                fontSize = segment.textHeight;
+                fontSize = segment.fontHeight;
               }
               var tspan = document.createSVGElement('text');
               tspan.setAttribute('font-size', fontSize);
