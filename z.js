@@ -139,9 +139,8 @@ define(['dataExtensions!'], function(dataExtensions) {
     var window = new Uint8Array(windowSize * 2);
     var windowHalf2 = window.subarray(windowSize);
     var outputParts = [];
-    var finalBlock;
-    mainLoop: do {
-      finalBlock = this.readZBits(1);
+    blockLoop: for (;;) {
+      var isFinalBlock = this.readZBits(1);
       var litLenTree, distTree;
       switch (this.readZBits(2)) {
         case 0:
@@ -152,8 +151,8 @@ define(['dataExtensions!'], function(dataExtensions) {
           }
           var part = this.readSubarray(len);
           outputParts.push(part);
-          if (finalBlock) {
-            break mainLoop;
+          if (isFinalBlock) {
+            break blockLoop;
           }
           var moveBytes = windowSize - part.length;
           if (moveBytes <= 0) {
@@ -183,7 +182,7 @@ define(['dataExtensions!'], function(dataExtensions) {
         case 3: throw new Error('invalid block');
       }
       var wpos = windowSize;
-      for (;;) {
+      codeLoop: for (;;) {
         var code = this.readZTreeCode(litLenTree);
         if (code < 256) {
           window[wpos++] = code;
@@ -192,18 +191,17 @@ define(['dataExtensions!'], function(dataExtensions) {
             window.set(windowHalf2);
             wpos = windowSize;
           }
-          continue;
+          continue codeLoop;
         }
         if (code === 256) {
-          if (finalBlock) {
+          if (isFinalBlock) {
             outputParts.push(window.subarray(windowSize, wpos));
+            break blockLoop;
           }
-          else {
-            var section = new Uint8Array(window.subarray(wpos - windowSize, wpos));
-            window.set(section);
-            outputParts.push(section.subarray(wpos - windowSize));
-          }
-          break;
+          var section = new Uint8Array(window.subarray(wpos - windowSize, wpos));
+          window.set(section);
+          outputParts.push(section.subarray(wpos - windowSize));
+          continue codeLoop;
         }
         var length;
         if (code < 265) {
@@ -246,14 +244,14 @@ define(['dataExtensions!'], function(dataExtensions) {
           outputParts.push(new Uint8Array(windowHalf2));
           window.set(windowHalf2);
           wpos = windowSize;
-          if (length === 0) continue;
+          if (length === 0) continue codeLoop;
         }
         do {
           window[wpos] = window[wpos - distance];
           wpos++;
         } while (--length);
       }
-    } while (!finalBlock);
+    }
     this.flushZBits();
     outputParts.adler32 = this.readUint32BE();
     return outputParts;
