@@ -25,12 +25,14 @@ define(function() {
       return 0;
     });
     var fileHeader = new DataView(new ArrayBuffer(12 + tables.length * 16));
-    var searchRange = Math.floor(Math.log2(tables.length));
+    var maxLog2 = Math.floor(Math.log2(tables.length));
+    var searchRange = (1 << maxLog2) * 16;
+    var rangeShift = tables.length * 16 - searchRange;
     fileHeader.setUint32(0, 0x4F54544F /* OTTO */, false);
     fileHeader.setUint16(4, tables.length, false);
-    fileHeader.setUint16(6, Math.pow(2, searchRange) * 16, false);
-    fileHeader.setUint16(8, searchRange, false);
-    fileHeader.setUint16(10, tables.length * 16 - searchRange, false);
+    fileHeader.setUint16(6, searchRange, false);
+    fileHeader.setUint16(8, maxLog2, false);
+    fileHeader.setUint16(10, rangeShift, false);
     var headerOffset = 12, bodyOffset = fileHeader.byteLength;
     var parts = [fileHeader];
     var masterChecksum = 0, fontHeader;
