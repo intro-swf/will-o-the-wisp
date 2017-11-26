@@ -69,7 +69,11 @@ define(function() {
       {type: 'application/font-sfnt'});
   };
 
-  OTFTable.CharacterGlyphMap = function OTFCharacterGlyphMap(map) {
+  OTFTable.CharacterGlyphMap = function OTFCharacterGlyphMap(info) {
+    var map = {};
+    for (var i_glyph = 0; i_glyph < info.glyphs.length; i_glyph++) {
+      map[info.glyphs[i_glyph].char.codePointAt(0)] = i_glyph;
+    }
     var k = Object.keys(map).sort(function(a, b) {
       return a - b;
     });
