@@ -138,10 +138,9 @@ define(['dataExtensions!'], function(dataExtensions) {
     }
     var window = new Uint8Array(windowSize * 2);
     var windowHalf2 = window.subarray(windowSize);
-    var wpos = 0;
     var outputParts = [];
     var finalBlock;
-    do {
+    mainLoop: do {
       finalBlock = this.readZBits(1);
       var litLenTree, distTree;
       switch (this.readZBits(2)) {
@@ -152,34 +151,18 @@ define(['dataExtensions!'], function(dataExtensions) {
             throw new Error('corrupt data');
           }
           var part = this.readSubarray(len);
+          outputParts.push(part);
           if (finalBlock) {
-            if (wpos) {
-              outputParts.push(window.subarray(0, wpos));
-              wpos = 0;
-            }
-            outputParts.push(part);
+            break mainLoop;
           }
-          else if ((wpos + part.length) < windowSize) {
-            window.set(part, wpos);
-            wpos += part.length;
+          var moveBytes = windowSize - part.length;
+          if (moveBytes <= 0) {
+            part = part.subarray(-windowSize);
+            window.set(part, windowSize - part.length);
+            continue;
           }
-          else if (part.length >= windowSize) {
-            if (wpos) {
-              outputParts.push(new Uint8Array(window.subarray(0, wpos)));
-            }
-            outputParts.push(part.subarray(0, -windowSize));
-            window.set(part.subarray(-windowSize));
-            wpos = windowSize;
-          }
-          else {
-            var keep = Math.min(wpos, windowSize - part.length);
-            if (keep < wpos) {
-              window.set(window.subarray(wpos - keep, wpos));
-              wpos = keep;
-            }
-            window.set(part, wpos);
-            wpos += part.length;
-          }
+          window.set(window.subarray(windowSize - moveBytes, windowSize));
+          window.set(part, moveBytes);
           continue;
         case 1:
           litLenTree = FIXED_LIT_LEN_TREE;
@@ -199,18 +182,26 @@ define(['dataExtensions!'], function(dataExtensions) {
           break;
         case 3: throw new Error('invalid block');
       }
+      var wpos = windowSize;
       for (;;) {
         var code = this.readZTreeCode(litLenTree);
         if (code < 256) {
           window[wpos++] = code;
           if (wpos === windowSize*2) {
-            outputParts.push(new Uint8Array(window));
+            outputParts.push(new Uint8Array(windowHalf2));
             window.set(windowHalf2);
             wpos = windowSize;
           }
           continue;
         }
-        if (code === 256) break;
+        if (code === 256) {
+          var section = window.subarray(windowSize, wpos);
+          if (!finalBlock) {
+            section = new Uint8Array(section);
+          }
+          outputParts.push(section);
+          break;
+        }
         var length;
         if (code < 265) {
           length = code - 254;
@@ -243,13 +234,16 @@ define(['dataExtensions!'], function(dataExtensions) {
           distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readZBits(extraBits);
         }
         var left = windowSize*2 - wpos;
-        if (length > left) {
+        if (length >= left) {
+          length -= left;
           do {
             window[wpos] = window[wpos - distance];
             wpos++;
-          } while (--length > left);
+          } while (--left);
+          outputParts.push(new Uint8Array(windowHalf2));
           window.set(windowHalf2);
-          wpos -= windowSize;
+          wpos = windowSize;
+          if (length === 0) continue;
         }
         do {
           window[wpos] = window[wpos - distance];
@@ -258,7 +252,6 @@ define(['dataExtensions!'], function(dataExtensions) {
       }
     } while (!finalBlock);
     this.flushZBits();
-    if (wpos) outputParts.push(window.subarray(0, wpos));
     outputParts.adler32 = this.readUint32BE();
     return outputParts;
   };
