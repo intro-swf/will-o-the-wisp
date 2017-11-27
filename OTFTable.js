@@ -629,7 +629,7 @@ define(function() {
     var globalSubrIndex = OTFTable.encodeIndex([ ]);
     globalSubrIndex.offset = stringIndex.offset + stringIndex.byteLength;
     
-    var fdSelect = new DataView(8);
+    var fdSelect = new DataView(new ArrayBuffer(8));
     fdSelect.setUint8(0, 3);
     fdSelect.setUint16(1, 1);
     //fdSelect.setUint16(3, 0);
