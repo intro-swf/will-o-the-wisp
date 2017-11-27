@@ -29,7 +29,7 @@ function(
     var bitmapURLs = {};
     var fonts = {};
     
-    function make_font(font) {
+    function make_font(font, id) {
       var strings = [];
       strings.push({platformId:0, encodingId:0, languageId:0, nameId:1, text:'Anon'});
       if (font.bold) {
@@ -133,7 +133,16 @@ function(
         new OTFTable.PostScript(info),
         new OTFTable.CompactFontFormat(info),
       ], 'font.otf');
-      return otf;
+      var style = document.createElement('STYLE');
+      style.textContent = [
+        '@font-face {',
+          'font-family: "_' + id + '";',
+          'font-weight: ' (font.bold?'bold':'normal') + ';',
+          'font-style: ' (font.italic?'italic':'normal') + ';',
+          'src: url("' + URL.createObjectURL(otf) + '") format("opentype");',
+        '}',
+      ].join(' ');
+      return '"_' + id + '"';
     }
 
     var reader = new SWFReader({
@@ -314,10 +323,11 @@ function(
               color = segment.color || color;
               if ('fontID' in segment) {
                 font = fonts[segment.fontID];
-                font.made = font.made || make_font(font);
+                font.family = font.family || make_font(font, segment.fontID);
                 fontSize = segment.fontHeight;
               }
               var tspan = document.createSVGElement('tspan');
+              tspan.setAttribute('font-family', font.family);
               tspan.setAttribute('font-size', fontSize);
               if (font.bold) tspan.setAttribute('font-weight', 'bold');
               if (font.italic) tspan.setAttribute('font-style', 'italic');
