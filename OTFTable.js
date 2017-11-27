@@ -629,13 +629,16 @@ define(function() {
     var globalSubrIndex = OTFTable.encodeIndex([ ]);
     globalSubrIndex.offset = stringIndex.offset + stringIndex.byteLength;
     
+    /*
     var fdSelect = new DataView(new ArrayBuffer(8));
     fdSelect.setUint8(0, 3);
     fdSelect.setUint16(1, 1);
-    //fdSelect.setUint16(3, 0);
-    //fdSelect.setUint8(5, 0);
+    fdSelect.setUint16(3, 0);
+    fdSelect.setUint8(5, 0);
     fdSelect.setUint16(6, info.glyphs.length);
     fdSelect = new Uint8Array(fdSelect.buffer);
+    */
+    var fdSelect = new Uint8Array(1 + info.glyphs.length);
     fdSelect.offset = globalSubrIndex.offset + globalSubrIndex.byteLength;
 
     var charStringIndex = OTFTable.encodeIndex(
