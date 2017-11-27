@@ -47,12 +47,15 @@ function(
         strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Regular'});
       }
       var info = {
-        flags: 0, // unsure if any are relevant?
+        flags: (
+          1 // y value of 0 specifies baseline
+          | 8 // integer math
+        ),
         unitsPerEm: 1024,
         xMin: 0, yMin: 0,
         xMax: 1024, yMax: 1024,
         macStyle: (font.bold?1:0) | (font.italic?2:0),
-        smallestReadablePixelSize: 0, // not sure
+        smallestReadablePixelSize: 1, // not sure
         longOffsets: false,
         
         ascender: 1024,
