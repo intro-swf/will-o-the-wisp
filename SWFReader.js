@@ -1962,7 +1962,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
   Uint8Array.prototype.readSWFSoundADPCM = function(sampleRate, channels) {
     const codeSize = 2 + (this.readUint8() >>> 6);
     const indexTable = ADPCM_INDEX_TABLES[codeSize];
-    const inPacketSize = channels * (3 + 4096 * codeSize / 8);
+    const inPacketSize = (channels === 2)
+      ? Math.ceil((46 + 8192*codeSize) / 8)
+      : Math.ceil((22 + 4096*codeSize) / 8);
     const packetCount = Math.floor((this.length - this.offset)/inPacketSize);
     const outPacketSize = channels * 2 * 4097;
     var wavBuffer = new ArrayBuffer(4 + 4 + 16 + packetCount*outPacketSize);
@@ -1988,7 +1990,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         var leftSample = this.readInt16LE();
         var leftStepIndex = this.readUint8() >>> 2;
         var rightSample = this.readInt16LE();
-        var rightStepIndex = this.readUint8() >>> 2;
+        var rightStepIndex = this.readSWFBits(6);
         data.setInt16(leftSample, i_packet * outPacketSize, true);
         data.setInt16(rightSample, i_packet * outPacketSize + 2, true);
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
@@ -2013,12 +2015,13 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftCode]));
           rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightCode]));
         }
+        this.flushSWFBits();
       }
     }
     else {
       for (var i_packet = 0; i_packet < packetCount; i_packet++) {
         var sample = this.readInt16LE();
-        var stepIndex = this.readUint8() >>> 2;
+        var stepIndex = this.readSWFBits(6);
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
           var code = this.readSWFBits(codeSize);
           var step = ADPCM_STEP_SIZE[stepIndex];
@@ -2031,6 +2034,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 2, sample, true);
           stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[code]));
         }
+        this.flushSWFBits();
       }
     }
     return new Blob(parts, 'audio/x-wav');
