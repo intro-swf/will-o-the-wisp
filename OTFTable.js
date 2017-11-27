@@ -130,7 +130,7 @@ define(function() {
     format6.setUint16(2, format6Len);
     format6.setUint16(6, k[0]);
     format6.setUint16(8, totalRange);
-    var glyphIDs = new DataView(this.buffer, format6.byteOffset + 8, totalRange*2);
+    var glyphIDs = new DataView(this.buffer, format6.byteOffset + 10, totalRange*2);
     for (var i = 0; i < k.length; i++) {
       glyphIDs.setUint16((k[i] - k[0])*2, map[k[i]]);
     }
