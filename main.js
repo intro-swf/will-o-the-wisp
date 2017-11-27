@@ -142,6 +142,7 @@ function(
           'src: url("' + URL.createObjectURL(otf) + '") format("opentype");',
         '}',
       ].join(' ');
+      document.head.appendChild(style);
       return '"_' + id + '"';
     }
 
