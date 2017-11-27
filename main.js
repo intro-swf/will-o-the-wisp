@@ -318,7 +318,7 @@ function(
             if (!def.matrix.isIdentity) {
               text.setAttribute('transform', def.matrix.toString());
             }
-            var font, color = new SWFReader.Color, lastX = def.bounds.left, lastY = def.bounds.top, fontSize;
+            var font, color = new SWFReader.Color, lastX = 0, lastY = 0, fontSize;
             for (var i_segment = 0; i_segment < def.segments.length; i_segment++) {
               var segment = def.segments[i_segment];
               color = segment.color || color;
