@@ -667,7 +667,7 @@ define(function() {
     bytes[0] = major;
     bytes[1] = minor;
     bytes[2] = headerSize;
-    bytes[3] = getOffSize(bytes.length);
+    bytes[3] = 4; // getOffSize(bytes.length);
     bytes.set(nameIndex, nameIndex.offset);
     bytes.set(topDictIndex, topDictIndex.offset);
     bytes.set(stringIndex, stringIndex.offset);
