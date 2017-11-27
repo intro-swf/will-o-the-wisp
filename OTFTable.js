@@ -110,10 +110,12 @@ define(function() {
     format4.setUint16(0, 4);
     format4.setUint16(2, format4Len);
     format4.setUint16(6, format4SegCount*2);
-    var searchRange = 2 << Math.floor(Math.log2(format4SegCount));
+    var maxLog2 = 1 << Math.floor(Math.log2(format4SegCount));
+    var searchRange = 2 * maxLog2;
     format4.setUint16(8, searchRange);
-    format4.setUint16(10, format4SegCount*2 - searchRange);
-    var endCodes = new DataView(this.buffer, format4.byteOffset + 12, format4SegCount*2);
+    format4.setUint16(10, Math.log2(maxLog2));
+    format4.setUint16(12, format4SegCount*2 - searchRange);
+    var endCodes = new DataView(this.buffer, format4.byteOffset + 14, format4SegCount*2);
     var startCodes = new DataView(this.buffer, endCodes.byteOffset + endCodes.byteLength + 2, format4SegCount * 2);
     var idDeltas = new DataView(this.buffer, startCodes.byteOffset + startCodes.byteLength, format4SegCount * 2);
     for (var i = 0; i < entries.length; i++) {
