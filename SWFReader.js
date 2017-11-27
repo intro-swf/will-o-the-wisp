@@ -72,7 +72,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     ,EVT_KEY_PRESS = 0x20000
     ,EVT_CONSTRUCT = 0x40000
   ;
-
+  
   function SWFReader(init) {
     if (init) Object.assign(this, init);
   }
@@ -665,6 +665,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           if (sound.format === 'mp3') {
             sound.seekSamples = source.readUint16LE();
             sound.file = new File([data], id + '.mp3', {type:'audio/mpeg'});
+          }
+          else if (sound.format === 'adpcm') {
+            sound.file = source.readSWFSoundADPCM(sound.hz, sound.channels);
           }
           else {
             console.log('unsupported sound format');
@@ -1931,6 +1934,108 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     return new Blob(parts, {type:'image/png'});
   }
   
+  const ADPCM_INDEX_TABLES = [
+    null, null,
+    new Uint8Array([-1,2, -1,2]),
+    new Uint8Array([-1,-1,2,4, -1,-1,2,4]),
+    new Uint8Array([
+      -1,-1,-1,-1, 2,4,6,8,
+      -1,-1,-1,-1, 2,4,6,8,
+    ]),
+    new Uint8Array([
+      -1,-1,-1,-1,-1,-1,-1,-1, 1,2,4,6,8,10,13,16,
+      -1,-1,-1,-1,-1,-1,-1,-1, 1,2,4,6,8,10,13,16,
+    ]),
+  ];
+  const ADPCM_STEP_SIZE = new Uint8Array([
+    7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
+    19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+    50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
+    130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
+    337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
+    876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
+    2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
+    5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
+    15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767,
+  ]);
+  
+  Uint8Array.prototype.readSWFSoundADPCM = function(sampleRate, channels) {
+    const codeSize = 2 + (this.readUint8() >>> 6);
+    const indexTable = ADPCM_INDEX_TABLES[codeSize];
+    const inPacketSize = channels * (3 + 4096 * codeSize);
+    const packetCount = Math.floor((this.length - this.offset)/inPacketSize);
+    const outPacketSize = channels * 2 * 4097;
+    var wavBuffer = new ArrayBuffer(4 + 4 + 16 + packetCount*outPacketSize);
+    var dataSizeSlot = new DataView(wavBuffer, 0, 4);
+    var totalSizeSlot = new DataView(wavBuffer, 4, 4);
+    var fmt = new DataView(wavBuffer, 8, 16);
+    var data = new DataView(wavBuffer, 24);
+    dataSizeSlot.setUint32(0, packetCount*outPacketSize, true);
+    totalSizeSlot.setUint32(0, 44 + packetCount*outPacketSize, true);
+    fmt.setUint16(0, 1, true);
+    fmt.setUint16(2, channels, true);
+    fmt.setUint32(4, sampleRate, true);
+    fmt.setUint32(8, sampleRate * channels * 2, true);
+    fmt.setUint16(12, channels * 2, true);
+    fmt.setUint16(14, 16, true);
+    var parts = [
+      'RIFF', totalSizeSlot, 'WAVE',
+      'fmt ', String.fromCharCode(16,0,0,0), fmt,
+      'data', dataSizeSlot, data,
+    ];
+    if (channels === 2) {
+      for (var i_packet = 0; i_packet < packetCount; i_packet++) {
+        var leftSample = this.readInt16LE();
+        var leftStepIndex = this.readUint8() >>> 2;
+        var rightSample = this.readInt16LE();
+        var rightStepIndex = this.readUint8() >>> 2;
+        data.setInt16(leftSample, i_packet * outPacketSize, true);
+        data.setInt16(rightSample, i_packet * outPacketSize + 2, true);
+        for (var i_sample = 0; i_sample < 4096; i_sample++) {
+          var leftCode = this.readSWFBits(codeSize);
+          var rightCode = this.readSWFBits(codeSize);
+          var leftStep = ADPCM_STEP_SIZE[leftStepIndex];
+          var rightStep = ADPCM_STEP_SIZE[rightStepIndex];
+          var leftDiff = leftStep >> 3;
+          if (leftCode & 4) leftDiff += leftStep;
+          if (leftCode & 2) leftDiff += leftStep >> 1;
+          if (leftCode & 1) leftDiff += leftStep >> 2;
+          if (leftCode & 8) leftDiff = -leftDiff;
+          var rightDiff = rightStep >> 3;
+          if (rightCode & 4) rightDiff += rightStep;
+          if (rightCode & 2) rightDiff += rightStep >> 1;
+          if (rightCode & 1) rightDiff += rightStep >> 2;
+          if (rightCode & 8) rightDiff = -rightDiff;
+          leftSample = Math.min(0x7fff, Math.max(-0x8000, leftSample + leftDiff));
+          rightSample = Math.min(0x7fff, Math.max(-0x8000, rightSample + rightDiff));
+          data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 4, leftSample, true);
+          data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 4 + 2, rightSample, true);
+          leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftCode]));
+          rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightCode]));
+        }
+      }
+    }
+    else {
+      for (var i_packet = 0; i_packet < packetCount; i_packet++) {
+        var sample = this.readInt16LE();
+        var stepIndex = this.readUint8() >>> 2;
+        for (var i_sample = 0; i_sample < 4096; i_sample++) {
+          var code = this.readSWFBits(codeSize);
+          var step = ADPCM_STEP_SIZE[stepIndex];
+          var diff = step >> 3;
+          if (code & 4) diff += step;
+          if (code & 2) diff += step >> 1;
+          if (code & 1) diff += step >> 2;
+          if (code & 8) diff = -diff;
+          sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
+          data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 2, sample, true);
+          stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[code]));
+        }
+      }
+    }
+    return new Blob(parts, 'audio/x-wav');
+  };
+
   SWFReader.Rect = SWFRect;
   SWFReader.Matrix = SWFMatrix;
   SWFReader.ColorTransform = SWFColorTransform;
