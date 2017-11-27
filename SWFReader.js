@@ -1714,7 +1714,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               case 'l':
                 var dx = segment.values[0], dy = segment.values[1];
                 if (last && last[0] === 'rlineto') {
-                  last.push(dx, -dy);
+                  if (last.push(dx, -dy) >= 49) last = null;
                 }
                 else {
                   cff2.push(last = ['rlineto', dx, -dy]);
@@ -1725,7 +1725,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               case 'h':
                 var dx = segment.values[0];
                 if (last && (last[0] === 'hlineto' && (last.length % 2) || last[0] === 'vlineto' && !(last.length % 2))) {
-                  last.push(dx);
+                  if (last.push(dx) >= 49) last = null;
                 }
                 else {
                   cff2.push(last = ['hlineto', dx]);
@@ -1735,7 +1735,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               case 'v':
                 var dy = segment.values[0];
                 if (last && (last[0] === 'vlineto' && (last.length % 2) || last[0] === 'hlineto' && !(last.length % 2))) {
-                  last.push(-dy);
+                  if (last.push(-dy) >= 49) last = null;
                 }
                 else {
                   cff2.push(last = ['vlineto', -dy]);
@@ -1753,7 +1753,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 dc2x -= dc1x;
                 dc2y -= dc1y;
                 if (last && last[0] === 'rrcurveto') {
-                  last.push(dc1x,-dc1y, dc2x,-dc2y, dx,-dy);
+                  if (last.push(dc1x,-dc1y, dc2x,-dc2y, dx,-dy) >= 49) last = null;
                 }
                 else {
                   cff2.push(last = ['rrcurveto', dc1x,-dc1y, dc2x,-dc2y, dx,-dy]);
