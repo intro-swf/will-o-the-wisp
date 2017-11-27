@@ -676,7 +676,7 @@ define(function() {
     bytes.set(fontDictIndex, fontDictIndex.offset);
     bytes.set(privateDict, privateDict.offset);
   };
-  OTFTable.CompactFontFormat2.prototype = Object.create(OTFTable.prototype);
+  OTFTable.CompactFontFormat.prototype = Object.create(OTFTable.prototype);
 
   OTFTable.SbitLineMetricsView = function SbitLineMetricsView(buffer, byteOffset, byteLength) {
     this.sbytes = new Int8Array(buffer, byteOffset, byteLength);
