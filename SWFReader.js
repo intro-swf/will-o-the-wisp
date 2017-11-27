@@ -1962,7 +1962,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
   Uint8Array.prototype.readSWFSoundADPCM = function(sampleRate, channels) {
     const codeSize = 2 + (this.readUint8() >>> 6);
     const indexTable = ADPCM_INDEX_TABLES[codeSize];
-    const inPacketSize = channels * (3 + 4096 * codeSize);
+    const inPacketSize = channels * (3 + 4096 * codeSize / 8);
     const packetCount = Math.floor((this.length - this.offset)/inPacketSize);
     const outPacketSize = channels * 2 * 4097;
     var wavBuffer = new ArrayBuffer(4 + 4 + 16 + packetCount*outPacketSize);
