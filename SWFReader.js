@@ -1746,14 +1746,18 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 var dcx = segment.values[0], dcy = segment.values[1], dx = segment.values[2], dy = segment.values[3];
                 var dc1x =      2* dcx    /3, dc1y =      2* dcy    /3;
                 var dc2x = dx + 2*(dcx-dx)/3, dc2y = dy + 2*(dcy-dy)/3;
+                x += dx;
+                y += dy;
+                dx -= dc2x;
+                dy -= dc2y;
+                dc2x -= dc1x;
+                dc2y -= dc1y;
                 if (last && last[0] === 'rrcurveto') {
                   last.push(dc1x,-dc1y, dc2x,-dc2y, dx,-dy);
                 }
                 else {
                   cff2.push(last = ['rrcurveto', dc1x,-dc1y, dc2x,-dc2y, dx,-dy]);
                 }
-                x += dx;
-                y += dy;
                 break;
               default:
                 throw new Error('unexpected path segment type');
