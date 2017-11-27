@@ -1702,10 +1702,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                   cff2.push(['hmoveto', dx]);
                 }
                 else if (!dx) {
-                  cff2.push(['vmoveto', dy]);
+                  cff2.push(['vmoveto', -dy]);
                 }
                 else {
-                  cff2.push(['rmoveto', dx, dy]);
+                  cff2.push(['rmoveto', dx, -dy]);
                 }
                 x += dx;
                 y += dy;
@@ -1714,10 +1714,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               case 'l':
                 var dx = segment.values[0], dy = segment.values[1];
                 if (last && last[0] === 'rlineto') {
-                  last.push(dx, dy);
+                  last.push(dx, -dy);
                 }
                 else {
-                  cff2.push(last = ['rlineto', dx, dy]);
+                  cff2.push(last = ['rlineto', dx, -dy]);
                 }
                 x += dx;
                 y += dy;
@@ -1735,10 +1735,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               case 'v':
                 var dy = segment.values[0];
                 if (last && (last[0] === 'vlineto' && (last.length % 2) || last[0] === 'hlineto' && !(last.length % 2))) {
-                  last.push(dy);
+                  last.push(-dy);
                 }
                 else {
-                  cff2.push(last = ['vlineto', dy]);
+                  cff2.push(last = ['vlineto', -dy]);
                 }
                 y += dy;
                 break;
@@ -1747,10 +1747,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 var dc1x =      2* dcx    /3, dc1y =      2* dcy    /3;
                 var dc2x = dx + 2*(dcx-dx)/3, dc2y = dy + 2*(dcy-dy)/3;
                 if (last && last[0] === 'rrcurveto') {
-                  last.push(dc1x,dc1y, dc2x,dc2y, dx,dy);
+                  last.push(dc1x,-dc1y, dc2x,-dc2y, dx,-dy);
                 }
                 else {
-                  cff2.push(last = ['rrcurveto', dc1x,dc1y, dc2x,dc2y, dx,dy]);
+                  cff2.push(last = ['rrcurveto', dc1x,-dc1y, dc2x,-dc2y, dx,-dy]);
                 }
                 x += dx;
                 y += dy;
