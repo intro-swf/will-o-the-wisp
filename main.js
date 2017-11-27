@@ -106,7 +106,7 @@ function(
         usDefaultChar: 0,
         usBreakChar: 0x20,
         usMaxContext: 1,
-        usLowerOpticalPointSize: 0,
+        usLowerOpticalPointSize: 1,
         usUpperOpticalPointSize: 0xFFFF,
         
         underlinePosition: 0,
