@@ -417,6 +417,12 @@ define(function() {
   };
 
   const dictOpcodes = {
+    version: 0x00,
+    Notice: 0x01,
+    FullName: 0x02,
+    FamilyName: 0x03,
+    Weight: 0x04,
+    FontBBox: 0x05,
     BlueValues: 0x06,
     OtherBlues: 0x07,
     FamilyBlues: 0x08,
@@ -616,6 +622,7 @@ define(function() {
         0,
       ],
       ['FontMatrix', 1/info.unitsPerEm, 0, 0, 1/info.unitsPerEm, 0, 0],
+      ['FontBBox', 0, 0, info.unitsPerEm, info.unitsPerEm],
       // 2 is the default for CharstringType, but:
       // <https://www.microsoft.com/typography/otspec/cff.htm>
       // ...says: "must specify"
