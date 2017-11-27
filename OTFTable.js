@@ -363,7 +363,7 @@ define(function() {
   OTFTable.encodeCharString = function encodeCharString(sExpr) {
     var output = [];
     function encNumber(n) {
-      if (n !== n|0) {
+      if (n !== (n|0)) {
         output.push(255, (n >>> 8) & 0xff, n & 0xff, (n * 0x100) & 0xff, (n * 0x10000) & 0xff);
       }
       else if (n >= -107 && n <= 107) {
