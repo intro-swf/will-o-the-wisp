@@ -1936,18 +1936,18 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
   
   const ADPCM_INDEX_TABLES = [
     null, null,
-    new Uint8Array([-1,2, -1,2]),
-    new Uint8Array([-1,-1,2,4, -1,-1,2,4]),
-    new Uint8Array([
+    new Int8Array([-1,2, -1,2]),
+    new Int8Array([-1,-1,2,4, -1,-1,2,4]),
+    new Int8Array([
       -1,-1,-1,-1, 2,4,6,8,
       -1,-1,-1,-1, 2,4,6,8,
     ]),
-    new Uint8Array([
+    new Int8Array([
       -1,-1,-1,-1,-1,-1,-1,-1, 1,2,4,6,8,10,13,16,
       -1,-1,-1,-1,-1,-1,-1,-1, 1,2,4,6,8,10,13,16,
     ]),
   ];
-  const ADPCM_STEP_SIZE = new Uint8Array([
+  const ADPCM_STEP_SIZE = new Uint16Array([
     7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
     19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
     50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
