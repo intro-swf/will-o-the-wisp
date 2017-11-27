@@ -136,10 +136,10 @@ function(
       var style = document.createElement('STYLE');
       style.textContent = [
         '@font-face {',
-          'font-family: "_' + id + '";',
-          'font-weight: ' (font.bold?'bold':'normal') + ';',
-          'font-style: ' (font.italic?'italic':'normal') + ';',
-          'src: url("' + URL.createObjectURL(otf) + '") format("opentype");',
+          'font-family: "_'+id+'";',
+          'font-weight: '+(font.bold?'bold':'normal')+';',
+          'font-style: '+(font.italic?'italic':'normal')+';',
+          'src: url("'+URL.createObjectURL(otf)+'") format("opentype");',
         '}',
       ].join(' ');
       document.head.appendChild(style);
