@@ -262,9 +262,13 @@ define(function() {
   OTFTable.Naming.prototype = Object.create(OTFTable.prototype);
 
   OTFTable.MetricsForOS2 = function OTFMetricsForOS2(info) {
-    OTFTable.call(this, 'OS/2', 98);
+    var version = 0; // 4+ is recommended
+    switch (version) {
+      case 0: OTFTable.call(this, 'OS/2', 78); break;
+      default: throw new Error('unsupported OS/2 info version');
+    }
     var dv = new DataView(this.buffer);
-    dv.setUint16(0, 5, false);
+    dv.setUint16(0, version, false);
     dv.setInt16(2, info.xAvgCharWidth, false);
     dv.setUint16(4, info.usWeightClass, false);
     dv.setUint16(6, info.usWidthClass, false);
@@ -306,6 +310,9 @@ define(function() {
     dv.setInt16(72, info.sTypoLineGap, false);
     dv.setUint16(74, info.usWinAscent, false);
     dv.setUint16(76, info.usWinDescent, false);
+    
+    if (version === 0) return;
+    
     dv.setUint32(78, info.ulCodePageRange1, false);
     dv.setUint32(82, info.ulCodePageRange2, false);
     dv.setInt16(86, info.sxHeight, false);
