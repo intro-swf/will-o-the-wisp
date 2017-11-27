@@ -49,8 +49,8 @@ function(
       var info = {
         flags: 0, // unsure if any are relevant?
         unitsPerEm: 1024,
-        xMin:    0, yMin: -1024,
-        xMax: 1024, yMax:     0,
+        xMin: 0, yMin: 0,
+        xMax: 1024, yMax: 1024,
         macStyle: (font.bold?1:0) | (font.italic?2:0),
         smallestReadablePixelSize: 0, // not sure
         longOffsets: false,
