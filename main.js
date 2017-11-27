@@ -318,9 +318,11 @@ function(
             svg.setAttribute('width', def.bounds.width/20);
             svg.setAttribute('height', def.bounds.height/20);
             var text = document.createSVGElement('text');
+            /*
             if (!def.matrix.isIdentity) {
               text.setAttribute('transform', def.matrix.toString());
             }
+            */
             var font, color = new SWFReader.Color, lastX = 0, lastY = 0, fontSize;
             for (var i_segment = 0; i_segment < def.segments.length; i_segment++) {
               var segment = def.segments[i_segment];
