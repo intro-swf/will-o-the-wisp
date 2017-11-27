@@ -131,7 +131,7 @@ function(
         new OTFTable.Naming(info),
         new OTFTable.MetricsForOS2(info),
         new OTFTable.PostScript(info),
-        new OTFTable.CompactFontFormat2(info),
+        new OTFTable.CompactFontFormat(info),
       ], 'font.otf');
       return otf;
     }
