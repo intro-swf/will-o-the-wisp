@@ -976,6 +976,26 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             sampleSeek: sampleSeek,
           });
           break;
+        case 'pcm':
+          var wavBuffer = new ArrayBuffer(4 + 4 + 16);
+          var dataSizeSlot = new DataView(wavBuffer, 0, 4);
+          var totalSizeSlot = new DataView(wavBuffer, 4, 4);
+          var fmt = new DataView(wavBuffer, 8, 16);
+          dataSizeSlot.setUint32(0, source.byteLength, true);
+          totalSizeSlot.setUint32(0, 36 + source.byteLength, true);
+          fmt.setUint16(0, 1, true);
+          fmt.setUint16(2, stream.channels, true);
+          fmt.setUint32(4, stream.hz, true);
+          fmt.setUint32(8, stream.hz * stream.channels * stream.bits/8, true);
+          fmt.setUint16(12, stream.channels * stream.bits/8, true);
+          fmt.setUint16(14, stream.bits, true);
+          var parts = [
+            'RIFF', totalSizeSlot, 'WAVE',
+            'fmt ', String.fromCharCode(16,0,0,0), fmt,
+            'data', dataSizeSlot, source,
+          ];
+          this.ondecodedstream(new Blob(parts), {type:'audio/x-wav'});
+          break;
         case 'adpcm':
           this.ondecodedstream(source.readSWFSoundADPCM(stream.samplesPerBlock, stream.hz, stream.channels));
           break;
