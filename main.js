@@ -218,7 +218,7 @@ function(
           var dataSize = 0;
           for (var i = 0; i < this.streamParts.length; i++) {
             var part = this.streamParts[i].slice(44);
-            dataSize += part.length;
+            dataSize += part.size;
             parts.push(part);
           }
           totalSizeSlot.setUint32(0, 36 + dataSize, true);
