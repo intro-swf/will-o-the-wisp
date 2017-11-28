@@ -667,7 +667,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             sound.file = new File([data], id + '.mp3', {type:'audio/mpeg'});
           }
           else if (sound.format === 'adpcm') {
-            sound.file = source.readSWFSoundADPCM(sound.hz, sound.channels);
+            sound.file = source.readSWFSoundADPCM(sound.sampleCount, sound.hz, sound.channels);
           }
           else {
             console.log('unsupported sound format');
@@ -1959,21 +1959,16 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767,
   ]);
   
-  Uint8Array.prototype.readSWFSoundADPCM = function(sampleRate, channels) {
+  Uint8Array.prototype.readSWFSoundADPCM = function(sampleCount, sampleRate, channels) {
     const codeSize = 2 + (this.readUint8() >>> 6);
     const indexTable = ADPCM_INDEX_TABLES[codeSize];
-    const inPacketSize = (channels === 2)
-      ? Math.ceil((46 + 8192*codeSize) / 8)
-      : Math.ceil((22 + 4096*codeSize) / 8);
-    const packetCount = Math.floor((this.length - this.offset)/inPacketSize);
-    const outPacketSize = channels * 2 * 4097;
-    var wavBuffer = new ArrayBuffer(4 + 4 + 16 + packetCount*outPacketSize);
+    var wavBuffer = new ArrayBuffer(4 + 4 + 16 + sampleCount*channels*2);
     var dataSizeSlot = new DataView(wavBuffer, 0, 4);
     var totalSizeSlot = new DataView(wavBuffer, 4, 4);
     var fmt = new DataView(wavBuffer, 8, 16);
     var data = new DataView(wavBuffer, 24);
-    dataSizeSlot.setUint32(0, packetCount*outPacketSize, true);
-    totalSizeSlot.setUint32(0, 36 + packetCount*outPacketSize, true);
+    dataSizeSlot.setUint32(0, sampleCount*channels*2, true);
+    totalSizeSlot.setUint32(0, 36 + sampleCount*channels*2, true);
     fmt.setUint16(0, 1, true);
     fmt.setUint16(2, channels, true);
     fmt.setUint32(4, sampleRate, true);
@@ -1985,14 +1980,17 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       'fmt ', String.fromCharCode(16,0,0,0), fmt,
       'data', dataSizeSlot, data,
     ];
+    var wpos = 0;
     if (channels === 2) {
-      for (var i_packet = 0; i_packet < packetCount; i_packet++) {
+      stereoLoop: for (;;) {
         var leftSample = this.readInt16LE();
         var leftStepIndex = this.readUint8() >>> 2;
         var rightSample = this.readInt16LE();
         var rightStepIndex = this.readSWFBits(6);
-        data.setInt16(leftSample, i_packet * outPacketSize, true);
-        data.setInt16(rightSample, i_packet * outPacketSize + 2, true);
+        data.setInt16(leftSample, wpos, true);
+        data.setInt16(rightSample, wpos + 2, true);
+        wpos += 4;
+        if (--sampleCount === 0) break stereoLoop;
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
           var leftCode = this.readSWFBits(codeSize);
           var rightCode = this.readSWFBits(codeSize);
@@ -2010,8 +2008,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           if (rightCode & 8) rightDiff = -rightDiff;
           leftSample = Math.min(0x7fff, Math.max(-0x8000, leftSample + leftDiff));
           rightSample = Math.min(0x7fff, Math.max(-0x8000, rightSample + rightDiff));
-          data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 4, leftSample, true);
-          data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 4 + 2, rightSample, true);
+          data.setInt16(wpos, leftSample, true);
+          data.setInt16(wpos + 2, rightSample, true);
+          wpos += 4;
+          if (--sampleCount === 0) break stereoLoop;
           leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftCode]));
           rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightCode]));
         }
@@ -2019,9 +2019,12 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       }
     }
     else {
-      for (var i_packet = 0; i_packet < packetCount; i_packet++) {
+      monoLoop: for (;;) {
         var sample = this.readInt16LE();
         var stepIndex = this.readSWFBits(6);
+        data.setInt16(sample, wpos, true);
+        wpos += 2;
+        if (--sampleCount === 0) break monoLoop;
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
           var code = this.readSWFBits(codeSize);
           var step = ADPCM_STEP_SIZE[stepIndex];
@@ -2031,7 +2034,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           if (code & 1) diff += step >> 2;
           if (code & 8) diff = -diff;
           sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
-          data.setInt16(i_packet * outPacketSize + (1 + i_sample) * 2, sample, true);
+          data.setInt16(wpos, sample, true);
+          wpos += 2;
+          if (--sampleCount === 0) break monoLoop;
           stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[code]));
         }
         this.flushSWFBits();
