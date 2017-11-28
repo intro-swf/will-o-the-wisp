@@ -256,6 +256,7 @@ function(
               animate.setAttribute('to', [toBox.left, toBox.top, toBox.width, toBox.height].join(' '));
               animate.setAttribute('dur', '5s');
               animate.setAttribute('repeatCount', 'indefinite');
+              svg.appendChild(animate);
             }
             svg.setAttribute('width', def.bounds.width/20);
             svg.setAttribute('height', def.bounds.height/20);
