@@ -2023,7 +2023,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       wpos += 2;
       var stepIndex = this.readSWFBits(6);
       var step = ADPCM_STEP_SIZE[stepIndex];
-      if (--sampleCount > 0) monoLoop: for (;;) {
+      if (--sampleCount > 0) for (;;) {
         var delta = this.readSWFBits(codeSize);
         stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
         var diff = step >> (codeSize-1);
@@ -2034,7 +2034,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
         data.setInt16(wpos, sample, true);
         wpos += 2;
-        if (--sampleCount === 0) break monoLoop;
+        if (--sampleCount === 0) break;
         step = ADPCM_STEP_SIZE[stepIndex];
       }
     }
