@@ -2028,13 +2028,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
           var delta = this.readSWFBits(codeSize);
           stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
-          var sign = delta & 8;
-          delta &= 7;
           var diff = step >> 3;
-          if (delta & 4) diff += step;
-          if (delta & 2) diff += step >> 1;
-          if (delta & 1) diff += step >> 2;
-          if (sign) diff = -diff;
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (delta & (1 << c_i)) diff += step >> (codeSize-c_i-2);
+          }
+          if (delta & (1 << (codeSize-1))) diff = -diff;
           sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
           data.setInt16(wpos, sample, true);
           wpos += 2;
