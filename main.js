@@ -164,22 +164,29 @@ function(
       },
       onopenstream: function() {
         var stream = this.stream;
-        var audioEl = document.createElement('AUDIO');
+        var audioEl = this.streamAudioEl = document.createElement('AUDIO');
         audioEl.controls = true;
         document.body.appendChild(audioEl);
-        this.whenSourceBufferAvailable = new Promise(function(resolve, reject) {
-          var mediaSource = new MediaSource;
-          mediaSource.onsourceopen = function(e) {
-            if (stream.format === 'mp3') {
-              var sourceBuffer = this.addSourceBuffer('audio/mpeg');
-              sourceBuffer.mediaSource = this;
-              resolve(sourceBuffer);
-            }
-          };
-          audioEl.src = URL.createObjectURL(mediaSource);
-        });
+        switch (stream.format) {
+          case 'mp3':
+            this.whenSourceBufferAvailable = new Promise(function(resolve, reject) {
+              var mediaSource = new MediaSource;
+              mediaSource.onsourceopen = function(e) {
+                if (stream.format === 'mp3') {
+                  var sourceBuffer = this.addSourceBuffer('audio/mpeg');
+                  sourceBuffer.mediaSource = this;
+                  resolve(sourceBuffer);
+                }
+              };
+              audioEl.src = URL.createObjectURL(mediaSource);
+            });
+            break;
+          case 'adpcm':
+            this.streamParts = [];
+            break;
+        }
       },
-      onstream: function(bytes, extra) {
+      onencodedstream: function(bytes, extra) {
         this.whenSourceBufferAvailable = this.whenSourceBufferAvailable.then(function(sourceBuffer) {
           return new Promise(function(resolve, reject) {
             sourceBuffer.addEventListener('updateend', function onupdateend() {
@@ -190,11 +197,34 @@ function(
           });
         });
       },
+      ondecodedstream: function(wav) {
+        this.streamParts.push(wav);
+      },
       onclosestream: function() {
-        this.whenSourceBufferAvailable.then(function(sourceBuffer) {
-          sourceBuffer.mediaSource.endOfStream();
-        });
-        this.whenSourceBufferAvailable = null;
+        if (this.whenSourceBufferAvailable) {
+          this.whenSourceBufferAvailable.then(function(sourceBuffer) {
+            sourceBuffer.mediaSource.endOfStream();
+          });
+          this.whenSourceBufferAvailable = null;
+        }
+        else if (this.streamParts && this.streamParts.length > 0) {
+          var totalSizeSlot = new DataView(new ArrayBuffer(4));
+          var dataSizeSlot = new DataView(new ArrayBuffer(4));
+          var parts = [
+            'RIFF', totalSizeSlot, 'WAVE',
+            'fmt ', this.streamParts[0].slice(16, 16),
+            'data', dataSizeSlot,
+          ];
+          var dataSize = 0;
+          for (var i = 0; i < this.streamParts.length; i++) {
+            var part = this.streamParts[i].slice(44);
+            dataSize += part.length;
+            parts.push(part);
+          }
+          totalSizeSlot.setUint32(0, 36 + dataSize, true);
+          dataSizeSlot.setUint32(0, dataSize, true);
+          this.streamAudioEl.src = URL.createObjectURL(new Blob(parts, {type:'audio/x-wav'}));
+        }
       },
       ondefine: function(id, type, def) {
         switch (type) {
