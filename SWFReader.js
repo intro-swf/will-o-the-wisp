@@ -1861,6 +1861,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       }
       return this.solidColor;
     },
+    isEqualTo: function(c) {
+      if (this === c) return true;
+      return this.r === c.r && this.g === c.g && this.b === c.b && this.a === c.a;
+    },
   };
   
   function makeImageBlob(bpp, rows, palette) {
