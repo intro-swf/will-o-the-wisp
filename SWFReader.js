@@ -2037,7 +2037,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           if (delta & 1) diff += step >> 2;
           if (sign) diff = -diff;
           sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
-          data.setInt16(wpos, sample, true);
+          data.setInt16(wpos, sample - 0x7fff, true);
           wpos += 2;
           if (--sampleCount === 0) break monoLoop;
           step = ADPCM_STEP_SIZE[stepIndex];
