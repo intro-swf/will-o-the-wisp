@@ -308,7 +308,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           fromShape.path.initialStyles(fromFillStyles, fromStrokeStyles);
           toShape.path = source.readSWFPath(true, false);
           toShape.path.initialStyles(toFillStyles, toStrokeStyles);
-          this.ondefine(id, 'morph', fromShape, toShape);
+          fromShape.morphTo = toShape;
+          this.ondefine(id, 'shape', fromShape);
           break;
         case TAG_DEFINE_BITS:
           var id = source.readUint16LE();
