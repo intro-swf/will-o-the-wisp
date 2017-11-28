@@ -2018,27 +2018,24 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       }
     }
     else {
-      monoLoop: for (;;) {
-        var sample = this.readSWFBits(16, true);
+      var sample = this.readSWFBits(16, true);
+      data.setInt16(wpos, sample, true);
+      wpos += 2;
+      var stepIndex = this.readSWFBits(6);
+      var step = ADPCM_STEP_SIZE[stepIndex];
+      if (--sampleCount > 0) monoLoop: for (;;) {
+        var delta = this.readSWFBits(codeSize);
+        stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
+        var diff = step >> (codeSize-1);
+        for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+          if (delta & (1 << c_i)) diff += step >> (codeSize-c_i-2);
+        }
+        if (delta & (1 << (codeSize-1))) diff = -diff;
+        sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
         data.setInt16(wpos, sample, true);
         wpos += 2;
-        var stepIndex = this.readSWFBits(6);
-        var step = ADPCM_STEP_SIZE[stepIndex];
         if (--sampleCount === 0) break monoLoop;
-        for (var i_sample = 0; i_sample < 4096; i_sample++) {
-          var delta = this.readSWFBits(codeSize);
-          stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
-          var diff = step >> (codeSize-1);
-          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
-            if (delta & (1 << c_i)) diff += step >> (codeSize-c_i-2);
-          }
-          if (delta & (1 << (codeSize-1))) diff = -diff;
-          sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
-          data.setInt16(wpos, sample, true);
-          wpos += 2;
-          if (--sampleCount === 0) break monoLoop;
-          step = ADPCM_STEP_SIZE[stepIndex];
-        }
+        step = ADPCM_STEP_SIZE[stepIndex];
       }
     }
     return new Blob(parts, {type:'audio/x-wav'});
