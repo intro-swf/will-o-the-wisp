@@ -212,7 +212,7 @@ function(
           var dataSizeSlot = new DataView(new ArrayBuffer(4));
           var parts = [
             'RIFF', totalSizeSlot, 'WAVE',
-            'fmt ', this.streamParts[0].slice(16, 16),
+            'fmt ', this.streamParts[0].slice(16, 36),
             'data', dataSizeSlot,
           ];
           var dataSize = 0;
