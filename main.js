@@ -372,6 +372,9 @@ function(
             svg.appendChild(text);
             document.body.appendChild(svg);
             break;
+          default:
+            console.log(type, id, def);
+            break;
         }
       },
       onupdate: function(id, patch) {
@@ -385,6 +388,9 @@ function(
             }
           }
           Object.assign(font, patch);
+        }
+        else {
+          console.log('update', id, patch);
         }
       },
     });
