@@ -137,8 +137,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     onaction: NULLFUNC,
     // onaudioaction(soundaction <Object>)
     onaudioaction: NULLFUNC,
-    // onstream(data <Uint8Array [, extra <Object>] )
-    onstream: NULLFUNC,
+    // onencodedstream(data <Uint8Array [, extra <Object>] )
+    onencodedstream: NULLFUNC,
+    // ondecodedstream(data <Uint8Array [, extra <Object>] )
+    ondecodedstream: NULLFUNC,
     // .passwordMD5 <string> [optional]
     onprotect: NULLFUNC,
     // onframelabel(label <string>)
@@ -965,16 +967,21 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       }
     },
     onrawstreamchunk: function(source, stream) {
-      if (stream.format === 'mp3') {
-        var sampleCount = source.readUint16LE();
-        var sampleSeek = source.readInt16LE();
-        this.onstream(source.subarray(source.offset), {
-          sampleCount: sampleCount,
-          sampleSeek: sampleSeek,
-        });
-      }
-      else {
-        this.onstream(source);
+      switch (stream.format) {
+        case 'mp3':
+          var sampleCount = source.readUint16LE();
+          var sampleSeek = source.readInt16LE();
+          this.onencodedstream(source.subarray(source.offset), {
+            sampleCount: sampleCount,
+            sampleSeek: sampleSeek,
+          });
+          break;
+        case 'adpcm':
+          this.ondecodedstream(source.readSWFSoundADPCM());
+          break;
+        default:
+          console.log('unsupported stream format: ' + stream.format);
+          break;
       }
     },
   };
