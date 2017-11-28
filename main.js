@@ -246,12 +246,12 @@ function(
             var svg = document.createSVGElement('svg');
             svg.setAttribute('id', 'shape' + id);
             svg.setAttribute('viewBox', [def.bounds.left, def.bounds.top, def.bounds.width, def.bounds.height].join(' '));
-            if (def.morphTo && !def.viewBox.isEqualTo(def.morphTo.viewBox)) {
+            if (def.morphTo && !def.bounds.isEqualTo(def.morphTo.bounds)) {
               var animate = document.createSVGElement('animate');
               animate.setAttribute('attributeName', 'viewBox');
               animate.setAttribute('from', '5s');
               var fromBox = def.bounds;
-              var toBox = def.morphTo.viewBox;
+              var toBox = def.morphTo.bounds;
               animate.setAttribute('from', [fromBox.left, fromBox.top, fromBox.width, fromBox.height].join(' '));
               animate.setAttribute('to', [toBox.left, toBox.top, toBox.width, toBox.height].join(' '));
               animate.setAttribute('dur', '5s');
