@@ -1987,8 +1987,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         var leftStepIndex = this.readUint8() >>> 2;
         var rightSample = this.readInt16LE();
         var rightStepIndex = this.readSWFBits(6);
-        data.setInt16(leftSample, wpos, true);
-        data.setInt16(rightSample, wpos + 2, true);
+        data.setInt16(wpos, leftSample, true);
+        data.setInt16(wpos + 2, rightSample, true);
         wpos += 4;
         if (--sampleCount === 0) break stereoLoop;
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
@@ -2022,7 +2022,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       monoLoop: for (;;) {
         var sample = this.readInt16LE();
         var stepIndex = this.readSWFBits(6);
-        data.setInt16(sample, wpos, true);
+        data.setInt16(wpos, sample, true);
         wpos += 2;
         if (--sampleCount === 0) break monoLoop;
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
