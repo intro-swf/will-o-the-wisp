@@ -1960,7 +1960,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
   ]);
   
   Uint8Array.prototype.readSWFSoundADPCM = function(sampleCount, sampleRate, channels) {
-    const codeSize = 2 + (this.readUint8() >>> 6);
+    const codeSize = 2 + this.readSWFBits(2);
     const indexTable = ADPCM_INDEX_TABLES[codeSize];
     var wavBuffer = new ArrayBuffer(4 + 4 + 16 + sampleCount*channels*2);
     var dataSizeSlot = new DataView(wavBuffer, 0, 4);
@@ -1983,9 +1983,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     var wpos = 0;
     if (channels === 2) {
       stereoLoop: for (;;) {
-        var leftSample = this.readInt16LE();
-        var leftStepIndex = this.readUint8() >>> 2;
-        var rightSample = this.readInt16LE();
+        var leftSample = this.readSWFBits(16, true);
+        var leftStepIndex = this.readSWFBits(6);
+        var rightSample = this.readSWFBits(16, true);
         var rightStepIndex = this.readSWFBits(6);
         data.setInt16(wpos, leftSample, true);
         data.setInt16(wpos + 2, rightSample, true);
@@ -2015,12 +2015,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftCode]));
           rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightCode]));
         }
-        this.flushSWFBits();
       }
     }
     else {
       monoLoop: for (;;) {
-        var sample = this.readInt16LE();
+        var sample = this.readSWFBits(16, true);
         data.setInt16(wpos, sample, true);
         wpos += 2;
         var stepIndex = this.readSWFBits(6);
@@ -2037,12 +2036,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           if (delta & 1) diff += step >> 2;
           if (sign) diff = -diff;
           sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
-          data.setInt16(wpos, sample - 0x7fff, true);
+          data.setInt16(wpos, sample, true);
           wpos += 2;
           if (--sampleCount === 0) break monoLoop;
           step = ADPCM_STEP_SIZE[stepIndex];
         }
-        this.flushSWFBits();
       }
     }
     return new Blob(parts, {type:'audio/x-wav'});
