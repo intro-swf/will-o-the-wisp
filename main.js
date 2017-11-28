@@ -290,14 +290,14 @@ function(
                         animate.setAttribute('to', toFill.solidColor);
                         animate.setAttribute('dur', '5s');
                         animate.setAttribute('repeatCount', 'indefinite');
-                        svg.appendChild(animate);
+                        el.appendChild(animate);
                         var animate = document.createSVGElement('animate');
                         animate.setAttribute('attributeName', 'fill-opacity');
                         animate.setAttribute('from', fill.opacity);
                         animate.setAttribute('to', toFill.opacity);
                         animate.setAttribute('dur', '5s');
                         animate.setAttribute('repeatCount', 'indefinite');
-                        svg.appendChild(animate);
+                        el.appendChild(animate);
                       }
                       break;
                     case 'gradient':
