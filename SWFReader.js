@@ -1306,6 +1306,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         }
       }
       this.flushSWFBits();
+      path.endOfSegments();
       return path;
     },
     readSWFColorTransform: function(NO_ALPHA) {
@@ -1671,6 +1672,9 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     },
     newSegment: function() {
       this.segments.push(this.segment = []);
+    },
+    endOfSegments: function() {
+      delete this.segment;
     },
     line: function(x, y) {
       this.segment.push(new SWFPathRecord('l', [x, y]));
