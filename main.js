@@ -249,7 +249,6 @@ function(
             if (def.morphTo && !def.bounds.isEqualTo(def.morphTo.bounds)) {
               var animate = document.createSVGElement('animate');
               animate.setAttribute('attributeName', 'viewBox');
-              animate.setAttribute('from', '5s');
               var fromBox = def.bounds;
               var toBox = def.morphTo.bounds;
               animate.setAttribute('from', [fromBox.left, fromBox.top, fromBox.width, fromBox.height].join(' '));
@@ -282,6 +281,23 @@ function(
                       el.setAttribute('fill', fill.solidColor);
                       if (fill.opacity !== 1) {
                         el.setAttribute('fill-opacity', fill.opacity);
+                      }
+                      if (def.morphTo && !fill.isEqualTo(def.morphTo.path.fillStyles[path.i_fill])) {
+                        var toFill = def.morphTo.path.fillStyles[path.i_fill];
+                        var animate = document.createSVGElement('animate');
+                        animate.setAttribute('attributeName', 'fill');
+                        animate.setAttribute('from', fill.solidColor);
+                        animate.setAttribute('to', toFill.solidColor);
+                        animate.setAttribute('dur', '5s');
+                        animate.setAttribute('repeatCount', 'indefinite');
+                        svg.appendChild(animate);
+                        var animate = document.createSVGElement('animate');
+                        animate.setAttribute('attributeName', 'fill-opacity');
+                        animate.setAttribute('from', fill.opacity);
+                        animate.setAttribute('to', toFill.opacity);
+                        animate.setAttribute('dur', '5s');
+                        animate.setAttribute('repeatCount', 'indefinite');
+                        svg.appendChild(animate);
                       }
                       break;
                     case 'gradient':
