@@ -125,6 +125,12 @@ function(
           leftSideBearing: 0,
         };
       }
+      info.glyphs.splice(0, 0, {
+        char: '\0',
+        charString: [],
+        advanceWidth: 1024,
+        leftSideBearing: 0,
+      });
       var otf = OTFTable.joinToFile([
         new OTFTable.CharacterGlyphMap(info),
         new OTFTable.FontHeader(info),
