@@ -423,6 +423,9 @@ function(
           console.log('update', id, patch);
         }
       },
+      ondisplaylistaction: function(depth, action, settings) {
+        console.log(action, depth, settings);
+      },
     });
     reader.read(bytes);
   }
