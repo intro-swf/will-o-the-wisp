@@ -977,7 +977,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           });
           break;
         case 'adpcm':
-          this.ondecodedstream(source.readSWFSoundADPCM(4096, stream.hz, stream.channels));
+          this.ondecodedstream(source.readSWFSoundADPCM(stream.samplesPerBlock, stream.hz, stream.channels));
           break;
         default:
           console.log('unsupported stream format: ' + stream.format);
