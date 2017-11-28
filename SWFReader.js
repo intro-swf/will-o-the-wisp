@@ -1455,7 +1455,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       return this.a === 1 && this.b === 0 && this.c === 0
           && this.d === 1 && this.e === 0 && this.f === 0;
     },
-    get isEqualTo(m) {
+    isEqualTo: function(m) {
       if (this === m) return true;
       return this.a === m.a && this.b === m.b && this.c === m.c
           && this.d === m.d && this.e === m.e && this.f === m.f;
