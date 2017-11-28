@@ -1419,6 +1419,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     bottom: 0,
     get width() { return this.right - this.left; },
     get height() { return this.bottom - this.top; },
+    isEqualTo: function(r) {
+      if (this === r) return true;
+      return this.left === r.left && this.top === r.top
+          && this.right === r.right && this.bottom === r.bottom;
+    },
   };
   
   function SWFMatrix() {
@@ -1447,8 +1452,14 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         this.e, this.f].join(', ') + ')';
     },
     get isIdentity() {
-      return this.a === 1 && this.b === 0 && this.c === 0 && this.d === 1 && this.e === 0 && this.f === 0;
-    },  
+      return this.a === 1 && this.b === 0 && this.c === 0
+          && this.d === 1 && this.e === 0 && this.f === 0;
+    },
+    get isEqualTo(m) {
+      if (this === m) return true;
+      return this.a === m.a && this.b === m.b && this.c === m.c
+          && this.d === m.d && this.e === m.e && this.f === m.f;
+    },
   };
   
   function SWFColorTransform() {
@@ -1489,6 +1500,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           0, 0, this.mulB, 0, this.addB / 255,
           0, 0, 0, this.mulA, this.addA / 255,
         ].join(' ');
+    },
+    isEqualTo: function(ct) {
+      if (ct === this) return true;
+      return this.addR === ct.addR && this.addG === ct.addG && this.addB === ct.addB && this.addA === ct.addA
+          && this.mulR === ct.mulR && this.mulG === ct.mulG && this.mulB === ct.mulB && this.mulA === ct.mulA;
     },
   };
   
