@@ -2037,7 +2037,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         this.flushSWFBits();
       }
     }
-    return new Blob(parts, 'audio/x-wav');
+    return new Blob(parts, {type:'audio/x-wav'});
   };
 
   SWFReader.Rect = SWFRect;
