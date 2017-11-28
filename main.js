@@ -324,6 +324,8 @@ function(
             svg.setAttribute('width', def.bounds.width/20);
             svg.setAttribute('height', def.bounds.height/20);
             var text = document.createSVGElement('text');
+            text.setAttribute('style', 'white-space:pre');
+            text.setAttribute('xml:space', 'preserve');
             /*
             if (!def.matrix.isIdentity) {
               text.setAttribute('transform', def.matrix.toString());
