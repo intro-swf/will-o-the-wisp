@@ -1973,7 +1973,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     var fmt = new DataView(wavBuffer, 8, 16);
     var data = new DataView(wavBuffer, 24);
     dataSizeSlot.setUint32(0, packetCount*outPacketSize, true);
-    totalSizeSlot.setUint32(0, 44 + packetCount*outPacketSize, true);
+    totalSizeSlot.setUint32(0, 36 + packetCount*outPacketSize, true);
     fmt.setUint16(0, 1, true);
     fmt.setUint16(2, channels, true);
     fmt.setUint32(4, sampleRate, true);
