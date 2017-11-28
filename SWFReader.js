@@ -2021,23 +2021,26 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     else {
       monoLoop: for (;;) {
         var sample = this.readInt16LE();
-        var stepIndex = this.readSWFBits(6);
         data.setInt16(wpos, sample, true);
         wpos += 2;
+        var stepIndex = this.readSWFBits(6);
+        var step = ADPCM_STEP_SIZE[stepIndex];
         if (--sampleCount === 0) break monoLoop;
         for (var i_sample = 0; i_sample < 4096; i_sample++) {
-          var code = this.readSWFBits(codeSize);
-          var step = ADPCM_STEP_SIZE[stepIndex];
+          var delta = this.readSWFBits(codeSize);
+          stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
+          var sign = delta & 8;
+          delta &= 7;
           var diff = step >> 3;
-          if (code & 4) diff += step;
-          if (code & 2) diff += step >> 1;
-          if (code & 1) diff += step >> 2;
-          if (code & 8) diff = -diff;
+          if (delta & 4) diff += step;
+          if (delta & 2) diff += step >> 1;
+          if (delta & 1) diff += step >> 2;
+          if (sign) diff = -diff;
           sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
           data.setInt16(wpos, sample, true);
           wpos += 2;
           if (--sampleCount === 0) break monoLoop;
-          stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[code]));
+          step = ADPCM_STEP_SIZE[stepIndex];
         }
         this.flushSWFBits();
       }
