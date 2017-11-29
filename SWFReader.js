@@ -2012,8 +2012,6 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
   ]);
   
   Uint8Array.prototype.readSWFSoundADPCM = function(sampleCount, sampleRate, channels) {
-    const codeSize = 2 + this.readSWFBits(2);
-    const indexTable = ADPCM_INDEX_TABLES[codeSize];
     var wavBuffer = new ArrayBuffer(4 + 4 + 16 + sampleCount*channels*2);
     var dataSizeSlot = new DataView(wavBuffer, 0, 4);
     var totalSizeSlot = new DataView(wavBuffer, 4, 4);
@@ -2033,8 +2031,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
       'data', dataSizeSlot, data,
     ];
     var wpos = 0;
-    if (channels === 2) {
-      stereoLoop: for (;;) {
+    while (sampleCount > 0) {
+      const codeSize = 2 + this.readSWFBits(2);
+      const indexTable = ADPCM_INDEX_TABLES[codeSize];
+      if (channels === 2) {
         var leftSample = this.readSWFBits(16, true);
         var leftStepIndex = this.readSWFBits(6);
         var rightSample = this.readSWFBits(16, true);
@@ -2042,52 +2042,53 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         data.setInt16(wpos, leftSample, true);
         data.setInt16(wpos + 2, rightSample, true);
         wpos += 4;
-        if (--sampleCount === 0) break stereoLoop;
-        for (var i_sample = 0; i_sample < 4096; i_sample++) {
-          var leftCode = this.readSWFBits(codeSize);
-          var rightCode = this.readSWFBits(codeSize);
+        var stepIndex = this.readSWFBits(6);
+        var step = ADPCM_STEP_SIZE[stepIndex];
+        const stopAt = Math.max(0, sampleCount - 4097);
+        while (--sampleCount > stopAt) {
+          var leftDelta = this.readSWFBits(codeSize);
+          var rightDelta = this.readSWFBits(codeSize);
           var leftStep = ADPCM_STEP_SIZE[leftStepIndex];
           var rightStep = ADPCM_STEP_SIZE[rightStepIndex];
-          var leftDiff = leftStep >> 3;
-          if (leftCode & 4) leftDiff += leftStep;
-          if (leftCode & 2) leftDiff += leftStep >> 1;
-          if (leftCode & 1) leftDiff += leftStep >> 2;
-          if (leftCode & 8) leftDiff = -leftDiff;
-          var rightDiff = rightStep >> 3;
-          if (rightCode & 4) rightDiff += rightStep;
-          if (rightCode & 2) rightDiff += rightStep >> 1;
-          if (rightCode & 1) rightDiff += rightStep >> 2;
-          if (rightCode & 8) rightDiff = -rightDiff;
+          var leftDiff = leftStep >> (codeSize-1);
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (leftDelta & (1 << c_i)) leftDiff += step >> (codeSize-c_i-2);
+          }
+          if (leftDelta & (1 << (codeSize-1))) leftDiff = -leftDiff;
+          var rightDiff = step >> (codeSize-1);
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (rightDelta & (1 << c_i)) rightDiff += step >> (codeSize-c_i-2);
+          }
+          if (rightDelta & (1 << (codeSize-1))) rightDiff = -rightDiff;
           leftSample = Math.min(0x7fff, Math.max(-0x8000, leftSample + leftDiff));
           rightSample = Math.min(0x7fff, Math.max(-0x8000, rightSample + rightDiff));
           data.setInt16(wpos, leftSample, true);
           data.setInt16(wpos + 2, rightSample, true);
           wpos += 4;
-          if (--sampleCount === 0) break stereoLoop;
-          leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftCode]));
-          rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightCode]));
+          leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftDelta]));
+          rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightDelta]));
         }
       }
-    }
-    else {
-      var sample = this.readSWFBits(16, true);
-      data.setInt16(wpos, sample, true);
-      wpos += 2;
-      var stepIndex = this.readSWFBits(6);
-      var step = ADPCM_STEP_SIZE[stepIndex];
-      if (--sampleCount > 0) for (;;) {
-        var delta = this.readSWFBits(codeSize);
-        stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
-        var diff = step >> (codeSize-1);
-        for (var c_i = codeSize-2; c_i >= 0; c_i--) {
-          if (delta & (1 << c_i)) diff += step >> (codeSize-c_i-2);
-        }
-        if (delta & (1 << (codeSize-1))) diff = -diff;
-        sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
+      else {
+        var sample = this.readSWFBits(16, true);
         data.setInt16(wpos, sample, true);
         wpos += 2;
-        if (--sampleCount === 0) break;
-        step = ADPCM_STEP_SIZE[stepIndex];
+        var stepIndex = this.readSWFBits(6);
+        var step = ADPCM_STEP_SIZE[stepIndex];
+        const stopAt = Math.max(0, sampleCount - 4097);
+        while (--sampleCount > stopAt) {
+          var delta = this.readSWFBits(codeSize);
+          stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
+          var diff = step >> (codeSize-1);
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (delta & (1 << c_i)) diff += step >> (codeSize-c_i-2);
+          }
+          if (delta & (1 << (codeSize-1))) diff = -diff;
+          sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
+          data.setInt16(wpos, sample, true);
+          wpos += 2;
+          step = ADPCM_STEP_SIZE[stepIndex];
+        }
       }
     }
     return new Blob(parts, {type:'audio/x-wav'});
