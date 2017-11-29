@@ -670,7 +670,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             sound.file = new File([data], id + '.mp3', {type:'audio/mpeg'});
           }
           else if (sound.format === 'adpcm') {
-            sound.file = source.readSWFSoundADPCM(sound.sampleCount, sound.hz, sound.channels);
+            sound.file = data.readSWFSoundADPCM(sound.sampleCount, sound.hz, sound.channels);
           }
           else {
             console.log('unsupported sound format');
