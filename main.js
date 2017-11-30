@@ -162,24 +162,30 @@ function(
       onjpegtables: function(tables) {
         jpegTables = tables.slice(0, -2);
       },
-      onopenmovie: function() {
-        this.streamTarget = this;
-      },
-      onclosemovie: function() {
-        if (this.stream) {
-          this.onclosestream();
+      onopen: function(what) {
+        switch (what) {
+          case 'movie':
+            this.streamTarget = this;
+            break;
+          case 'sprite':
+            this.streamTarget = this.currentSprite = {};
+            break;
         }
-        delete this.streamTarget;
       },
-      onopensprite: function() {
-        this.streamTarget = this.currentSprite = {};
-      },
-      onclosesprite: function() {
-        if (this.currentSprite.stream) {
-          this.onclosestream();
+      onclose: function(what) {
+        switch (what) {
+          case 'movie':
+            if (this.stream) {
+              this.onclosestream();
+            }
+            break;
+          case 'sprite':
+            if (this.currentSprite.stream) {
+              this.onclosestream();
+            }
+            this.streamTarget = this;
+            break;
         }
-        this.streamTarget = this;
-        delete this.currentSprite;
       },
       oninitstream: function(stream) {
         var target = this.streamTarget;
