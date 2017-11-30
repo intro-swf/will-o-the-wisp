@@ -99,10 +99,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     onopenframe: NULLFUNC,
     oncloseframe: NULLFUNC,
     
-    // .stream
-    // .playback
-    onopenstream: NULLFUNC,
-    onclosestream: NULLFUNC,
+    // oninitstream(format)
+    oninitstream: NULLFUNC,
     
     // .spriteID <int>
     // .spriteFrameCount <int>
@@ -180,11 +178,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               break frameLoop;
             case TAG_SOUND_STREAM_HEAD:
             case TAG_SOUND_STREAM_HEAD_2:
-              if (this.stream) this.onclosestream();
               var streamSource = source.readSubarray(this.chunkLength);
-              this.stream = streamSource.readSWFStreamHead();
+              var stream = streamSource.readSWFStreamHead();
               streamSource.warnIfMore();
-              this.onopenstream();
+              this.oninitstream(stream);
               continue frameLoop;
             case TAG_SOUND_STREAM_BLOCK:
               this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.stream);
@@ -201,9 +198,6 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             break endLoop;
           default:
             throw new Error('unexpected data after final frame');
-        }
-        if (this.stream) {
-          this.onclosestream();
         }
         var result = this.onclosemovie();
         return Promise.resolve(result);
@@ -907,11 +901,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 continue frameLoop;
               case TAG_SOUND_STREAM_HEAD:
               case TAG_SOUND_STREAM_HEAD_2:
-                if (this.spriteStream) this.onclosestream();
                 var streamSource = source.readSubarray(this.chunkLength);
-                this.spriteStream = streamSource.readSWFStreamHead();
+                var spriteStream = streamSource.readSWFStreamHead();
                 streamSource.warnIfMore();
-                this.onopenstream();
+                this.oninitstream(spriteStream);
                 continue frameLoop;
               case TAG_SOUND_STREAM_BLOCK:
                 this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.spriteStream);
@@ -928,10 +921,6 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               break endLoop;
             default:
               throw new Error('sprite '+this.spriteID+': unexpected data after final frame');
-          }
-          if (this.spriteStream) {
-            this.onclosespritestream();
-            delete this.spriteStream;
           }
           this.onclosesprite();
           break;
