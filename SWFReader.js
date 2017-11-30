@@ -77,13 +77,23 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     if (init) Object.assign(this, init);
   }
   SWFReader.prototype = {
+    // onopen('movie'):
     // .version <int>
     // .compressed <boolean>
     // .frameBounds <SWFRect>
     // .framesPerSecond <float>
     // .frameCount <int>
     // .uncompressedFileSize <int>
-    onopenmovie: NULLFUNC,
+    // onopen('frame')
+    // .frameNumber
+    // onopen('sprite')
+    // .spriteID
+    // .spriteFrameCount
+    onopen: NULLFUNC,
+    // onclose('movie'): return value is Promise result
+    // onclose('frame')
+    // onclose('sprite')
+    onclose: NULLFUNC,
     
     // .useNetwork <bool>
     // .useSWFRelativeURLs <bool>
@@ -92,24 +102,8 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     // .hasMetadata <bool>
     onfileattributes: NULLFUNC,
     
-    // return value is Promise result
-    onclosemovie: NULLFUNC,
-    
-    // .frameNumber <int>
-    onopenframe: NULLFUNC,
-    oncloseframe: NULLFUNC,
-    
     // oninitstream(format)
     oninitstream: NULLFUNC,
-    
-    // .spriteID <int>
-    // .spriteFrameCount <int>
-    onopensprite: NULLFUNC,
-    onclosesprite: NULLFUNC,
-    
-    // .spriteFrameNumber <int>
-    onopenspriteframe: NULLFUNC,
-    onclosespriteframe: NULLFUNC,
     
     // ondefine(id <int>, type <string>, def <Object>)
     ondefine: NULLFUNC,
@@ -165,10 +159,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           }
         }
         this.onrawfileheader(source);
-        this.onopenmovie();
+        this.onopen('movie');
         for (var i = 0; i < this.frameCount; i++) {
           this.frameNumber = i;
-          this.onopenframe();
+          this.onopen('frame');
           var chunkType;
           frameLoop: for (;;) switch (chunkType = this.onrawtag(source)) {
             case TAG_END:
@@ -190,7 +184,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               this.onrawchunk(chunkType, source.readSubarray(this.chunkLength));
               continue frameLoop;
           }
-          this.oncloseframe();
+          this.onclose('frame');
         }
         endLoop: for (;;) switch (this.onrawtag(source)) {
           case TAG_END:
@@ -199,7 +193,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           default:
             throw new Error('unexpected data after final frame');
         }
-        var result = this.onclosemovie();
+        var result = this.onclose('movie');
         return Promise.resolve(result);
       }
       catch (e) {
@@ -877,10 +871,10 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
         case TAG_DEFINE_SPRITE:
           this.spriteID = source.readUint16LE();
           this.spriteFrameCount = source.readUint16LE();
-          this.onopensprite();
+          this.onopen('sprite');
           for (var j = 0; j < this.spriteFrameCount; j++) {
             this.spriteFrameNumber = j;
-            this.onopenspriteframe();
+            this.onopen('frame');
             var subChunkType;
             frameLoop: for (;;) switch (subChunkType = this.onrawtag(source)) {
               case TAG_END:
@@ -913,7 +907,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 throw new Error(
                 'sprite '+this.spriteID+': invalid sprite chunk type ('+this.chunkType+')');
             }
-            this.onclosespriteframe();
+            this.onclose('frame');
           }
           endLoop: for (;;) switch (this.onrawtag(source)) {
             case TAG_END:
@@ -922,7 +916,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             default:
               throw new Error('sprite '+this.spriteID+': unexpected data after final frame');
           }
-          this.onclosesprite();
+          this.onclose('sprite');
           break;
         case TAG_FRAME_LABEL:
           this.onframelabel(source.readByteString('\0'));
