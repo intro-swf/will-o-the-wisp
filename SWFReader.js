@@ -113,11 +113,6 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
     onopenspriteframe: NULLFUNC,
     onclosespriteframe: NULLFUNC,
     
-    // .spriteStream
-    // .spritePlayback
-    onopenspritestream: NULLFUNC,
-    onclosespritestream: NULLFUNC,
-    
     // ondefine(id <int>, type <string>, def <Object>)
     ondefine: NULLFUNC,
     // onupdate(id <int>, def <Object>)
@@ -912,11 +907,11 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
                 continue frameLoop;
               case TAG_SOUND_STREAM_HEAD:
               case TAG_SOUND_STREAM_HEAD_2:
-                if (this.spriteStream) this.onclosespritestream();
+                if (this.spriteStream) this.onclosestream();
                 var streamSource = source.readSubarray(this.chunkLength);
                 this.spriteStream = streamSource.readSWFStreamHead();
                 streamSource.warnIfMore();
-                this.onopenspritestream();
+                this.onopenstream();
                 continue frameLoop;
               case TAG_SOUND_STREAM_BLOCK:
                 this.onrawstreamchunk(source.readSubarray(this.chunkLength), this.spriteStream);
