@@ -162,16 +162,29 @@ function(
       onjpegtables: function(tables) {
         jpegTables = tables.slice(0, -2);
       },
+      onopenmovie: function() {
+        this.streamTarget = this;
+      },
+      onclosemovie: function() {
+        if (this.stream) {
+          this.onclosestream();
+        }
+        delete this.streamTarget;
+      },
       onopensprite: function() {
         this.streamTarget = this.currentSprite = {};
       },
       onclosesprite: function() {
+        if (this.currentSprite.stream) {
+          this.onclosestream();
+        }
         this.streamTarget = this;
         delete this.currentSprite;
       },
-      onopenstream: function() {
+      oninitstream: function(stream) {
         var target = this.streamTarget;
-        var stream = target.stream;
+        if (target.stream) this.onclosestream();
+        target.stream = stream;
         var audioEl = target.streamAudioEl = document.createElement('AUDIO');
         audioEl.controls = true;
         document.body.appendChild(audioEl);
