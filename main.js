@@ -165,9 +165,6 @@ function(
       onopensprite: function() {
         this.streamTarget = this.currentSprite = {};
       },
-      onopenspritestream: function() {
-        this.currentSprite.stream = this.spriteStream;
-      },
       onclosesprite: function() {
         this.streamTarget = this;
         delete this.currentSprite;
