@@ -173,12 +173,12 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
             case TAG_SOUND_STREAM_HEAD:
             case TAG_SOUND_STREAM_HEAD_2:
               var streamSource = source.readSubarray(this.chunkLength);
-              var stream = this._stream = streamSource.readSWFStreamHead();
+              var stream = this._movieStream = streamSource.readSWFStreamHead();
               streamSource.warnIfMore();
               this.oninitstream(stream);
               continue frameLoop;
             case TAG_SOUND_STREAM_BLOCK:
-              this.onrawstreamchunk(source.readSubarray(this.chunkLength), this._stream);
+              this.onrawstreamchunk(source.readSubarray(this.chunkLength), this._movieStream);
               continue frameLoop;
             default:
               this.onrawchunk(chunkType, source.readSubarray(this.chunkLength));
@@ -896,12 +896,12 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
               case TAG_SOUND_STREAM_HEAD:
               case TAG_SOUND_STREAM_HEAD_2:
                 var streamSource = source.readSubarray(this.chunkLength);
-                var spriteStream = this._stream = streamSource.readSWFStreamHead();
+                var spriteStream = this._spriteStream = streamSource.readSWFStreamHead();
                 streamSource.warnIfMore();
                 this.oninitstream(spriteStream);
                 continue frameLoop;
               case TAG_SOUND_STREAM_BLOCK:
-                this.onrawstreamchunk(source.readSubarray(this.chunkLength), this._stream);
+                this.onrawstreamchunk(source.readSubarray(this.chunkLength), this._spriteStream);
                 continue frameLoop;
               default:
                 throw new Error(
@@ -945,8 +945,7 @@ define(['dataExtensions!', 'z!'], function(dataExtensions, zlib) {
           break;
       }
     },
-    onrawstreamchunk: function(source) {
-      var stream = this._stream;
+    onrawstreamchunk: function(source, stream) {
       switch (stream.format) {
         case 'mp3':
           var sampleCount = source.readUint16LE();
