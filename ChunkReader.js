@@ -43,7 +43,7 @@ define(function() {
               result = callback(chunk[offset], chunk[offset+1], chunk[offset+2], chunk[offset+3]);
               break;
             default:
-              result = callback.apply(null, chunk.subarray(offset, offset+n);
+              result = callback.apply(null, chunk.subarray(offset, offset+n));
               break;
           }
           offset += n;
