@@ -522,9 +522,11 @@ function(
 else require([
   'domReady!' // use domReady.js plugin to require DOM readiness
   ,'SWFDecoderClient'
+  ,'DisplayListTimeline'
 ], function(
   _ // domReady
   ,SWFDecoderClient
+  ,DisplayListTimeline
 ) {
   
   'use strict';
@@ -544,12 +546,14 @@ else require([
       client.close();
     }
     var movie = document.getElementById('movie');
+    movie.timeline = new DisplayListTimeline;
     client = new SWFDecoderClient;
     client.onframeset = function onframeset(frameset) {
       var parts = frameset.bounds.split(/ /g);
       movie.setAttribute('viewBox', frameset.bounds);
       movie.setAttribute('width', (parts[2] - parts[0]) / 20);
       movie.setAttribute('height', (parts[3] - parts[1]) / 20);
+      movie.timeline.frameCount = frameset.count;
       console.log('frameset', frameset);
     };
     client.onframe = function onframe(frame) {
