@@ -172,6 +172,44 @@ define(function() {
         return self.chunks.shift();
       });
     },
+    fromURL: function(url) {
+      var chunkReader = this;
+      if ('Response' in self && 'body' in Response.prototype) {
+        fetch(url).then(function(response) {
+          var reader = response.body.getReader();
+          function onchunk(chunk) {
+            if (chunk.done) {
+              //self.close();
+              return;
+            }
+            chunkReader.append(chunk.value);
+            reader.read().then(onchunk);
+          }
+          return reader.read().then(onchunk);
+        });
+      }
+      else {
+        var xhr = new XMLHttpRequest;
+        xhr.open('GET', url, false);
+        xhr.responseType = 'moz-chunked-arraybuffer';
+        if (xhr.responseType === 'moz-chunked-arraybuffer') {
+          xhr.onprogress = function(e) {
+            chunkReader.append(new Uint8Array(this.response));
+          };
+          xhr.onload = function(e) {
+            //self.close();
+          };
+        }
+        else {
+          xhr.responseType = 'arraybuffer';
+          xhr.onload = function(e) {
+            chunkReader.append(new Uint8Array(this.response));
+            //self.close();
+          };
+        }
+        xhr.send();
+      }      
+    },
   };
 
   return ChunkReader;
