@@ -545,6 +545,12 @@ else require([
       client.close();
     }
     client = new SWFDecoderClient;
+    client.onframeset = function onframeset(frameset) {
+      console.log('frameset', frameset);
+    };
+    client.onframe = function onframe(frame) {
+      console.log('frame', frame);
+    };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
   
