@@ -240,7 +240,7 @@ define(function() {
           exportSymbol: exportSymbol,
           def: def,
         },
-      });
+      }));
     },
     
     onurldependency: function(dependingURL, dependedOnURL) {
