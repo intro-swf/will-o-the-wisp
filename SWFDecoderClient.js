@@ -298,7 +298,7 @@ define(function() {
     
     // internal methods for client/worker communication
     gotmessage: function(e) {
-      const messages = JSON.decode(e.data);
+      const messages = JSON.parse(e.data);
       var message;
       for (var i = 0; i < messages.length; i++) {
         switch ((message = messages[i])[0]) {
