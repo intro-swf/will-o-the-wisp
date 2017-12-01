@@ -55,7 +55,7 @@ function readSWF(input) {
       var typeCode = b >>> 6;
       var len = b & 0x3F;
       if (len < 0x3F) {
-        return input.getUint8Array(len).then(function(data) {
+        return input.gotUint8Array(len).then(function(data) {
           return readChunk(typeCode, data);
         });
       }
