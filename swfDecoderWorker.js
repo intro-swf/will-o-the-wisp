@@ -69,7 +69,7 @@ Object.assign(ChunkReader.prototype, {
     })
     .then(function(b) {
       rect.bottom = b;
-      reader.flushSWFBits();
+      reader.flushBits();
       return rect;
     });
   },
