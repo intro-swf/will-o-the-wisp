@@ -56,14 +56,14 @@ function readSWF(input) {
       var len = b & 0x3F;
       if (len < 0x3F) {
         return input.gotUint8Array(len).then(function(data) {
-          return readChunk(typeCode, data);
+          return processChunk(typeCode, data);
         });
       }
       return input.gotUint16().then(function(len) {
         return input.readUint8Array(len);
       })
       .then(function(data) {
-        return readChunk(typeCode, data);
+        return processhunk(typeCode, data);
       });
     });
   }
