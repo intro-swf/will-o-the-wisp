@@ -27,7 +27,7 @@ require(['ChunkReader'], function(ChunkReader) {
         frameCount = count;
         postMessage(JSON.stringify([['init', {
           v: version,
-          bounds: frameBounds,
+          bounds: frameBounds.toString(),
           count: frameCount,
           rate: framesPerSecond,
         }]]));
@@ -50,6 +50,52 @@ require(['ChunkReader'], function(ChunkReader) {
       }
     }
   };
-
+  
+  Object.assign(ChunkReader.prototype, {
+    gotSWFRect: function() {
+      const reader = this, rect = new SWFRect;
+      var coordBits;
+      return this.gotTopBits(5).then(function(b) {
+        coordBits = b;
+        return this.gotTopBits(coordBits, true);
+      })
+      .then(function(b) {
+        rect.left = b;
+        return this.gotTopBits(coordBits, true);
+      })
+      .then(function(b) {
+        rect.right = b;
+        return this.gotTopBits(coordBits, true);
+      })
+      .then(function(b) {
+        rect.top = b;
+        return this.gotTopBits(coordBits, true);
+      })
+      .then(function(b) {
+        rect.bottom = b;
+        reader.flushSWFBits();
+        return rect;
+      });
+    },
+  });
+  
+  function SWFRect() {
+  }
+  SWFRect.prototype = {
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    get width() { return this.right - this.left; },
+    get height() { return this.bottom - this.top; },
+    isEqualTo: function(r) {
+      if (this === r) return true;
+      return this.left === r.left && this.top === r.top
+          && this.right === r.right && this.bottom === r.bottom;
+    },
+    toString: function() {
+      return [this.left, this.top, this.right, this.bottom].join(' ');
+    },
+  };
 });
 
