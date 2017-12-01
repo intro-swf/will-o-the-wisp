@@ -33,7 +33,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
       v++;
       var i = this.changes.length-1;
       this.changes[i].frame = v;
-      while (i >= 0 && this.changes[i].frame >= v) {
+      while (i > 0 && this.changes[i].frame >= v) {
         i--;
       }
       this.changes.splice(i, this.changes.length-1-i);
