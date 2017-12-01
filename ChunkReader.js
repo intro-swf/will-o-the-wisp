@@ -172,6 +172,40 @@ define(function() {
         return self.chunks.shift();
       });
     },
+    bitBuf: 0, bitBufSize: 0,
+    flushBits: function() {
+      this.bitBufSize = 0;
+    },
+    gotTopBits: function(n, signed) {
+      if (n <= this.bitBufSize) {
+        var value;
+        if (signed) {
+          value = this.bitBuf << (32-this.bitBufSize) >> (32-n);
+        }
+        else {
+          value = this.bitBuf << (32-this.bitBufSize) >>> (32-n);
+        }
+        this.bitBufSize -= n;
+        return Promise.resolve(value);
+      }
+      var reader = this;
+      function pullByte(b) {
+        reader.bitBuf = (reader.bitBuf << 8) | b;
+        if ((reader.bitBufSize += 8) >= n) {
+          var value;
+          if (signed) {
+            value = reader.bitBuf << (32-reader.bitBufSize) >> (32-n);
+          }
+          else {
+            value = reader.bitBuf << (32-reader.bitBufSize) >>> (32-n);
+          }
+          reader.bitBufSize -= n;
+          return value;
+        }
+        return reader.gotUint8().then(pullByte);
+      }
+      return this.gotUint8().then(pullByte);
+    },
     fromURL: function(url) {
       var chunkReader = this;
       if ('Response' in self && 'body' in Response.prototype) {
