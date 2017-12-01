@@ -124,50 +124,39 @@ ChunkReader.prototype = {
   },
   gotUint8Array: function(n) {
     return this.whenAvailable(n).then(function(reader) {
-      var i = reader.readIndex, offset = reader.readOffset;
+      reader.available -= n;
+      var i = reader.readIndex, readOffset = reader.readOffset;
       var chunk = reader.chunks[i];
-      var endOffset = offset + n;
+      var endOffset = readOffset + n;
       if (endOffset > chunk.length) {
         var bytes = new Uint8Array(n);
-        var offset = 0;
-        chunk = chunk.subarray(offset);
+        chunk = chunk.subarray(readOffset);
+        var copyOffset = 0;
         do {
-          bytes.set(chunk, offset);
+          bytes.set(chunk, copyOffset);
           chunk = reader.chunks[++i];
-          offset = 0;
           if (chunk.length > n) {
-            bytes.set(chunk.subarray(0, n), offset);
-            offset += n;
+            bytes.set(chunk.subarray(0, n), copyOffset);
+            readOffset = n;
             break;
+          }
+          else {
+            readOffset = 0;
           }
           n -= chunk.length;
-          reader.available -= chunk.length;
+          copyOffset += chunk.length;
         } while (n > 0);
         reader.readIndex = i;
+        reader.readOffset = readOffset;
         return bytes;
       }
-      if (endOffset < chunk.byteLength) {
+      if (endOffset < chunk.length) {
         reader.readOffset = endOffset;
-        return chunk.subarray(offset, endOffset);
+        return chunk.subarray(readOffset, endOffset);
       }
-      if ((offset + n) > reader.chunks[i].byteLength) {
-        var bytes = new Uint8Array(n);
-        var offset = 0;
-        do {
-          var reader = self.chunks.shift();
-          bytes.set(offset, chunk);
-          self.chunks.byteLength -= chunk.byteLength;
-          offset += chunk.byteLength;
-          n -= chunk.byteLength;
-          if (self.chunks[0].byteLength > n) {
-            bytes.set(self.chunks[0].subarray(0, n), offset);
-            self.chunks[0] = self.chunks[0].subarray(n);
-            break;
-          }
-        } while (n > 0);
-        return bytes;
-      }
-      return self.chunks.shift();
+      reader.readIndex = i+1;
+      reader.readOffset = 0;
+      return chunk.subarray(readOffset);
     });
   },
   bitBuf: 0, bitBufSize: 0,
