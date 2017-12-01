@@ -53,19 +53,19 @@ Object.assign(ChunkReader.prototype, {
     var coordBits;
     return this.gotTopBits(5).then(function(b) {
       coordBits = b;
-      return this.gotTopBits(coordBits, true);
+      return reader.gotTopBits(coordBits, true);
     })
     .then(function(b) {
       rect.left = b;
-      return this.gotTopBits(coordBits, true);
+      return reader.gotTopBits(coordBits, true);
     })
     .then(function(b) {
       rect.right = b;
-      return this.gotTopBits(coordBits, true);
+      return reader.gotTopBits(coordBits, true);
     })
     .then(function(b) {
       rect.top = b;
-      return this.gotTopBits(coordBits, true);
+      return reader.gotTopBits(coordBits, true);
     })
     .then(function(b) {
       rect.bottom = b;
