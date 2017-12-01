@@ -41,6 +41,9 @@ define(['arrayExtensions'], function(arrayExtensions) {
     get frameCount() {
       return this.lastFrame + 1 - this.firstFrame;
     },
+    set frameCount(n) {
+      this.lastFrame = this.firstFrame + n - 1;
+    },
     get displayObject() {
       for (var i = 0; i < this.changes.length; i++) {
         if (this.changes[i].settingName === 'displayObject') {
@@ -56,7 +59,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
 
   function DisplayListTimeline() {
     this._selfSlot = new DisplayListSlot(0, this, -1);
-    this._selfSlot.setAt(1, 'displayObject', null);
+    this._selfSlot.frameCount = 1;
     this._allSlots = [this._selfSlot];
     this._writeHeadSlots = [];
     this.eventTarget = self;
