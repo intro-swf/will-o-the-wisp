@@ -306,7 +306,7 @@ define(function() {
             this.onframeset(message[1]);
             break;
           case 'dep':
-            for (var i_dep = 3; i_dep < message.length) {
+            for (var i_dep = 3; i_dep < message.length; i_dep++) {
               this.onurldependency(message[2], message[i_dep]);
             }
             break;
