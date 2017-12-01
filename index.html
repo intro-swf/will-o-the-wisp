@@ -5,6 +5,17 @@
     <title>Will o' the Wisp</title>
     <script src='require.js' data-main='main.js'></script>
     <style>
+      body {
+        background: #000;
+        overflow: hidden;
+      }
+      svg.movie {
+        outline: 1px solid #444;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
       image.hard-edges {
         -ms-interpolation-mode: nearest-neighbor;
         image-rendering: optimizeSpeed;
@@ -16,5 +27,7 @@
     </style>
   </head>
   <body>
+    <svg id='movie'>
+    </svg>
   </body>
 </html>
