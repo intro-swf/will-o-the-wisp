@@ -68,12 +68,12 @@ define(['arrayExtensions'], function(arrayExtensions) {
 
     get frameCount() { return this._selfSlot.frameCount; },
     set frameCount(n) {
-      var oldValue = this._selfSlot.lastFrame;
+      var oldValue = this._selfSlot.frameCount;
       if (oldValue === n) return;
       if (isNaN(n) || n <= 0 || !isFinite(n) || n !== Math.floor(n)) {
         throw new TypeError('invalid frame count');
       }
-      this._selfSlot.lastFrame = n;
+      this._selfSlot.frameCount = n;
       this.readyFrameCount = Math.min(this.readyFrameCount, n);
       this.writeHead = Math.min(this.writeHead, n-1);
       this.eventTarget.dispatchEvent(new CustomEvent('timeline-change', {
