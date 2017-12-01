@@ -17,7 +17,7 @@ function readSWF(input) {
     })
     .then(function(fps) {
       framesPerSecond = fps / 0x100;
-      return input.getUint16LE();
+      return input.gotUint16LE();
     })
     .then(function(count) {
       frameCount = count;
