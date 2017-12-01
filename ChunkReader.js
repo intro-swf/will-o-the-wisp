@@ -8,6 +8,7 @@ ChunkReader.prototype = {
   readOffset: 0,
   append: function(chunk) {
     this.chunks.push(chunk);
+    this.available += chunk.length;
     self.dispatchEvent(new CustomEvent('chunkupdate', {detail:this}));
   },
   whenAvailable: function(n) {
