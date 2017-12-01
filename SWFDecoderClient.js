@@ -272,7 +272,7 @@ define(function() {
       if (this.worker) {
         throw new Error('client already running');
       }
-      this.url = url = new URL(url).toString(); // make absolute
+      this.url = url = new URL(url, location.href).toString(); // make absolute
       this.worker = new Worker('swfDecoderWorker.js');
       this.worker.onmessage = this.gotmessage.bind(this);
       this.worker.onerror = this.goterror.bind(this);
@@ -283,7 +283,7 @@ define(function() {
       if (this.worker) {
         throw new Error('client already running');
       }
-      this.url = url = new URL(url).toString(); // make absolute
+      this.url = url = new URL(url, location.href).toString(); // make absolute
       this.worker = new Worker('swfDecoderWorker.js');
       this.worker.onmessage = this.gotmessage.bind(this);
       this.worker.onerror = this.goterror.bind(this);
