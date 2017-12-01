@@ -134,6 +134,7 @@ ChunkReader.prototype = {
         var copyOffset = 0;
         do {
           bytes.set(chunk, copyOffset);
+          copyOffset += chunk.length;
           chunk = reader.chunks[++i];
           if (chunk.length > n) {
             bytes.set(chunk.subarray(0, n), copyOffset);
@@ -144,7 +145,6 @@ ChunkReader.prototype = {
             readOffset = 0;
           }
           n -= chunk.length;
-          copyOffset += chunk.length;
         } while (n > 0);
         reader.readIndex = i;
         reader.readOffset = readOffset;
