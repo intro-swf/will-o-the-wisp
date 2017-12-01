@@ -3,7 +3,7 @@ requirejs.config({
   waitSeconds: Infinity, // no timeout
 });
 
-require([
+if (0) require([
   'domReady!' // use domReady.js plugin to require DOM readiness
   ,'SWFReader'
   ,'OTFTable'
@@ -513,6 +513,39 @@ function(
       init_blob(this.response);
     };
     xhr.send();
+  }
+  
+  init_hash();
+  window.addEventListener('hashchange', init_hash);
+  
+})
+else require([
+  'domReady!' // use domReady.js plugin to require DOM readiness
+  ,'SWFDecoderClient'
+], function(
+  _ // domReady
+  ,SWFDecoderClient
+) {
+  
+  'use strict';
+  
+  var client;
+  
+  // function called when it's time to look at the location hash
+  // i.e. on page load and if/when the hash changes
+  function init_hash() {
+    const specifier = location.hash.match(/^#\/?([^\/]+)\/(.+)$/);
+    if (!specifier) {
+      return;
+    }
+    const item = specifier[1];
+    const path = specifier[2];
+    document.body.innerHTML = '';
+    if (client) {
+      client.close();
+    }
+    client = new SWFDecoderClient;
+    client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
   
   init_hash();
