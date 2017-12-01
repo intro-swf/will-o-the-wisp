@@ -2,7 +2,7 @@
 importScripts('require.js');
 
 self.onmessage = function onmessage(e) {
-  var message, messages = JSON.decode(e.data);
+  var message, messages = JSON.parse(e.data);
   for (var i_msg = 0; i_msg < messages.length; i_msg++) {
     switch ((message = messages[i_msg])[0]) {
       case 'open':
