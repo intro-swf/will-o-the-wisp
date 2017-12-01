@@ -63,7 +63,7 @@ function readSWF(input) {
         return input.readUint8Array(len);
       })
       .then(function(data) {
-        return processhunk(typeCode, data);
+        return processChunk(typeCode, data);
       });
     });
   }
@@ -71,7 +71,7 @@ function readSWF(input) {
     switch (typeCode) {
       case TAG_END: return;
       default:
-        console.log('unhandled tag: ' + typeCode);
+        console.log('unhandled tag: ' + typeCode, data);
         break;
     }
     return readChunkHeader();
