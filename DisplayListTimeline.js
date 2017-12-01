@@ -166,7 +166,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
 
     _playHead: 0,
     get playHead() { return this._playHead; },
-    set playHead() {
+    set playHead(n) {
       var oldValue = this._playHead;
       if (oldValue === n) return;
       if (isNaN(n) || n < 0 || n > this.frameCount || n !== Math.floor(n)) {
