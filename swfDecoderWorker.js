@@ -51,7 +51,7 @@ const TAG_END = 0
 
 function readSWF(input) {
   function readChunkHeader() {
-    return input.gotUint16().then(function(b) {
+    return input.gotUint16LE().then(function(b) {
       var typeCode = b >>> 6;
       var len = b & 0x3F;
       if (len < 0x3F) {
