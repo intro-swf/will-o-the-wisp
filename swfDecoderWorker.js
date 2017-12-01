@@ -10,7 +10,7 @@ self.onmessage = function onmessage(e) {
         postMessage(JSON.stringify([
           ['init', {count:1, rate:12, bounds:'0 0 200 200'}],
           ['f'],
-        ]);
+        ]));
         break;
       // case 'import':
       default:
