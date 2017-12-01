@@ -62,7 +62,7 @@ function readSWF(input) {
           return processChunk(typeCode, data);
         });
       }
-      return input.gotUint16().then(function(len) {
+      return input.gotUint32LE().then(function(len) {
         return input.readUint8Array(len);
       })
       .then(function(data) {
