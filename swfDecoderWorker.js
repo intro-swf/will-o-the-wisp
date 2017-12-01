@@ -1,7 +1,81 @@
 
 importScripts('ChunkReader.js');
 
+const TAG_END = 0
+  ,TAG_SHOW_FRAME = 1
+  ,TAG_DEFINE_SHAPE = 2
+    ,TAG_DEFINE_SHAPE_2 = 22
+    ,TAG_DEFINE_SHAPE_3 = 32
+    ,TAG_DEFINE_SHAPE_4 = 83
+  ,TAG_PLACE_OBJECT = 4
+    ,TAG_PLACE_OBJECT_2 = 26
+  ,TAG_REMOVE_OBJECT = 5
+    ,TAG_REMOVE_OBJECT_2 = 28
+  // DEFINE_BITS tags always use long length?
+  ,TAG_DEFINE_BITS = 6
+    ,TAG_DEFINE_BITS_2 = 21
+    ,TAG_DEFINE_BITS_3 = 35
+    ,TAG_DEFINE_BITS_4 = 90
+    ,TAG_DEFINE_BITS_LOSSLESS = 20
+    ,TAG_DEFINE_BITS_LOSSLESS_2 = 36
+  ,TAG_DEFINE_BUTTON = 7
+    ,TAG_DEFINE_BUTTON_2 = 34
+  ,TAG_JPEG_TABLES = 8
+  ,TAG_SET_BACKGROUND_COLOR = 9
+  ,TAG_DEFINE_FONT = 10
+    ,TAG_DEFINE_FONT_2 = 48
+    ,TAG_DEFINE_FONT_INFO = 13
+    ,TAG_DEFINE_FONT_INFO_2 = 62
+    ,TAG_DEFINE_FONT_NAME = 88
+  ,TAG_DEFINE_TEXT = 11
+    ,TAG_DEFINE_TEXT_2 = 33
+  ,TAG_DO_ACTION = 12
+  ,TAG_DEFINE_SOUND = 14
+  ,TAG_PLAY_SOUND = 15
+  ,TAG_DEFINE_BUTTON_SOUND = 17
+  ,TAG_SOUND_STREAM_HEAD = 18
+    ,TAG_SOUND_STREAM_HEAD_2 = 45
+  ,TAG_SOUND_STREAM_BLOCK = 19
+  ,TAG_PROTECT = 24
+    ,TAG_ENABLE_DEBUGGER = 58
+    ,TAG_ENABLE_DEBUGGER_2 = 64
+  ,TAG_DEFINE_EDIT_TEXT = 37
+  ,TAG_DEFINE_SPRITE = 39
+  ,TAG_FRAME_LABEL = 43
+  ,TAG_DEFINE_MORPH_SHAPE = 46
+  ,TAG_FILE_ATTRIBUTES = 69
+  ,TAG_DEFINE_SCALING_GRID = 78
+  ,TAG_EXPORT = 56
+  ,TAG_DEBUG_ID = 63
+;
+
 function readSWF(input) {
+  function readChunkHeader() {
+    return input.gotUint8().then(function(b) {
+      var typeCode = b >>> 6;
+      var len = b & 0x3F;
+      if (len < 0x3F) {
+        return input.getUint8Array(len).then(function(data) {
+          return readChunk(typeCode, data);
+        });
+      }
+      return input.gotUint16().then(function(len) {
+        return input.readUint8Array(len);
+      })
+      .then(function(data) {
+        return readChunk(typeCode, data);
+      });
+    });
+  }
+  function processChunk(typeCode, data) {
+    switch (typeCode) {
+      case TAG_END: return;
+      default:
+        console.log('unhandled tag: ' + typeCode);
+        break;
+    }
+    return readChunkHeader();
+  }
   input.gotUint8Array(8).then(function(bytes) {
     switch (String.fromCharCode(bytes[0], bytes[1], bytes[2])) {
       case 'CWS': input = input.makeInflateReader(); break;
@@ -27,6 +101,7 @@ function readSWF(input) {
         count: frameCount,
         rate: framesPerSecond,
       }]]));
+      return readChunkHeader();
     });
   });
 }
