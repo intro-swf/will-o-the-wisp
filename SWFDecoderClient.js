@@ -320,7 +320,7 @@ define(function() {
               frame.count = message[i_update++];
             }
             while (i_update < message.length) {
-              var part = message[i++_update];
+              var part = message[i_update++];
               switch (part[0]) {
                 case 'i':
                   var insertion = new InsertUpdate;
