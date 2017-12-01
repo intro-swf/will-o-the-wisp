@@ -540,12 +540,16 @@ else require([
     }
     const item = specifier[1];
     const path = specifier[2];
-    document.body.innerHTML = '';
     if (client) {
       client.close();
     }
+    var movie = document.getElementById('movie');
     client = new SWFDecoderClient;
     client.onframeset = function onframeset(frameset) {
+      var parts = frameset.bounds.split(/ /g);
+      movie.setAttribute('viewBox', frameset.bounds);
+      movie.setAttribute('width', (parts[2] - parts[0]) / 20);
+      movie.setAttribute('height', (parts[3] - parts[1]) / 20);
       console.log('frameset', frameset);
     };
     client.onframe = function onframe(frame) {
