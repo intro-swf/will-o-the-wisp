@@ -2,7 +2,7 @@
 importScripts('ChunkReader.js');
 
 function readSWF(input) {
-  input.gotBytes(8).then(function(bytes) {
+  input.gotUint8Array(8).then(function(bytes) {
     switch (String.fromCharCode(bytes[0], bytes[1], bytes[2])) {
       case 'CWS': input = input.makeInflateReader(); break;
       case 'FWS': break;
