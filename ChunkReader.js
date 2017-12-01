@@ -16,7 +16,7 @@ ChunkReader.prototype = {
     return new Promise(function(resolve, reject) {
       self.addEventListener('chunkupdate', function onchunkupdate(e) {
         if (e.detail !== reader) return;
-        if (reader.totalLength >= n) {
+        if (reader.available >= n) {
           this.removeEventListener('chunkupdate', onchunkupdate);
           resolve(reader);
         }
