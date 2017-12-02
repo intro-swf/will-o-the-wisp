@@ -59,7 +59,7 @@ function readSWF(input) {
       f.count++;
       frameCount--;
     }
-    postMessage(JSON.stringify([f]));
+    //postMessage(JSON.stringify([f]));
   }
   function readChunkHeader() {
     return input.gotUint16LE().then(function(b) {
