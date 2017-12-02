@@ -127,36 +127,39 @@ ChunkReader.prototype = {
       reader.available -= n;
       var i = reader.readIndex, readOffset = reader.readOffset;
       var chunk = reader.chunks[i];
-      var endOffset = readOffset + n;
-      if (endOffset > chunk.length) {
-        var bytes = new Uint8Array(n);
-        chunk = chunk.subarray(readOffset);
-        var copyOffset = 0;
-        do {
-          bytes.set(chunk, copyOffset);
-          copyOffset += chunk.length;
-          chunk = reader.chunks[++i];
-          if (chunk.length > n) {
-            bytes.set(chunk.subarray(0, n), copyOffset);
-            readOffset = n;
-            break;
+      var chunkRemaining = chunk.length - readOffset;
+      if (chunkRemaining > n) {
+        reader.readOffset += n;
+        return chunk.subarray(readOffset, readOffset + n);
+      }
+      if (chunkRemaining === n) {
+        reader.readIndex = i+1;
+        reader.readOffset = 0;
+        return chunk.subarray(readOffset);
+      }
+      var bytes = new Uint8Array(n);
+      bytes.set(chunk.subarray(readOffset));
+      var copyOffset = chunkRemaining;
+      n -= chunkRemaining;
+      for (;;) {
+        chunk = reader.chunks[++i];
+        if (chunk.length >= n) {
+          if (chunk.length === n) {
+            bytes.set(chunk, copyOffset);
+            reader.readIndex = i + 1;
+            reader.readOffset = 0;
           }
           else {
-            readOffset = 0;
+            bytes.set(chunk.subarray(0, n), copyOffset);
+            reader.readIndex = i;
+            reader.readOffset = n;
           }
-          n -= chunk.length;
-        } while (n > 0);
-        reader.readIndex = i;
-        reader.readOffset = readOffset;
-        return bytes;
+          return bytes;
+        }
+        bytes.set(chunk, copyOffset);
+        n -= chunk.length;
+        copyOffset += chunk.length;
       }
-      if (endOffset < chunk.length) {
-        reader.readOffset = endOffset;
-        return chunk.subarray(readOffset, endOffset);
-      }
-      reader.readIndex = i+1;
-      reader.readOffset = 0;
-      return chunk.subarray(readOffset);
     });
   },
   bitBuf: 0, bitBufSize: 0,
