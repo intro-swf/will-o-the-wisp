@@ -557,7 +557,6 @@ else require([
       console.log('frameset', frameset);
     };
     client.onframe = function onframe(frame) {
-      console.log('frame', frame);
       movie.timeline.writeHead += frame.count;
     };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
