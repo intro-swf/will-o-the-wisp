@@ -85,7 +85,7 @@ ChunkReader.prototype = {
     var result = this.byteCallbackImmediate(n, callback);
     if (result !== null) return Promise.resolve(result);
     return this.whenAvailable(n)
-    .then(this.byteCallbackImmediate.bind(this, n, callback));
+    .then(this.byteCallbackImmediate.bind(this, n, callback, false));
   },
   gotUint8: function() {
     return this.byteCallback(1, function(byte) {
