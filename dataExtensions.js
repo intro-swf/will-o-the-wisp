@@ -1,4 +1,4 @@
-define(function() {
+define('dataExtensions', function() {
 
   'use strict';
   
