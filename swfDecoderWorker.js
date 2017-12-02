@@ -12,8 +12,6 @@ function(
   
   'use strict';
   
-  importScripts('ChunkReader.js');
-
   const TAG_END = 0
     ,TAG_SHOW_FRAME = 1
     ,TAG_DEFINE_SHAPE = 2
