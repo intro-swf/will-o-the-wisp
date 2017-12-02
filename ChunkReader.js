@@ -206,8 +206,8 @@ ChunkReader.prototype = {
             //self.close();
             return;
           }
-          chunkReader.append(chunk.value);
           reader.read().then(onchunk);
+          chunkReader.append(chunk.value);
         }
         return reader.read().then(onchunk);
       });
