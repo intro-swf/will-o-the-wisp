@@ -1,4 +1,8 @@
 
+importScripts('require.js');
+
+require('dataExtensions');
+
 importScripts('ChunkReader.js');
 
 const TAG_END = 0
