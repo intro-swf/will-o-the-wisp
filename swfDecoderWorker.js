@@ -1,7 +1,14 @@
 
 importScripts('require.js');
 
-require(['dataExtensions'], function(_) {
+require([
+  'dataExtensions'
+  ,'ChunkReader'
+],
+function(
+  dataExtensions
+  ,ChunkReader
+) {
   
   'use strict';
   
