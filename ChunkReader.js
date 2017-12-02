@@ -24,53 +24,54 @@ ChunkReader.prototype = {
       });
     });
   },
+  byteCallbackImmediate: function(n, callback) {
+    if (this.available < n) return null;
+    var chunk = this.chunks[this.readIndex];
+    var offset = this.readOffset;
+    if (offset+n <= chunk.length) {
+      var result;
+      switch (n) {
+        case 1:
+          result = callback(chunk[offset]);
+          break;
+        case 2:
+          result = callback(chunk[offset], chunk[offset+1]);
+          break;
+        case 4:
+          result = callback(chunk[offset], chunk[offset+1], chunk[offset+2], chunk[offset+3]);
+          break;
+        default:
+          result = callback.apply(null, chunk.subarray(offset, offset+n));
+          break;
+      }
+      offset += n;
+      this.available -= n;
+      if (offset === chunk.length) {
+        this.readIndex++;
+        this.readOffset = 0;
+      }
+      else {
+        this.readOffset = offset;
+      }
+      return result;
+    }
+    var array = [];
+    while (array.length < n) {
+      array.push(chunk[offset++]);
+      while (offset === chunk.length) {
+        offset = 0;
+        chunk = this.chunks[++this.readIndex];
+      }
+    }
+    this.available -= n;
+    this.readOffset = offset;
+    return callback.apply(null, array);
+  },
   byteCallback: function(n, callback) {
-    function process(reader) {
-      var chunk = reader.chunks[reader.readIndex];
-      var offset = reader.readOffset;
-      if (offset+n <= chunk.length) {
-        var result;
-        switch (n) {
-          case 1:
-            result = callback(chunk[offset]);
-            break;
-          case 2:
-            result = callback(chunk[offset], chunk[offset+1]);
-            break;
-          case 4:
-            result = callback(chunk[offset], chunk[offset+1], chunk[offset+2], chunk[offset+3]);
-            break;
-          default:
-            result = callback.apply(null, chunk.subarray(offset, offset+n));
-            break;
-        }
-        offset += n;
-        reader.available -= n;
-        if (offset === chunk.length) {
-          reader.readIndex++;
-          reader.readOffset = 0;
-        }
-        else {
-          reader.readOffset = offset;
-        }
-        return result;
-      }
-      var array = [];
-      while (array.length < n) {
-        array.push(chunk[offset++]);
-        while (offset === chunk.length) {
-          offset = 0;
-          chunk = reader.chunks[++reader.readIndex];
-        }
-      }
-      reader.available -= n;
-      reader.readOffset = offset;
-      return callback.apply(null, array);
-    }
-    if (this.available >= n) {
-      return Promise.resolve(process(this));
-    }
-    return this.whenAvailable(n).then(process);
+    var result = this.byteCallbackImmediate(n, callback);
+    if (result !== null) return Promise.resolve(result);
+    return this.whenAvailable(n)
+    .then(this.byteCallbackImmediate.bind(this, n, callback));
   },
   gotUint8: function() {
     return this.byteCallback(1, function(byte) {
@@ -84,6 +85,11 @@ ChunkReader.prototype = {
   },
   gotUint16LE: function() {
     return this.byteCallback(2, function(lo, hi) {
+      return (hi << 8) | lo;
+    });
+  },
+  immediateUint16LE: function() {
+    return this.byteCallbackImmediate(2, function(lo, hi) {
       return (hi << 8) | lo;
     });
   },
