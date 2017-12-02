@@ -24,9 +24,10 @@ ChunkReader.prototype = {
       });
     });
   },
-  byteCallbackImmediate: function(n, callback) {
+  byteCallbackImmediate: function(n, callback, peek) {
     if (this.available < n) return null;
-    var chunk = this.chunks[this.readIndex];
+    var i_chunk = this.readIndex;
+    var chunk = this.chunks[i_chunk];
     var offset = this.readOffset;
     if (offset+n <= chunk.length) {
       var result;
@@ -44,14 +45,16 @@ ChunkReader.prototype = {
           result = callback.apply(null, chunk.subarray(offset, offset+n));
           break;
       }
-      offset += n;
-      this.available -= n;
-      if (offset === chunk.length) {
-        this.readIndex++;
-        this.readOffset = 0;
-      }
-      else {
-        this.readOffset = offset;
+      if (!peek) {
+        offset += n;
+        this.available -= n;
+        if (offset === chunk.length) {
+          this.readIndex = i_chunk + 1;
+          this.readOffset = 0;
+        }
+        else {
+          this.readOffset = offset;
+        }
       }
       return result;
     }
@@ -60,12 +63,23 @@ ChunkReader.prototype = {
       array.push(chunk[offset++]);
       while (offset === chunk.length) {
         offset = 0;
-        chunk = this.chunks[++this.readIndex];
+        chunk = this.chunks[++i_chunk];
       }
     }
-    this.available -= n;
-    this.readOffset = offset;
+    if (!peek) {
+      this.available -= n;
+      this.readIndex = i_chunk;
+      this.readOffset = offset;
+    }
     return callback.apply(null, array);
+  },
+  skipBytes: function(n) {
+    if (n > this.available) throw new Error('not enough data');
+    this.available -= n;
+    this.readOffset += n;
+    while (this.readOffset >= this.chunks[this.readIndex].length) {
+      this.readOffset -= this.chunks[this.readIndex++].length;
+    }
   },
   byteCallback: function(n, callback) {
     var result = this.byteCallbackImmediate(n, callback);
@@ -88,10 +102,10 @@ ChunkReader.prototype = {
       return (hi << 8) | lo;
     });
   },
-  immediateUint16LE: function() {
+  peekUint16LE: function() {
     return this.byteCallbackImmediate(2, function(lo, hi) {
       return (hi << 8) | lo;
-    });
+    }, true);
   },
   gotUint16BE: function() {
     return this.byteCallback(2, function(hi, lo) {
