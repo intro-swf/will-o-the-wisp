@@ -50,6 +50,11 @@ const TAG_END = 0
 ;
 
 function readSWF(input) {
+  var frameCount;
+  function showFrame() {
+    frameCount--;
+    postMessage(JSON.stringify([['f']]));
+  }
   function readChunkHeader() {
     return input.gotUint16LE().then(function(b) {
       var typeCode = b >>> 6;
@@ -72,9 +77,21 @@ function readSWF(input) {
   }
   function processChunk(typeCode, data) {
     switch (typeCode) {
-      case TAG_END: return;
+      case TAG_END:
+        if (frameCount > 0) {
+          if (frameCount === 1) {
+            showFrame();
+          }
+          else {
+            throw new Error('missing ' + frameCount + ' frames');
+          }
+        }
+        return;
+      case TAG_SHOW_FRAME:
+        showFrame();
+        break;
       default:
-        console.log('unhandled tag: ' + typeCode, data);
+        //console.log('unhandled tag: ' + typeCode, data);
         break;
     }
     return readChunkHeader();
@@ -87,7 +104,7 @@ function readSWF(input) {
     }
     var version = bytes[3];
     var uncompressedFileSize = new DataView(bytes.buffer, bytes.byteOffset+4, 4).getUint32(0, true);
-    var frameBounds, framesPerSecond, frameCount;
+    var frameBounds, framesPerSecond;
     return input.gotSWFRect().then(function(rect) {
       frameBounds = rect;
       return input.gotUint16LE();
