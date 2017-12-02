@@ -53,7 +53,13 @@ function readSWF(input) {
   var frameCount;
   function showFrame() {
     frameCount--;
-    postMessage(JSON.stringify([['f']]));
+    var f = new FrameInfo;
+    while (input.peekUint16LE() === 0x0040) {
+      input.skipBytes(2);
+      f.count++;
+      frameCount--;
+    }
+    postMessage(JSON.stringify([f]));
   }
   function readChunkHeader() {
     return input.gotUint16LE().then(function(b) {
@@ -189,3 +195,15 @@ SWFRect.prototype = {
   },
 };
 
+function FrameInfo() {
+}
+FrameInfo.prototype = {
+  count: 1,
+  toJSON: function() {
+    var json = ['f'];
+    if (this.count !== 1) {
+      json.push(this.count);
+    }
+    return json;
+  },
+};
