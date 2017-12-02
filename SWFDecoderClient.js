@@ -6,6 +6,7 @@ define(function() {
   
   function SWFDecoderClient() {
     this.dependingURLs = {};
+    this.send = this.send_queue;
   }
   SWFDecoderClient.prototype = {
     // onframeset(<frameset> = {
@@ -268,6 +269,13 @@ define(function() {
       this.dependingURLs = {};
     },
     
+    send_immediate: function(message) {
+      this.worker.postMessage('[' + JSON.stringify(message) + ']');
+    },
+    send_queue: function(message) {
+      if (!this.queue) this.queue = [];
+      this.queue.push(message);
+    },
     open: function(url) {
       if (this.worker) {
         throw new Error('client already running');
@@ -277,7 +285,7 @@ define(function() {
       this.worker.onmessage = this.gotmessage.bind(this);
       this.worker.onerror = this.goterror.bind(this);
       this.worker.onmessageerror = this.gotmessageerror.bind(this);
-      this.worker.postMessage(JSON.stringify([["open", url]]));
+      this.send(["open", url]);
     },
     openExports: function(url) {
       if (this.worker) {
@@ -288,7 +296,7 @@ define(function() {
       this.worker.onmessage = this.gotmessage.bind(this);
       this.worker.onerror = this.goterror.bind(this);
       this.worker.onmessageerror = this.gotmessageerror.bind(this);
-      this.worker.postMessage(JSON.stringify([["import", url]]));
+      this.send(["import", url]);
     },
     close: function() {
       this.worker.onmessage = null;
@@ -302,6 +310,13 @@ define(function() {
       var message;
       for (var i = 0; i < messages.length; i++) {
         switch ((message = messages[i])[0]) {
+          case 'ready':
+            if (this.queue) {
+              this.worker.postMessage(JSON.stringify(this.queue));
+              delete this.queue;
+            }
+            this.send = this.send_immediate;
+            break;
           case 'init':
             this.onframeset(message[1]);
             break;
