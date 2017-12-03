@@ -74,8 +74,10 @@ function(
         nextFrame.count++;
         frameCount--;
       }
-      self.postMessage(JSON.stringify([nextFrame]));
+      nextUpdates.push(nextFrame);
+      self.postMessage(JSON.stringify(nextUpdates));
       nextFrame = new FrameInfo;
+      nextUpdates.length = 0;
     }
     function readChunkHeader() {
       return input.gotUint16LE().then(function(b) {
