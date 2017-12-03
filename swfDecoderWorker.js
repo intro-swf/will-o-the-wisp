@@ -4,10 +4,12 @@ importScripts('require.js');
 require([
   'dataExtensions'
   ,'ChunkReader'
+  ,'MakeshiftXML'
 ],
 function(
   dataExtensions
   ,ChunkReader
+  ,MakeshiftXML
 ) {
   
   'use strict';
@@ -104,6 +106,12 @@ function(
             }
           }
           return;
+        case TAG_DEFINE_SHAPE:
+          var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
+          var g = svg.el('g', {id:3});
+          g.el('path', {d:'m0,0h50v50h-50v-50'});
+          console.log(svg.toString());
+          break;
         case TAG_SHOW_FRAME:
           showFrame();
           break;
