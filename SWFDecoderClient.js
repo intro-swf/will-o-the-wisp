@@ -327,7 +327,7 @@ define(function() {
             break;
           case 'btn':
             console.log(message);
-            break'
+            break;
           case 'f':
             var frame = new DecodedFrame;
             var i_update = 1;
