@@ -308,7 +308,7 @@ function(
         var a = NO_ALPHA ? 0 : this.readTopBits(valueBits, true);
         transform.add(r, g, b, a);
       }
-      this.flushSWFBits();
+      this.flushBits();
       return transform;
     },
     readSWFAction: function() {
@@ -350,7 +350,7 @@ function(
     },
     readSWFAudioFormat: function() {
       var format = {};
-      var formatCode = this.readSWFBits(4);
+      var formatCode = this.readTopBits(4);
       format.hz = 5512.5 * (1 << this.readTopBits(2));
       format.bits = this.readTopBits(1) ? 16 : 8;
       format.channels = this.readTopBits(1) ? 2 : 1;
