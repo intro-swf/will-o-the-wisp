@@ -167,6 +167,13 @@ function(
         case TAG_SHOW_FRAME:
           showFrame();
           break;
+        case TAG_DEFINE_SOUND:
+          var id = data.readUint16LE();
+          var format = data.readSWFAudioFormat();
+          var sampleCount = data.readUint32LE();
+          data = data.subarray(data.offset);
+          console.log(format, sampleCount);
+          break;
         case TAG_SET_BACKGROUND_COLOR:
           nextFrame.updates.push(['m', -1, ['background', data.readSWFColor(true)]]);
           break;
@@ -340,6 +347,32 @@ function(
         actions.push(action);
       }
       return actions;
+    },
+    readSWFAudioFormat: function() {
+      var format = {};
+      var formatCode = this.readSWFBits(4);
+      format.hz = 5512.5 * (1 << this.readTopBits(2));
+      format.bits = this.readTopBits(1) ? 16 : 8;
+      format.channels = this.readTopBits(1) ? 2 : 1;
+      switch (formatCode) {
+        case 0:
+          format.encoding = 'pcm';
+          if (format.bits !== 8) {
+            format.endianness = 'native';
+          }
+          break;
+        case 1: format.encoding = 'adpcm'; break;
+        case 2: format.encoding = 'mp3'; break;
+        case 3:
+          format.encoding = 'pcm';
+          if (format.bits !== 8) {
+            format.endianness = 'little';
+          }
+          break;
+        case 6: format.encoding = 'asao'; break;
+        default: throw new Error('unknown sound format');
+      }
+      return format;
     },
   });
 
