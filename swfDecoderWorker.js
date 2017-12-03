@@ -121,12 +121,15 @@ function(
           var depth = data.readUint16LE() + characterID/65536;
           var matrix = data.readSWFMatrix();
           var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
-          if (characterID in displayObjects) {
-            var insertion = ['i', depth, displayObjects[characterID]];
-            if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
-            if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
-            nextFrame.updates.push(insertion);
-          }
+          var insertion = ['i', depth, displayObjects[characterID]];
+          if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
+          if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
+          nextFrame.updates.push(insertion);
+          break;
+        case TAG_REMOVE_OBJECT:
+          var characterID = data.readUint16LE();
+          var depth = data.readUint16LE() + characterID/65536;
+          nextFrame.updates.push(['r', depth]);
           break;
         case TAG_SHOW_FRAME:
           showFrame();
