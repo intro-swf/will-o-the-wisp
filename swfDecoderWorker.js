@@ -108,9 +108,11 @@ function(
           return;
         case TAG_DEFINE_SHAPE:
           var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          var g = svg.el('g', {id:3});
+          var id = 'shape' + source.readUint16LE();
+          var g = svg.el('g', {id:id});
           g.el('path', {d:'m0,0h50v50h-50v-50'});
-          console.log(svg.toString());
+          var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#'+id;
+          console.log(svg.toString(), url);
           break;
         case TAG_SHOW_FRAME:
           showFrame();
