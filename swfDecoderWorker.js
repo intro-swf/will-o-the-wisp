@@ -225,8 +225,8 @@ function(
       }
       var translateBits = this.readTopBits(5, false);
       if (translateBits) {
-        matrix.e = this.readSWFBits(translateBits, true);
-        matrix.f = this.readSWFBits(translateBits, true);
+        matrix.e = this.readTopBits(translateBits, true);
+        matrix.f = this.readTopBits(translateBits, true);
       }
       this.flushBits();
       return matrix;
