@@ -10,7 +10,7 @@ define(function() {
   }
   MakeshiftXML.prototype = {
     toBlobParts: function() {
-      return this.addBlobPartsTo(['<?xml version="1.0" charset="utf-8"?>\n']);
+      return this.addBlobPartsTo(['<?xml version="1.0" encoding="UTF-8"?>\n']);
     },
     toBlob: function(type) {
       return new Blob(this.toBlobParts(), {type:type || 'application/xml'});
