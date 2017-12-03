@@ -536,7 +536,7 @@ else require([
   // function called when it's time to look at the location hash
   // i.e. on page load and if/when the hash changes
   function init_hash() {
-    const specifier = location.query.match(/^\?\/?([^\/]+)\/(.+)$/);
+    const specifier = location.search.match(/^\?\/?([^\/]+)\/(.+)$/);
     if (!specifier) {
       return;
     }
