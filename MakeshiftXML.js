@@ -60,7 +60,7 @@ define(function() {
           parts.push(' '+attrName+'=', enquote(this.attrValues[attrName]));
         }
       }
-      if (!textContent || !this.children) {
+      if (!this.children && !textContent) {
         parts.push('/>');
         return parts;
       }
