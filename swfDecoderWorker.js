@@ -116,6 +116,14 @@ function(
           var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#shape'+id;
           displayObjects[id] = url;
           break;
+        case TAG_DEFINE_TEXT:
+          var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
+          var id = data.readUint16LE();
+          var g = svg.open('g', {id:'text'+id});
+          g.open('text').text('hello');
+          var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#text'+id;
+          displayObjects[id] = url;          
+          break;
         case TAG_PLACE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
