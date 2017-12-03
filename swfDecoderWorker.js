@@ -159,7 +159,7 @@ function(
         case TAG_REMOVE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
-          nextFrame.updates.push(['r', depth]);
+          nextFrame.updates.push(['d', depth]);
           break;
         case TAG_DO_ACTION:
           nextFrame.updates.push(data.readSWFActions());
