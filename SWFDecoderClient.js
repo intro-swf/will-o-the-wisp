@@ -339,6 +339,7 @@ define(function() {
               switch (part[0]) {
                 case 'i':
                   var insertion = new InsertUpdate;
+                  console.log(part);
                   part.updates.push(insertion);
                   break;
                 case 'm':
