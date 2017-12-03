@@ -351,12 +351,15 @@ define(function() {
                   break;
                 case 'r':
                   var replacement = new ReplaceUpdate;
-                  console.log(part);
                   frame.updates.push(replacement);
                   break;
                 case 'd':
                   var deletion = new DeleteUpdate;
+                  console.log(part);
                   frame.updates.push(deletion);
+                  break;
+                case 'do':
+                  console.log(part);
                   break;
                 case 'strm':
                   frame.audioStream = message.slice(1);
