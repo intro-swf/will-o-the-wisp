@@ -65,6 +65,7 @@ function(
   function readSWF(input) {
     var frameCount;
     var displayObjects = {};
+    var sounds = {};
     var nextUpdates = [];
     var nextFrame = new FrameInfo;
     function showFrame() {
@@ -172,7 +173,20 @@ function(
           var format = data.readSWFAudioFormat();
           var sampleCount = data.readUint32LE();
           data = data.subarray(data.offset);
-          console.log(format, sampleCount);
+          switch (format.encoding) {
+            case 'adpcm':
+              var file = data.readADPCMForSWF(sampleCount, format.hz, format.channels);
+              sounds[id] = URL.createObjectURL(file);
+              break;
+            default:
+              throw new Error('NYI: DefineSound ' + format.encoding);
+          }
+          break;
+        case TAG_PLAY_SOUND:
+          var id = data.readUint16LE();
+          var action = data.readSWFAudioAction(sounds[id]);
+          data.warnIfMore();
+          nextFrame.updates.push(action);
           break;
         case TAG_SET_BACKGROUND_COLOR:
           nextFrame.updates.push(['m', -1, ['background', data.readSWFColor(true)]]);
@@ -374,8 +388,142 @@ function(
       }
       return format;
     },
+    readSWFAudioAction: function(url) {
+      var flags = this.readUint8();
+      var action = [flags & 0x20 ? 'stop' : flags & 0x10 ? 'play-exclusive' : 'play', url];
+      if (flags & 1) {
+        action.push(['from', this.readUint32LE()]);
+      }
+      if (flags & 2) {
+        action.push(['to', this.readUint32LE()]);
+      }
+      if (flags & 4) {
+        action.push(['loop', this.readUint16LE()]);
+      }
+      if (flags & 8) {
+        var envelope = ['envelope'];
+        var count = new Array(this.readUint8());
+        while (count-- > 0) {
+          var at = this.readUint32LE() / 44100;
+          // documentation said 32768 not 32767
+          var leftVolume = this.readUint16LE() / 32768;
+          var rightVolume = this.readUint16LE() / 32768;
+          envelope.push(['at', at, leftVolume, rightVolume]);
+        }
+        action.push(envelope);
+      }
+      return action;
+    },
   });
-
+  
+  const ADPCM_INDEX_TABLES = [
+    null, null,
+    new Int8Array([-1,2, -1,2]),
+    new Int8Array([-1,-1,2,4, -1,-1,2,4]),
+    new Int8Array([
+      -1,-1,-1,-1, 2,4,6,8,
+      -1,-1,-1,-1, 2,4,6,8,
+    ]),
+    new Int8Array([
+      -1,-1,-1,-1,-1,-1,-1,-1, 1,2,4,6,8,10,13,16,
+      -1,-1,-1,-1,-1,-1,-1,-1, 1,2,4,6,8,10,13,16,
+    ]),
+  ];
+  const ADPCM_STEP_SIZE = new Uint16Array([
+    7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
+    19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+    50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
+    130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
+    337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
+    876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
+    2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
+    5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
+    15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767,
+  ]);
+  
+  Uint8Array.prototype.readADPCMForSWF = function(sampleCount, sampleRate, channels) {
+    var wavBuffer = new ArrayBuffer(4 + 4 + 16 + sampleCount*channels*2);
+    var dataSizeSlot = new DataView(wavBuffer, 0, 4);
+    var totalSizeSlot = new DataView(wavBuffer, 4, 4);
+    var fmt = new DataView(wavBuffer, 8, 16);
+    var data = new DataView(wavBuffer, 24);
+    dataSizeSlot.setUint32(0, sampleCount*channels*2, true);
+    totalSizeSlot.setUint32(0, 36 + sampleCount*channels*2, true);
+    fmt.setUint16(0, 1, true);
+    fmt.setUint16(2, channels, true);
+    fmt.setUint32(4, sampleRate, true);
+    fmt.setUint32(8, sampleRate * channels * 2, true);
+    fmt.setUint16(12, channels * 2, true);
+    fmt.setUint16(14, 16, true);
+    var parts = [
+      'RIFF', totalSizeSlot, 'WAVE',
+      'fmt ', String.fromCharCode(16,0,0,0), fmt,
+      'data', dataSizeSlot, data,
+    ];
+    var wpos = 0;
+    while (sampleCount > 0) {
+      const codeSize = 2 + this.readTopBits(2);
+      const indexTable = ADPCM_INDEX_TABLES[codeSize];
+      if (channels === 2) {
+        var leftSample = this.readTopBits(16, true);
+        var leftStepIndex = this.readTopBits(6);
+        var rightSample = this.readTopBits(16, true);
+        var rightStepIndex = this.readTopBits(6);
+        data.setInt16(wpos, leftSample, true);
+        data.setInt16(wpos + 2, rightSample, true);
+        wpos += 4;
+        var stepIndex = this.readTopBits(6);
+        var step = ADPCM_STEP_SIZE[stepIndex];
+        const stopAt = Math.max(0, sampleCount - 4097);
+        while (--sampleCount > stopAt) {
+          var leftDelta = this.readTopBits(codeSize);
+          var rightDelta = this.readTopBits(codeSize);
+          var leftStep = ADPCM_STEP_SIZE[leftStepIndex];
+          var rightStep = ADPCM_STEP_SIZE[rightStepIndex];
+          var leftDiff = leftStep >> (codeSize-1);
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (leftDelta & (1 << c_i)) leftDiff += step >> (codeSize-c_i-2);
+          }
+          if (leftDelta & (1 << (codeSize-1))) leftDiff = -leftDiff;
+          var rightDiff = step >> (codeSize-1);
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (rightDelta & (1 << c_i)) rightDiff += step >> (codeSize-c_i-2);
+          }
+          if (rightDelta & (1 << (codeSize-1))) rightDiff = -rightDiff;
+          leftSample = Math.min(0x7fff, Math.max(-0x8000, leftSample + leftDiff));
+          rightSample = Math.min(0x7fff, Math.max(-0x8000, rightSample + rightDiff));
+          data.setInt16(wpos, leftSample, true);
+          data.setInt16(wpos + 2, rightSample, true);
+          wpos += 4;
+          leftStepIndex = Math.min(88, Math.max(0, leftStepIndex + indexTable[leftDelta]));
+          rightStepIndex = Math.min(88, Math.max(0, rightStepIndex + indexTable[rightDelta]));
+        }
+      }
+      else {
+        var sample = this.readTopBits(16, true);
+        data.setInt16(wpos, sample, true);
+        wpos += 2;
+        var stepIndex = this.readTopBits(6);
+        var step = ADPCM_STEP_SIZE[stepIndex];
+        const stopAt = Math.max(0, sampleCount - 4097);
+        while (--sampleCount > stopAt) {
+          var delta = this.readTopBits(codeSize);
+          stepIndex = Math.min(88, Math.max(0, stepIndex + indexTable[delta]));
+          var diff = step >> (codeSize-1);
+          for (var c_i = codeSize-2; c_i >= 0; c_i--) {
+            if (delta & (1 << c_i)) diff += step >> (codeSize-c_i-2);
+          }
+          if (delta & (1 << (codeSize-1))) diff = -diff;
+          sample = Math.min(0x7fff, Math.max(-0x8000, sample + diff));
+          data.setInt16(wpos, sample, true);
+          wpos += 2;
+          step = ADPCM_STEP_SIZE[stepIndex];
+        }
+      }
+    }
+    return new Blob(parts, {type:'audio/x-wav'});
+  };
+  
   function SWFRect() {
   }
   SWFRect.prototype = {
