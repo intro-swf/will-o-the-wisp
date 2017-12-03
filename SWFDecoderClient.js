@@ -362,6 +362,11 @@ define(function() {
                 case 'do':
                   console.log(part);
                   break;
+                case 'play':
+                case 'play-exclusive':
+                case 'stop':
+                  console.log(part);
+                  break;
                 case 'strm':
                   frame.audioStream = message.slice(1);
                   break;
