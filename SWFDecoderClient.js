@@ -325,6 +325,9 @@ define(function() {
               this.onurldependency(message[2], message[i_dep]);
             }
             break;
+          case 'btn':
+            console.log(message);
+            break'
           case 'f':
             var frame = new DecodedFrame;
             var i_update = 1;
