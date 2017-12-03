@@ -65,15 +65,16 @@ function(
   function readSWF(input) {
     var frameCount;
     var displayObjects = {};
+    var nextFrame = new FrameInfo;
     function showFrame() {
       frameCount--;
-      var f = new FrameInfo;
       while (input.peekUint16LE() === 0x0040) {
         input.skipBytes(2);
-        f.count++;
+        nextFrame.count++;
         frameCount--;
       }
-      self.postMessage(JSON.stringify([f]));
+      self.postMessage(JSON.stringify([nextFrame]));
+      nextFrame = new FrameInfo;
     }
     function readChunkHeader() {
       return input.gotUint16LE().then(function(b) {
@@ -123,7 +124,7 @@ function(
           if (characterID in displayObjects) {
             var insertion = ['i', depth, displayObjects[characterID]];
             if (colorTransform) insertion.push(["cxf", colorTransform.toString()]);
-            self.postMessage(JSON.stringify([insertion]));
+            nextFrame.updates.push(insertion);
           }
           break;
         case TAG_SHOW_FRAME:
@@ -350,6 +351,7 @@ function(
   };
   
   function FrameInfo() {
+    this.updates = [];
   }
   FrameInfo.prototype = {
     count: 1,
@@ -358,7 +360,7 @@ function(
       if (this.count !== 1) {
         json.push(this.count);
       }
-      return json;
+      return json.concat(this.updates);
     },
   };
   
