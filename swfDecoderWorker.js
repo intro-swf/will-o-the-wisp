@@ -123,7 +123,8 @@ function(
           var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
           if (characterID in displayObjects) {
             var insertion = ['i', depth, displayObjects[characterID]];
-            if (colorTransform) insertion.push(["cxf", colorTransform.toString()]);
+            if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
+            if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
             nextFrame.updates.push(insertion);
           }
           break;
