@@ -290,37 +290,40 @@ function(
       this.flushSWFBits();
       return transform;
     },
+    readSWFAction: function() {
+      var code = this.readUint8();
+      var data = code & 0x80 ? this.readSubarray(this.readUint16LE()) : null;
+      switch (code) {
+        case 0x00: return 'End';
+        case 0x81: return ['GotoFrame', data.readUint16LE()];
+        case 0x83:
+          var url = data.readByteString('\0');
+          var target = data.readByteString('\0');
+          return ['GetURL', url, target];
+        case 0x04: return 'NextFrame'; break;
+        case 0x05: return 'PreviousFrame'; break;
+        case 0x06: return 'Play'; break;
+        case 0x07: return 'Stop'; break;
+        case 0x08: return 'ToggleQuality'; break;
+        case 0x09: return 'StopSounds'; break;
+        case 0x8A:
+          var ifFrameNotReady = data.readUint16LE();
+          var thenSkipActions = data.readUint8();
+          var action = ['WaitForFrame', ifFrameNotReady];
+          while (thenSkipActions-- > 0) {
+            action.push(this.readSWFAction());
+          }
+          return action;
+        case 0x8B: return ['SetTarget', data.readByteString('\0')];
+        case 0x8C: return ['GotoLabel', data.readByteString('\0')];
+        default: throw new Error('unknown action code ' + code);
+      }
+    },
     readSWFActions: function() {
       var actions = ['do'];
-      var code;
-      while (code = this.readUint8()) {
-        var data = code & 0x80 ? this.readSubarray(this.readUint16LE()) : null;
-        switch (code) {
-          case 0x81: actions.push(['GotoFrame', data.readUint16LE()]); break;
-          case 0x83:
-            var url = data.readByteString('\0');
-            var target = data.readByteString('\0');
-            actions.push(['GetURL', url, target]);
-            break;
-          case 0x04: actions.push('NextFrame'); break;
-          case 0x05: actions.push('PreviousFrame'); break;
-          case 0x06: actions.push('Play'); break;
-          case 0x07: actions.push('Stop'); break;
-          case 0x08: actions.push('ToggleQuality'); break;
-          case 0x09: actions.push('StopSounds'); break;
-          case 0x8A:
-            var ifFrameNotReady = data.readUint16LE();
-            var thenSkipActions = data.readUint8();
-            actions.push(['WaitForFrame', ifFrameNotReady, thenSkipActions]);
-            break;
-          case 0x8B:
-            actions.push(['SetTarget', data.readByteString('\0')]);
-            break;
-          case 0x8C:
-            actions.push(['GotoLabel', data.readByteString('\0')]);
-            break;
-        }
-        if (data) data.warnIfMore();
+      var action;
+      while ((action = this.readSWFAction()) !== 'End') {
+        actions.push(action);
       }
       return actions;
     },
