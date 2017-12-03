@@ -64,6 +64,7 @@ function(
 
   function readSWF(input) {
     var frameCount;
+    var displayObjects = {};
     function showFrame() {
       frameCount--;
       var f = new FrameInfo;
@@ -108,11 +109,22 @@ function(
           return;
         case TAG_DEFINE_SHAPE:
           var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          var id = 'shape' + data.readUint16LE();
-          var g = svg.open('g', {id:id});
+          var id = data.readUint16LE();
+          var g = svg.open('g', {id:'shape'+id});
           g.empty('path', {d:'m0,0h50v50h-50v-50'});
-          var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#'+id;
-          console.log(svg.toString(), url);
+          var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#shape'+id;
+          displayObjects[id] = url;
+          break;
+        case TAG_PLACE_OBJECT:
+          var characterID = data.readUint16LE();
+          var depth = data.readUint16LE() + characterID/65536;
+          var matrix = data.readSWFMatrix();
+          var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
+          if (characterID in displayObjects) {
+            var insertion = ['i', depth, displayObjects[characterID]];
+            if (colorTransform) insertion.push(["cxf", colorTransform.toString()]);
+            self.postMessage(JSON.stringify([insertion]));
+          }
           break;
         case TAG_SHOW_FRAME:
           showFrame();
@@ -196,6 +208,51 @@ function(
       });
     },
   });
+  
+  Object.assign(Uint8Array.prototype, {
+    readSWFMatrix: function() {
+      var matrix = new SWFMatrix;
+      if (this.readTopBits(1, false)) {
+        var scaleBits = this.readTopBits(5, false);
+        matrix.a = this.readTopBits(scaleBits, true) / 0x10000;
+        matrix.d = this.readTopBits(scaleBits, true) / 0x10000;
+      }
+      if (this.readTopBits(1, false)) {
+        var rotSkewBits = this.readTopBits(5, false);
+        matrix.b = this.readTopBits(rotSkewBits, true);
+        matrix.c = this.readTopBits(rotSkewBits, true);
+      }
+      var translateBits = this.readTopBits(5, false);
+      if (translateBits) {
+        matrix.e = this.readSWFBits(translateBits, true);
+        matrix.f = this.readSWFBits(translateBits, true);
+      }
+      this.flushBits();
+      return matrix;
+    },
+    readSWFColorTransform: function(NO_ALPHA) {
+      var transform = new SWFColorTransform;
+      var withAdd = this.readTopBits(1);
+      var withMultiply = this.readTopBits(1);
+      var valueBits = this.readTopBits(4);
+      if (withMultiply) {
+        var r = this.readTopBits(valueBits, true) / 0x100;
+        var g = this.readTopBits(valueBits, true) / 0x100;
+        var b = this.readTopBits(valueBits, true) / 0x100;
+        var a = NO_ALPHA ? 1 : this.readTopBits(valueBits, true) / 0x100;
+        transform.multiply(r, g, b, a);
+      }
+      if (withAdd) {
+        var r = this.readTopBits(valueBits, true);
+        var g = this.readTopBits(valueBits, true);
+        var b = this.readTopBits(valueBits, true);
+        var a = NO_ALPHA ? 0 : this.readTopBits(valueBits, true);
+        transform.add(r, g, b, a);
+      }
+      this.flushSWFBits();
+      return transform;
+    },    
+  });
 
   function SWFRect() {
   }
@@ -215,7 +272,83 @@ function(
       return [this.left, this.top, this.right, this.bottom].join(' ');
     },
   };
-
+  
+  function SWFMatrix() {
+  }
+  SWFMatrix.prototype = {
+    a:1, b: 0, c:0, d:1, e:0, f:0,
+    toString: function() {
+      if (this.b === 0 && this.c === 0) {
+        // no rotation/skew
+        var scale;
+        if (this.a === this.d) {
+          if (this.a !== 1) scale = 'scale(' + this.a + ')';
+        }
+        else {
+          scale = 'scale(' + this.a + ', ' + this.d + ')';
+        }
+        if (this.e === 0 && this.f === 0) {
+          if (scale) return scale;
+        }
+        var translate = 'translate(' + this.e + ', ' + this.f + ')';
+        return scale ? translate+' '+scale : translate;
+      }
+      return 'matrix(' + [
+        this.a, this.b,
+        this.c, this.d,
+        this.e, this.f].join(', ') + ')';
+    },
+    get isIdentity() {
+      return this.a === 1 && this.b === 0 && this.c === 0
+          && this.d === 1 && this.e === 0 && this.f === 0;
+    },
+    isEqualTo: function(m) {
+      if (this === m) return true;
+      return this.a === m.a && this.b === m.b && this.c === m.c
+          && this.d === m.d && this.e === m.e && this.f === m.f;
+    },
+  };
+  
+  function SWFColorTransform() {
+  }
+  SWFColorTransform.prototype = {
+    mulR: 1, mulG: 1, mulB: 1, mulA: 1,
+    addR: 0, addG: 0, addB: 0, addA: 0,
+    multiply: function(r, g, b, a) {
+      this.mulR = r;
+      this.mulG = g;
+      this.mulB = b;
+      this.mulA = a;
+    },
+    add: function(r, g, b, a) {
+      this.addR = r;
+      this.addG = g;
+      this.addB = b;
+      this.addA = a;
+    },
+    get isIdentity() {
+      return !(this.addR || this.addG || this.addB || this.addA)
+        && this.mulR === 1
+        && this.mulG === 1
+        && this.mulB === 1
+        && this.mulA === 1;
+    },
+    toString: function() {
+      // feColorMatrix format
+      return [
+          this.mulR, 0, 0, 0, this.addR / 255,
+          0, this.mulG, 0, 0, this.addG / 255,
+          0, 0, this.mulB, 0, this.addB / 255,
+          0, 0, 0, this.mulA, this.addA / 255,
+        ].join(' ');
+    },
+    isEqualTo: function(ct) {
+      if (ct === this) return true;
+      return this.addR === ct.addR && this.addG === ct.addG && this.addB === ct.addB && this.addA === ct.addA
+          && this.mulR === ct.mulR && this.mulG === ct.mulG && this.mulB === ct.mulB && this.mulA === ct.mulA;
+    },
+  };
+  
   function FrameInfo() {
   }
   FrameInfo.prototype = {
