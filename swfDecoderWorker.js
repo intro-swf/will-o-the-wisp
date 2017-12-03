@@ -65,6 +65,7 @@ function(
   function readSWF(input) {
     var frameCount;
     var displayObjects = {};
+    var nextUpdates = [];
     var nextFrame = new FrameInfo;
     function showFrame() {
       frameCount--;
@@ -124,6 +125,24 @@ function(
           var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#text'+id;
           displayObjects[id] = url;          
           break;
+        case TAG_DEFINE_BUTTON:
+          var id = data.readUint16LE();
+          var def = ['btn', '#button' + id];
+          for (;;) {
+            var flags = data.readUint8();
+            if (flags === 0) break;
+            var characterID = data.readUint16LE();
+            var depth = data.readUint16LE();
+            var matrix = data.readSWFMatrix();
+            // no color transform until DefineButton2
+            var insertion = ['i', depth + characterID/65536, displayObjects[characterID]];
+            if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
+            def.push(insertion);
+          }
+          def.push(data.readSWFActions());
+          nextUpdates.push(def);
+          displayObjects[id] = '#button' + id;
+          break;
         case TAG_PLACE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
@@ -138,6 +157,9 @@ function(
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
           nextFrame.updates.push(['r', depth]);
+          break;
+        case TAG_DO_ACTION:
+          nextFrame.updates.push(data.readSWFActions());
           break;
         case TAG_SHOW_FRAME:
           showFrame();
@@ -264,7 +286,41 @@ function(
       }
       this.flushSWFBits();
       return transform;
-    },    
+    },
+    readSWFActions: function() {
+      var actions = ['do'];
+      var code;
+      while (code = this.readUint8()) {
+        var data = code & 0x80 ? this.readSubarray(this.readUint16LE()) : null;
+        switch (code) {
+          case 0x81: actions.push(['GotoFrame', data.readUint16LE()]); break;
+          case 0x83:
+            var url = data.readByteString('\0');
+            var target = data.readByteString('\0');
+            actions.push(['GetURL', url, target]);
+            break;
+          case 0x04: actions.push('NextFrame'); break;
+          case 0x05: actions.push('PreviousFrame'); break;
+          case 0x06: actions.push('Play'); break;
+          case 0x07: actions.push('Stop'); break;
+          case 0x08: actions.push('ToggleQuality'); break;
+          case 0x09: actions.push('StopSounds'); break;
+          case 0x8A:
+            var ifFrameNotReady = data.readUint16LE();
+            var thenSkipActions = data.readUint8();
+            actions.push(['WaitForFrame', ifFrameNotReady, thenSkipActions]);
+            break;
+          case 0x8B:
+            actions.push(['SetTarget', data.readByteString('\0')]);
+            break;
+          case 0x8C:
+            actions.push(['GotoLabel', data.readByteString('\0')]);
+            break;
+        }
+        if (data) data.warnIfMore();
+      }
+      return actions;
+    },
   });
 
   function SWFRect() {
