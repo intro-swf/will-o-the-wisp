@@ -340,19 +340,19 @@ define(function() {
                 case 'i':
                   var insertion = new InsertUpdate;
                   console.log(part);
-                  part.updates.push(insertion);
+                  frame.updates.push(insertion);
                   break;
                 case 'm':
                   var modification = new ModifyUpdate;
-                  part.updates.push(modification);
+                  frame.updates.push(modification);
                   break;
                 case 'r':
                   var replacement = new ReplaceUpdate;
-                  part.updates.push(replacement);
+                  frame.updates.push(replacement);
                   break;
                 case 'd':
                   var deletion = new DeleteUpdate;
-                  part.updates.push(deletion);
+                  frame.updates.push(deletion);
                   break;
                 case 'strm':
                   frame.audioStream = message.slice(1);
