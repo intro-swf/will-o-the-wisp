@@ -413,6 +413,9 @@ function(
     toString: function() {
       return this.cssColor;
     },
+    toJSON: function() {
+      return this.cssColor;
+    },
     get solidColor() {
       var r = this.r, g = this.g, b = this.b;
       if ((r>>4)==(r&15)&&(g>>4)==(g&15)&&(b>>4)==(b&15)) {
