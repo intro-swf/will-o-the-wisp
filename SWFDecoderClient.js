@@ -348,6 +348,7 @@ define(function() {
                   break;
                 case 'r':
                   var replacement = new ReplaceUpdate;
+                  console.log(part);
                   frame.updates.push(replacement);
                   break;
                 case 'd':
