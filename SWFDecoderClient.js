@@ -347,6 +347,7 @@ define(function() {
                   break;
                 case 'm':
                   var modification = new ModifyUpdate;
+                  console.log(part);
                   frame.updates.push(modification);
                   break;
                 case 'r':
