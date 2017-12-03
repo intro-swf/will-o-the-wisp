@@ -107,6 +107,27 @@ define('dataExtensions', function() {
         console.warn(msg || 'unexpected data');
       }
     },
+    bitBuf: 0,
+    bitBufSize: 0,
+    flushBits: function() {
+      this.bitBufSize = 0;
+    },
+    readTopBits: function(n, signed) {
+      if (n === 0) return 0;
+      while (this.bitBufSize < n) {
+        this.bitBuf = (this.bitBuf << 8) | this[this.offset++];
+        this.bitBufSize += 8;
+      }
+      var value;
+      if (signed) {
+        value = this.bitBuf << (32-this.bitBufSize) >> (32-n);
+      }
+      else {
+        value = this.bitBuf << (32-this.bitBufSize) >>> (32-n);
+      }
+      this.bitBufSize -= n;
+      return value;
+    },
   });
   
   var lib = {
