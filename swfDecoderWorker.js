@@ -167,6 +167,9 @@ function(
         case TAG_SHOW_FRAME:
           showFrame();
           break;
+        case TAG_SET_BACKGROUND_COLOR:
+          nextFrame.updates.push(['u', -1, ['background', data.readSWFColor(true)]]);
+          break;
         default:
           //console.log('unhandled tag: ' + typeCode, data);
           break;
@@ -267,6 +270,17 @@ function(
       }
       this.flushBits();
       return matrix;
+    },
+    readSWFColor: function(NO_ALPHA) {
+      var o = this.offset;
+      var r = this[o], g = this[o+1], b = this[o+2];
+      if (NO_ALPHA) {
+        this.offset = o+3;
+        return new SWFColor(r,g,b,255);
+      }
+      var a = this[o+3];
+      this.offset = o+4;
+      return new SWFColor(r,g,b,a);
     },
     readSWFColorTransform: function(NO_ALPHA) {
       var transform = new SWFColorTransform;
@@ -381,6 +395,53 @@ function(
       if (this === m) return true;
       return this.a === m.a && this.b === m.b && this.c === m.c
           && this.d === m.d && this.e === m.e && this.f === m.f;
+    },
+  };
+  
+  function SWFColor(r, g, b, a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+  }
+  SWFColor.prototype = {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 255,
+    type: 'color',
+    toString: function() {
+      return this.cssColor;
+    },
+    get solidColor() {
+      var r = this.r, g = this.g, b = this.b;
+      if ((r>>4)==(r&15)&&(g>>4)==(g&15)&&(b>>4)==(b&15)) {
+        return '#'
+          + (r&15).toString(16)
+          + (g&15).toString(16)
+          + (b&15).toString(16);
+      }
+      var rgb = (r << 16) | (g << 8) | b;
+      return '#' + ('0000000' + rgb.toString(16)).slice(-6);
+    },
+    get opacity() {
+      return this.a/255;
+    },
+    get cssColor() {
+      if (this.a !== 255) {
+        if (this.a === 0 && this.r === 0 && this.g === 0 && this.b === 0) {
+          return 'transparent';
+        }
+        return ('rgba('
+          + this.r + ',' + this.g + ',' + this.b
+          + ', ' + percentFromByte(this.a)
+          + ')');
+      }
+      return this.solidColor;
+    },
+    isEqualTo: function(c) {
+      if (this === c) return true;
+      return this.r === c.r && this.g === c.g && this.b === c.b && this.a === c.a;
     },
   };
   
