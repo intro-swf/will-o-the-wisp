@@ -52,7 +52,7 @@ define(function() {
     addBlobPartsTo: function(parts) {
       parts.push('<' + this.name);
       var textContent;
-      for (attrName in this.attrValues) {
+      for (var attrName in this.attrValues) {
         if (attrName === '') {
           textContent = this.attrValues[attrName];
         }
