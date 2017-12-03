@@ -168,7 +168,7 @@ function(
           showFrame();
           break;
         case TAG_SET_BACKGROUND_COLOR:
-          nextFrame.updates.push(['u', -1, ['background', data.readSWFColor(true)]]);
+          nextFrame.updates.push(['m', -1, ['background', data.readSWFColor(true)]]);
           break;
         default:
           //console.log('unhandled tag: ' + typeCode, data);
