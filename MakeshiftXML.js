@@ -43,7 +43,7 @@ define(function() {
       delete this.parent;
       return parent;
     },
-    el: function(name, attr) {
+    empty: function(name, attr) {
       if (!this.children) this.children = [];
       var child = new MakeshiftXML(name, attr);
       this.children.push(child);
