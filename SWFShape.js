@@ -12,34 +12,65 @@ define(function() {
   
   function SWFShape() {
     this.edges = [];
+    this.regions = [];
   }
   SWFShape.prototype = {
     isMorphShape: false,
-    hasStyles: true,
+    hasStyles: false,
     hasExtendedLength: false,
     hasNoAlpha: false,
     hasExtendedLineStyle: false,
     readFrom: function(bytes) {
       var pt = new Point(0, 0);
-      var i_fillLeft=0, i_fillRight=0, i_line=0;
+      var i_fillLeft = 0, i_fillRight = 0, i_line = 0;
+      var i_leftStart = -1, i_rightStart = -1;
       mainLoop: for (;;) {
         var fillStyles, lineStyles;
         if (this.hasStyles) {
-          fillStyles = DEFAULT_FILL_STYLES;
-          lineStyles = DEFAULT_LINE_STYLES;
-        }
-        else {
           fillStyles = this.readFillStylesFrom(bytes);
           lineStyles = this.readLineStylesFrom(bytes);
+        }
+        else {
+          fillStyles = DEFAULT_FILL_STYLES;
+          lineStyles = DEFAULT_LINE_STYLES;
         }
         var indexBits = bytes.readUint8();
         var fillIndexBits = indexBits >>> 4;
         var lineIndexBits = indexBits & 0xf;
+        this.connectStart = Object.create(null);
+        this.connectEnd = Object.create(null);
         for (;;) {
           if (bytes.readTopBits(1, false) === 0) {
             // setup
             var flags = bytes.readTopBits(5, false);
-            if (flags === 0) break mainLoop; // end of shape data
+            if (i_fillLeft && (flags&0x12 || !flags)) {
+              var startPt = pt;
+              var endPt = this.edges[i_leftStart].endPoint;
+              var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
+              var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
+              var leftRegion;
+              if (startKey === endKey) {
+                leftRegion = new FillRegion(fillStyles[i_fillLeft]);
+                leftRegion.addLeft(i_leftStart, this.edges.length-1);
+                this.regions.push(leftRegion);
+              }
+            }
+            if (i_fillRight && (flags&0x14 || !flags)) {
+              var startPt = this.edges[i_rightStart].startPoint;
+              var endPt = pt;
+              var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
+              var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
+              var rightRegion;
+              if (startKey === endKey) {
+                rightRegion = new FillRegion(fillStyles[i_fillRight]);
+                rightRegion.addRight(i_rightStart, this.edges.length-1);
+                this.regions.push(rightRegion);
+              }
+            }
+            if (flags === 0) {
+              // end of shape
+              break mainLoop;
+            }
             if (flags & 1) {
               // move-to
               var coordBitCount = bytes.readTopBits(5, false);
@@ -49,9 +80,11 @@ define(function() {
             }
             if (flags & 2) {
               i_fillLeft = bytes.readTopBits(fillIndexBits, false);
+              i_leftStart = i_fillLeft ? this.edges.length : -1;
             }
             if (flags & 4) {
               i_fillRight = bytes.readTopBits(fillIndexBits, false);
+              i_rightStart = i_fillRight ? this.edges.length : -1;
             }
             if (flags & 8) {
               i_line = bytes.readTopBits(lineIndexBits, false);
@@ -300,6 +333,31 @@ define(function() {
     this.controlPoint = controlPoint;
     this.endPoint = endPoint;
   }
+  
+  function FillRegion(fill) {
+    this.fill = fill;
+    this.i_edges = [];
+    this.touchingLeft = [];
+    this.touchingRight = [];
+  }
+  FillRegion.prototype = {
+    addLeft: function(i, j) {
+      this.i_edges.push(~j, ~i);
+    },
+    addRight: function(i, j) {
+      this.i_edges.push(i, j);
+    },
+    touchLeft: function(region) {
+      if (this.touchingLeft.indexOf(region) === -1) {
+        this.touchingLeft.push(region);
+      }
+    },
+    touchRight: function(region) {
+      if (this.touchingRight.indexOf(region) === -1) {
+        this.touchingRight.push(region);
+      }
+    },
+  };
   
   return SWFShape;
 
