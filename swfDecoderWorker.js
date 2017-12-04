@@ -402,7 +402,7 @@ function(
       }
       if (flags & 8) {
         var envelope = ['envelope'];
-        var count = new Array(this.readUint8());
+        var count = this.readUint8();
         while (count-- > 0) {
           var at = this.readUint32LE() / 44100;
           // documentation said 32768 not 32767
