@@ -306,6 +306,7 @@ define(function() {
     
     // internal methods for client/worker communication
     gotmessage: function(e) {
+      // console.log(e.data);
       const messages = JSON.parse(e.data);
       var message;
       for (var i = 0; i < messages.length; i++) {
@@ -326,7 +327,6 @@ define(function() {
             }
             break;
           case 'btn':
-            console.log(message);
             break;
           case 'f':
             var frame = new DecodedFrame;
@@ -342,12 +342,10 @@ define(function() {
               switch (part[0]) {
                 case 'i':
                   var insertion = new InsertUpdate;
-                  console.log(part);
                   frame.updates.push(insertion);
                   break;
                 case 'm':
                   var modification = new ModifyUpdate;
-                  console.log(part);
                   frame.updates.push(modification);
                   break;
                 case 'r':
@@ -356,16 +354,13 @@ define(function() {
                   break;
                 case 'd':
                   var deletion = new DeleteUpdate;
-                  console.log(part);
                   frame.updates.push(deletion);
                   break;
                 case 'do':
-                  console.log(part);
                   break;
                 case 'play':
                 case 'play-exclusive':
                 case 'stop':
-                  console.log(part);
                   break;
                 case 'strm':
                   frame.audioStream = message.slice(1);
