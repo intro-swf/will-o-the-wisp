@@ -5,11 +5,13 @@ require([
   'dataExtensions'
   ,'ChunkReader'
   ,'MakeshiftXML'
+  ,'SWFShape'
 ],
 function(
   dataExtensions
   ,ChunkReader
   ,MakeshiftXML
+  ,SWFShape
 ) {
   
   'use strict';
@@ -116,6 +118,10 @@ function(
         case TAG_DEFINE_SHAPE_2:
           var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
           var id = data.readUint16LE();
+          var bounds = data.readSWFRect();
+          var shape = new SWFShape;
+          if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
+          shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
           g.empty('path', {d:'m0,0h50v50h-50v-50'});
           var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#shape'+id;
