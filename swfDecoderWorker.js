@@ -149,7 +149,7 @@ function(
             insertion.push(classes);
             def.push(insertion);
           }
-          def.push(data.readSWFActions());
+          def.push(['on', ['t', 'overdown', 'overup'], data.readSWFActions()]);
           nextUpdates.push(def);
           displayObjects[id] = '#button' + id;
           break;
