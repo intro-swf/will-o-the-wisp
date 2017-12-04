@@ -304,6 +304,16 @@ function(
       this.flushBits();
       return matrix;
     },
+    readSWFRect: function() {
+      var coordBits = this.readTopBits(5, false);
+      var rect = new SWFRect;
+      rect.left = this.readTopBits(coordBits, true);
+      rect.right = this.readTopBits(coordBits, true);
+      rect.top = this.readTopBits(coordBits, true);
+      rect.bottom = this.readTopBits(coordBits, true);
+      this.flushBits();
+      return rect;
+    },
     readSWFColor: function(NO_ALPHA) {
       var o = this.offset;
       var r = this[o], g = this[o+1], b = this[o+2];
