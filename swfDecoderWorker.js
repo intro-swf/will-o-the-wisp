@@ -173,12 +173,12 @@ function(
           var sound = data.readSWFAudioFormat();
           sound.sampleCount = data.readUint32LE();
           data = data.subarray(data.offset);
-          switch (format.encoding) {
+          switch (sound.encoding) {
             case 'adpcm':
               sound.url = URL.createObjectURL(data.readADPCMForSWF(sound.sampleCount, sound.hz, sound.channels));
               break;
             default:
-              throw new Error('NYI: DefineSound ' + format.encoding);
+              throw new Error('NYI: DefineSound ' + sound.encoding);
           }
           sounds[id] = sound;
           break;
