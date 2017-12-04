@@ -122,6 +122,7 @@ function(
           var shape = new SWFShape;
           shape.hasStyles = true;
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
+          if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
           g.empty('path', {d:'m0,0h50v50h-50v-50'});
