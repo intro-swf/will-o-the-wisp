@@ -170,17 +170,17 @@ function(
           break;
         case TAG_DEFINE_SOUND:
           var id = data.readUint16LE();
-          var format = data.readSWFAudioFormat();
-          var sampleCount = data.readUint32LE();
+          var sound = data.readSWFAudioFormat();
+          sound.sampleCount = data.readUint32LE();
           data = data.subarray(data.offset);
           switch (format.encoding) {
             case 'adpcm':
-              var file = data.readADPCMForSWF(sampleCount, format.hz, format.channels);
-              sounds[id] = URL.createObjectURL(file);
+              sound.url = URL.createObjectURL(data.readADPCMForSWF(sound.sampleCount, sound.hz, sound.channels));
               break;
             default:
               throw new Error('NYI: DefineSound ' + format.encoding);
           }
+          sounds[id] = sound;
           break;
         case TAG_PLAY_SOUND:
           var id = data.readUint16LE();
@@ -388,14 +388,14 @@ function(
       }
       return format;
     },
-    readSWFAudioAction: function(url) {
+    readSWFAudioAction: function(sound) {
       var flags = this.readUint8();
-      var action = [flags & 0x20 ? 'stop' : flags & 0x10 ? 'play-exclusive' : 'play', url];
+      var action = [flags & 0x20 ? 'stop' : flags & 0x10 ? 'play-exclusive' : 'play', sound.url];
       if (flags & 1) {
-        action.push(['from', this.readUint32LE()]);
+        action.push(['from', this.readUint32LE() / sound.hz]);
       }
       if (flags & 2) {
-        action.push(['to', this.readUint32LE()]);
+        action.push(['to', this.readUint32LE() / sound.hz]);
       }
       if (flags & 4) {
         action.push(['loop', this.readUint16LE()]);
@@ -405,7 +405,6 @@ function(
         var count = this.readUint8();
         while (count-- > 0) {
           var at = this.readUint32LE() / 44100;
-          // documentation said 32768 not 32767
           var leftVolume = this.readUint16LE() / 32768;
           var rightVolume = this.readUint16LE() / 32768;
           envelope.push(['at', at, leftVolume, rightVolume]);
