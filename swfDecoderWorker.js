@@ -120,6 +120,7 @@ function(
           var id = data.readUint16LE();
           var bounds = data.readSWFRect();
           var shape = new SWFShape;
+          shape.hasStyles = true;
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
