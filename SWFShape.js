@@ -70,8 +70,8 @@ define(function() {
             if (i_fillRight && (flags&0x14 || !flags)) {
               var startPt = this.edges[i_rightStart].startPoint;
               var endPt = pt;
-              var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
-              var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
+              var startKey = i_fillRight + ',' + startPt.x + ',' + startPt.y;
+              var endKey = i_fillRight + ',' + endPt.x + ',' + endPt.y;
               var rightRegion;
               if (endKey in this.connectStart) {
                 rightRegion = this.connectStart[endKey];
