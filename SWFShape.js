@@ -373,8 +373,8 @@ define(function() {
         }
         xml.empty('path', {d:pathData.join(''), fill:region.fill.toString()});
       }
-      for (var i_line = 0; i_line < this.strokes.length; i_line++) {
-        var line = this.strokes[i_line];
+      for (var i_line = 0; i_line < this.lines.length; i_line++) {
+        var line = this.lines[i_line];
         var pathData = [];
         var attrs = {'stroke-width':line.style.width, stroke:line.style.stroke};
         pathData.push(this.edges[line.i_edge1].pathStartRight);
