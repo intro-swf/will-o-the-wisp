@@ -366,7 +366,7 @@ define(function() {
             }
           }
         }
-        var path = xml.empty('path', {d:pathData.join(' '), fill:region.fill.toString()});
+        var path = xml.empty('path', {d:pathData.join(''), fill:region.fill.toString()});
       }
     },
   };
@@ -399,11 +399,19 @@ define(function() {
     },
     get pathStepRight() {
       const pt1 = this.startPoint, pt2 = this.endPoint;
-      return 'l' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y);
+      var dx = pt2.x - pt1.x;
+      var dy = pt2.y - pt1.y;
+      if (dy === 0) return 'h' + dx;
+      if (dx === 0) return 'v' + dy;
+      return 'l'+dx+' '+dy;
     },
     get pathStepLeft() {
       const pt1 = this.endPoint, pt2 = this.startPoint;
-      return 'l' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y);
+      var dx = pt2.x - pt1.x;
+      var dy = pt2.y - pt1.y;
+      if (dy === 0) return 'h' + dx;
+      if (dx === 0) return 'v' + dy;
+      return 'l'+dx+' '+dy;
     },
   };
 
@@ -423,11 +431,11 @@ define(function() {
     },
     get pathStepRight() {
       const pt1 = this.startPoint, pt2 = this.controlPoint, pt3 = this.endPoint;
-      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
+      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt1.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
     },
     get pathStepLeft() {
       const pt1 = this.endPoint, pt2 = this.controlPoint, pt3 = this.startPoint;
-      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
+      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt1.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
     },
   };
   
