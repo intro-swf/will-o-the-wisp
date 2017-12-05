@@ -129,6 +129,9 @@ define(function() {
                 throw new Error('newStyles in styleless shape');
               }
               bytes.flushBits();
+              if (!(flags & 1)) {
+                pt = new Point(0, 0);
+              }
               continue mainLoop;
             }
           }
