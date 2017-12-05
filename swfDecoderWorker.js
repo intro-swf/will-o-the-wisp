@@ -126,7 +126,7 @@ function(
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
           g.empty('path', {d:'m0,0h2000v2000h-2000v-2000', fill:'#f00'});
-          var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#shape'+id;
+          var url = URL.createObjectURL(svg.toBlob('image/svg+xml'))+'#shape'+id;
           displayObjects[id] = url;
           break;
         case TAG_DEFINE_TEXT:
