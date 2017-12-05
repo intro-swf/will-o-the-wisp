@@ -366,8 +366,7 @@ define(function() {
             }
           }
         }
-        var path = xml.empty('path', {d:pathData.join(' ')});
-        path.attr('fill', region.fill.toString());
+        var path = xml.empty('path', {d:pathData.join(' '), fill:region.fill.toString()});
       }
     },
   };
@@ -467,7 +466,7 @@ define(function() {
       if (this.matrix && !this.matrix.isIdentity) gradient.attr('transform', this.matrix.toString());
       for (var i = 0; i < this.stops.length; i++) {
         var stop = this.stops[i];
-        var stopEl = gradient.empty('stop', {offset:stop.offset, 'stop-color':stop.solidColor});
+        var stopEl = gradient.open('stop', {offset:stop.offset, 'stop-color':stop.solidColor});
         if (stop.opacity !== 1) {
           stopEl.attr('stop-opacity', stop.opacity);
         }
@@ -486,7 +485,7 @@ define(function() {
       if (this.matrix && !this.matrix.isIdentity) gradient.attr('transform', this.matrix.toString());
       for (var i = 0; i < this.stops.length; i++) {
         var stop = this.stops[i];
-        var stopEl = gradient.empty('stop', {offset:stop.offset, 'stop-color':stop.solidColor});
+        var stopEl = gradient.open('stop', {offset:stop.offset, 'stop-color':stop.solidColor});
         if (stop.opacity !== 1) {
           stopEl.attr('stop-opacity', stop.opacity);
         }
