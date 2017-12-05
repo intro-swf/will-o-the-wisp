@@ -431,11 +431,11 @@ define(function() {
     },
     get pathStepRight() {
       const pt1 = this.startPoint, pt2 = this.controlPoint, pt3 = this.endPoint;
-      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt1.y) + ' ' + (pt3.x - pt2.x) + ' ' + (pt3.y - pt2.y);
+      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt1.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
     },
     get pathStepLeft() {
       const pt1 = this.endPoint, pt2 = this.controlPoint, pt3 = this.startPoint;
-      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt1.y) + ' ' + (pt3.x - pt2.x) + ' ' + (pt3.y - pt2.y);
+      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt1.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
     },
   };
   
