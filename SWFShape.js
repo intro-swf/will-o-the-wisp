@@ -43,29 +43,59 @@ define(function() {
           if (bytes.readTopBits(1, false) === 0) {
             // setup
             var flags = bytes.readTopBits(5, false);
+            var leftRegion, rightRegion;
             if (i_fillLeft && (flags&0x12 || !flags)) {
               var startPt = pt;
               var endPt = this.edges[i_leftStart].endPoint;
               var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
               var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
-              var leftRegion;
-              if (startKey === endKey) {
+              if (endKey in this.connectStart) {
+                leftRegion = this.connectStart[endKey];
+                delete this.connectStart[endKey];
+              }
+              else if (startKey in this.connectEnd) {
+                leftRegion = this.connectEnd[startKey];
+                delete this.connectEnd[startKey];
+              }
+              else {
                 leftRegion = new FillRegion(fillStyles[i_fillLeft]);
-                leftRegion.addLeft(i_leftStart, this.edges.length-1);
+                if (startKey !== endKey) {
+                  this.connectStart[startKey] = this.connectEnd[endKey] = leftRegion;
+                }
                 this.regions.push(leftRegion);
               }
+              leftRegion.addLeft(i_leftStart, this.edges.length-1);
             }
+            else leftRegion = null;
             if (i_fillRight && (flags&0x14 || !flags)) {
               var startPt = this.edges[i_rightStart].startPoint;
               var endPt = pt;
               var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
               var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
               var rightRegion;
-              if (startKey === endKey) {
+              if (endKey in this.connectStart) {
+                rightRegion = this.connectStart[endKey];
+                delete this.connectStart[endKey];
+              }
+              else if (startKey in this.connectEnd) {
+                rightRegion = this.connectEnd[startKey];
+                delete this.connectEnd[startKey];
+              }
+              else {
                 rightRegion = new FillRegion(fillStyles[i_fillRight]);
-                rightRegion.addRight(i_rightStart, this.edges.length-1);
+                if (startKey !== endKey) {
+                  this.connectStart[startKey] = this.connectEnd[endKey] = rightRegion;
+                }
                 this.regions.push(rightRegion);
               }
+              rightRegion.addRight(i_rightStart, this.edges.length-1);
+            }
+            else rightRegion = null;
+            if (leftRegion) {
+              leftRegion.touchRight(rightRegion);
+            }
+            if (rightRegion) {
+              rightRegion.touchLeft(leftRegion);
             }
             if (flags === 0) {
               // end of shape
