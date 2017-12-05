@@ -13,6 +13,7 @@ define(function() {
   function SWFShape() {
     this.edges = [];
     this.regions = [];
+    this.lines = [];
   }
   SWFShape.prototype = {
     isMorphShape: false,
@@ -23,7 +24,7 @@ define(function() {
     readFrom: function(bytes) {
       var pt = new Point(0, 0);
       var i_fillLeft = 0, i_fillRight = 0, i_line = 0;
-      var i_leftStart = -1, i_rightStart = -1;
+      var i_leftStart = -1, i_rightStart = -1, i_lineStart = -1;
       mainLoop: for (;;) {
         var fillStyles, lineStyles;
         if (this.hasStyles) {
@@ -91,6 +92,9 @@ define(function() {
               rightRegion.addRight(i_rightStart, this.edges.length-1);
             }
             else rightRegion = null;
+            if (i_line && (flags&0x18 || !flags)) {
+              this.lines.push(new Stroke(i_lineStart, this.edges.length-1, lineStyles[i_line]));
+            }
             if (leftRegion) {
               leftRegion.touchRight(rightRegion);
             }
@@ -366,7 +370,18 @@ define(function() {
             }
           }
         }
-        var path = xml.empty('path', {d:pathData.join(''), fill:region.fill.toString()});
+        xml.empty('path', {d:pathData.join(''), fill:region.fill.toString()});
+      }
+      for (var i_line = 0; i_line < this.strokes.length; i_line++) {
+        var line = this.strokes[i_line];
+        var pathData = [];
+        var attrs = {'stroke-width':line.style.width, stroke:line.style.stroke};
+        pathData.push(this.edges[line.i_edge1].pathStartRight);
+        for (var i_edge = line.i_edge1; i_edge <= line.i_edge2; i_edge++) {
+          pathData.push(this.edges[i_edge].pathStepRight);
+        }
+        attrs.d = pathData.join('');
+        xml.empty('path', attrs);
       }
     },
   };
@@ -501,6 +516,12 @@ define(function() {
       return 'url("#' + id + '")';
     },
   };
+  
+  function Stroke(i_edge1, i_edge2, style) {
+    this.i_edge1 = i_edge1;
+    this.i_edge2 = i_edge2;
+    this.style = style;
+  }
   
   return SWFShape;
 
