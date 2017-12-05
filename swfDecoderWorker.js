@@ -134,7 +134,7 @@ function(
           var id = data.readUint16LE();
           var g = svg.open('g', {id:'text'+id});
           g.open('text').text('hello');
-          var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#text'+id;
+          var url = URL.createObjectURL(svg.toBlob('image/svg+xml'))+'#text'+id;
           displayObjects[id] = url;          
           break;
         case TAG_DEFINE_BUTTON:
