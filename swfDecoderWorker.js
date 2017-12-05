@@ -125,7 +125,7 @@ function(
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
-          g.empty('path', {d:'m0,0h50v50h-50v-50'});
+          g.empty('path', {d:'m0,0h2000v2000h-2000v-2000', fill:'#f00'});
           var url = URL.createObjectURL(svg.toBlob({type:'image/svg+xml'}))+'#shape'+id;
           displayObjects[id] = url;
           break;
