@@ -38,7 +38,6 @@ define(function() {
         var indexBits = bytes.readUint8();
         var fillIndexBits = indexBits >>> 4;
         var lineIndexBits = indexBits & 0xf;
-        this.connectStart = Object.create(null);
         this.connectEnd = Object.create(null);
         for (;;) {
           if (bytes.readTopBits(1, false) === 0) {
@@ -49,47 +48,40 @@ define(function() {
               var startPt = pt;
               var endPt = this.edges[i_leftStart].startPoint;
               var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
-              var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
-              if (endKey in this.connectStart) {
-                leftRegion = this.connectStart[endKey];
-                delete this.connectStart[endKey];
-              }
-              else if (startKey in this.connectEnd) {
+              if (startKey in this.connectEnd) {
                 leftRegion = this.connectEnd[startKey];
                 delete this.connectEnd[startKey];
               }
               else {
                 leftRegion = new FillRegion(fillStyles[i_fillLeft]);
-                if (startKey !== endKey) {
-                  this.connectStart[startKey] = this.connectEnd[endKey] = leftRegion;
-                }
+                leftRegion.startPoint = startPt;
                 this.regions.push(leftRegion);
               }
               leftRegion.addLeft(i_leftStart, this.edges.length-1);
+              if (!endPt.isEqualTo(leftRegion.startPoint)) {
+                var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
+                this.connectEnd[endKey] = leftRegion;
+              }
             }
             else leftRegion = null;
             if (i_fillRight && (flags&0x14 || !flags)) {
               var startPt = this.edges[i_rightStart].startPoint;
               var endPt = pt;
               var startKey = i_fillRight + ',' + startPt.x + ',' + startPt.y;
-              var endKey = i_fillRight + ',' + endPt.x + ',' + endPt.y;
-              var rightRegion;
-              if (endKey in this.connectStart) {
-                rightRegion = this.connectStart[endKey];
-                delete this.connectStart[endKey];
-              }
-              else if (startKey in this.connectEnd) {
+              if (startKey in this.connectEnd) {
                 rightRegion = this.connectEnd[startKey];
                 delete this.connectEnd[startKey];
               }
               else {
                 rightRegion = new FillRegion(fillStyles[i_fillRight]);
-                if (startKey !== endKey) {
-                  this.connectStart[startKey] = this.connectEnd[endKey] = rightRegion;
-                }
+                rightRegion.startPoint = startPt;
                 this.regions.push(rightRegion);
               }
               rightRegion.addRight(i_rightStart, this.edges.length-1);
+              if (!endPt.isEqualTo(rightRegion.startPoint)) {
+                var endKey = i_fillRight + ',' + endPt.x + ',' + endPt.y;
+                this.connectEnd[endKey] = rightRegion;
+              }
             }
             else rightRegion = null;
             if (i_line && (flags&0x18 || !flags)) {
