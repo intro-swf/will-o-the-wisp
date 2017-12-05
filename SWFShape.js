@@ -122,6 +122,7 @@ define(function() {
             }
             if (flags & 8) {
               i_line = bytes.readTopBits(lineIndexBits, false);
+              i_lineStart = this.edges.length;
             }
             if (flags & 0x10) {
               if (this.hasNoStyles) {
