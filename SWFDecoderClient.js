@@ -342,8 +342,8 @@ define(function() {
               switch (part[0]) {
                 case 'i':
                   var insertion = new InsertUpdate;
-                  var depth = message[1];
-                  var url = message[2];
+                  var depth = part[1];
+                  var url = part[2];
                   if (/#shape/.test(url)) {
                     var movie = document.getElementById('movie');
                     var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
