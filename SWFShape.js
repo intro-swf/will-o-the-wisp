@@ -338,6 +338,38 @@ define(function() {
       }
       return style;
     },
+    writeSVGTo: function(xml) {
+      for (var i_region = 0; i_region < this.regions.length; i_region++) {
+        var region = this.regions[i_region];
+        var pathData = [];
+        if (region.i_edges[0] < 0) {
+          pathData.push(this.edges[~region.i_edges[0]].pathStartLeft);
+        }
+        else {
+          pathData.push(this.edges[region.i_edges[0]].pathStartRight);
+        }
+        for (var i_segment = 0; i_segment < region.i_edges.length; i_segment += 2) {
+          var i_edge1 = region.i_edges[i_segment],
+              i_edge2 = region.i_edges[i_segment+1];
+          if (i_edge1 < 0) {
+            i_edge1 = ~i_edge1;
+            i_edge2 = ~i_edge2;
+            for (var i_edge = i_edge1; i_edge >= i_edge2; i_edge--) {
+              var edge = this.edges[i_edge];
+              pathData.push(edge.pathStepLeft);
+            }
+          }
+          else {
+            for (var i_edge = i_edge1; i_edge <= i_edge2; i_edge++) {
+              var edge = this.edges[i_edge];
+              pathData.push(edge.pathStepRight);
+            }
+          }
+        }
+        var path = xml.el('path', {d:pathData.join(' ')});
+        path.attr('fill', region.fill.toString());
+      }
+    },
   };
   
   function Point(x, y) {
@@ -357,12 +389,48 @@ define(function() {
     this.startPoint = startPoint;
     this.endPoint = endPoint;
   }
+  Line.prototype = {
+    get pathStartRight() {
+      var pt = this.startPoint;
+      return 'M' + pt.x + ' ' + pt.y;
+    },
+    get pathStartLeft() {
+      var pt = this.endPoint;
+      return 'M' + pt.x + ' ' + pt.y;
+    },
+    get pathStepRight() {
+      const pt1 = this.startPoint, pt2 = this.endPoint;
+      return 'l' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y);
+    },
+    get pathStepLeft() {
+      const pt1 = this.endPoint, pt2 = this.startPoint;
+      return 'l' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y);
+    },
+  };
 
   function Curve(startPoint, controlPoint, endPoint) {
     this.startPoint = startPoint;
     this.controlPoint = controlPoint;
     this.endPoint = endPoint;
   }
+  Curve.prototype = {
+    get pathStartRight() {
+      var pt = this.startPoint;
+      return 'M' + pt.x + ' ' + pt.y;
+    },
+    get pathStartLeft() {
+      var pt = this.endPoint;
+      return 'M' + pt.x + ' ' + pt.y;
+    },
+    get pathStepRight() {
+      const pt1 = this.startPoint, pt2 = this.controlPoint, pt3 = this.endPoint;
+      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
+    },
+    get pathStepLeft() {
+      const pt1 = this.endPoint, pt2 = this.controlPoint, pt3 = this.startPoint;
+      return 'q' + (pt2.x - pt1.x) + ' ' + (pt2.y - pt2.y) + ' ' + (pt3.x - pt1.x) + ' ' + (pt3.y - pt1.y);
+    },
+  };
   
   function FillRegion(fill) {
     this.fill = fill;
@@ -386,6 +454,44 @@ define(function() {
       if (this.touchingRight.indexOf(region) === -1) {
         this.touchingRight.push(region);
       }
+    },
+  };
+  
+  function LinearGradient() {
+    this.stops = [];
+  }
+  LinearGradient.prototype = {
+    writeTo: function(xml) {
+      var id = '_' + (xml.nextID = (xml.nextID || 0) + 1);
+      var gradient = xml.open('linearGradient', {id:id, gradientUnits:'userSpaceOnUse', x1:-16384, x2:16384});
+      if (this.matrix && !this.matrix.isIdentity) gradient.attr('transform', this.matrix.toString());
+      for (var i = 0; i < this.stops.length; i++) {
+        var stop = this.stops[i];
+        var stopEl = gradient.el('stop', {offset:stop.offset, 'stop-color':stop.solidColor});
+        if (stop.opacity !== 1) {
+          stopEl.attr('stop-opacity', stop.opacity);
+        }
+      }
+      return 'url("#' + id + '")';
+    },
+  };
+  
+  function RadialGradient() {
+    this.stops = [];
+  }
+  RadialGradient.prototype = {
+    writeTo: function(xml) {
+      var id = '_' + (xml.nextID = (xml.nextID || 0) + 1);
+      var gradient = xml.open('radialGradient', {id:id, gradientUnits:'userSpaceOnUse', r:16384, cx:0, cy:0});
+      if (this.matrix && !this.matrix.isIdentity) gradient.attr('transform', this.matrix.toString());
+      for (var i = 0; i < this.stops.length; i++) {
+        var stop = this.stops[i];
+        var stopEl = gradient.el('stop', {offset:stop.offset, 'stop-color':stop.solidColor});
+        if (stop.opacity !== 1) {
+          stopEl.attr('stop-opacity', stop.opacity);
+        }
+      }
+      return 'url("#' + id + '")';
     },
   };
   
