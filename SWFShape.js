@@ -47,7 +47,7 @@ define(function() {
             var leftRegion, rightRegion;
             if (i_fillLeft && (flags&0x12 || !flags)) {
               var startPt = pt;
-              var endPt = this.edges[i_leftStart].endPoint;
+              var endPt = this.edges[i_leftStart].startPoint;
               var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
               var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
               if (endKey in this.connectStart) {
