@@ -125,7 +125,8 @@ define(function() {
           var edge = edges[i_edge];
           if ('i_fillLeft' in edge) {
             var i_fill = edge.i_fillLeft;
-            var i_edges = fillStyles[i_fill].i_edges;
+            var i_edges = [];
+            fillStyles[i_fill].i_edges.push(i_edges);
             i_edges.push(~i_edge);
             var pt = edge.startPoint;
             for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
@@ -144,7 +145,8 @@ define(function() {
           }
           if ('i_fillRight' in edge) {
             var i_f = edge.i_fillRight;
-            var i_edges = fillStyles[i_f].i_edges;
+            var i_edges = [];
+            fillStyles[i_f].i_edges.push(i_edges);
             i_edges.push(i_edge);
             var pt = edge.endPoint;
             for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
@@ -163,7 +165,8 @@ define(function() {
           }
           if (edge.i_line) {
             var i_l = edge.i_line;
-            var i_edges = lineStyles[i_l].i_edges;
+            var i_edges = [];
+            lineStyles[i_l].i_edges.push(i_edges);
             i_edges.push(i_edge);
             var pt = edge.endPoint;
             for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
