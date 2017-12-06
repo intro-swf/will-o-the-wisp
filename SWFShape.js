@@ -193,11 +193,11 @@ define(function() {
       switch (fillStyle) {
         case 0x00:
           if (this.isMorphShape) {
-            var a = bytes.readSWFColor(this.hasNoAlpha);
-            var b = bytes.readSWFColor(this.hasNoAlpha);
+            var a = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
+            var b = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
             return [a, b];
           }
-          return bytes.readSWFColor(this.hasNoAlpha);
+          return {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
         case 0x10:
         case 0x12:
         case 0x13:
