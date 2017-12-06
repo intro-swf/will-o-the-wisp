@@ -108,9 +108,13 @@ define(function() {
               endPt = new Point(controlPt.x + endX, controlPt.y + endY);
               edge = new Curve(pt, controlPt, endPt);
             }
-            edge.i_fillLeft = i_fillLeft;
-            edge.i_fillRight = i_fillRight;
-            edge.i_line = i_line;
+            if (i_fillLeft || i_fillRight) {
+              edge.i_fillLeft = i_fillLeft;
+              edge.i_fillRight = i_fillRight;
+            }
+            if (i_line) {
+              edge.i_line = i_line;
+            }
             edges.push(edge);
             pt = endPt;
           }
@@ -118,7 +122,7 @@ define(function() {
         for (var i_fillStyle = 0; i_fillStyle < fillStyles.length; i_fillStyle++) {
           fillStyles[i_fillStyle].i_edges = [];
         }
-        for (var i_lineStyle = 0; i_lineStyle < lineStyles.length; i_lineStyle++) {
+        for (var i_lineStyle = 1; i_lineStyle < lineStyles.length; i_lineStyle++) {
           lineStyles[i_lineStyle].i_edges = [];
         }
         for (var i_edge = 0; i_edge < edges.length; i_edge++) {
