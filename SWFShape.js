@@ -143,18 +143,18 @@ define(function() {
             }
           }
           if ('i_fillRight' in edge) {
-            var i_fill = edge.i_fillRight;
-            var i_edges = fillStyles[i_fill].i_edges;
+            var i_f = edge.i_fillRight;
+            var i_edges = fillStyles[i_f].i_edges;
             i_edges.push(i_edge);
             var pt = edge.endPoint;
             for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
               var otherEdge = edges[j_edge];
-              if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
+              if (otherEdge.i_fillLeft === i_f && pt.isEqualTo(otherEdge.endPoint)) {
                 i_edges.push(~j_edge);
                 pt = otherEdge.startPoint;
                 delete otherEdge.i_fillLeft;
               }
-              else if (otherEdge.i_fillRight === i_fill && pt.isEqualTo(otherEdge.startPoint)) {
+              else if (otherEdge.i_fillRight === i_f && pt.isEqualTo(otherEdge.startPoint)) {
                 i_edges.push(j_edge);
                 pt = otherEdge.endPoint;
                 delete otherEdge.i_fillRight;
@@ -162,13 +162,13 @@ define(function() {
             }
           }
           if ('i_line' in edge) {
-            var i_line = edge.i_line;
-            var i_edges = lineStyles[i_line].i_edges;
+            var i_l = edge.i_line;
+            var i_edges = lineStyles[i_l].i_edges;
             i_edges.push(i_edge);
             var pt = edge.endPoint;
             for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
               var otherEdge = edges[j_edge];
-              if (otherEdge.i_line === i_line && pt.isEqualTo(otherEdge.startPoint)) {
+              if (otherEdge.i_line === i_l && pt.isEqualTo(otherEdge.startPoint)) {
                 i_edges.push(j_edge);
                 pt = otherEdge.endPoint;
                 delete otherEdge.i_line;
