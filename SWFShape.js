@@ -182,7 +182,7 @@ define(function() {
         count = bytes.readUint16LE();
       }
       var fillStyles = new Array(count+1);
-      fillStyles[0] = this.isMorphShape ? ['none', 'none'] : 'none';
+      fillStyles[0] = this.isMorphShape ? [{type:'solid', fill:'none'}, {type:'solid', fill:'none'}] : {type:'solid', fill:'none'};
       for (var i = 1; i < fillStyles.length; i++) {
         fillStyles[i] = this.readFillStyleFrom(bytes);
       }
