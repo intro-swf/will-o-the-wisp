@@ -118,15 +118,15 @@ define(function() {
         for (var i_lineStyle = 0; i_lineStyle < lineStyles.length; i_lineStyle++) {
           lineStyles[i_lineStyle].i_edges = [];
         }
-        for (var i_edge = 0; i_edge < this.edges.length; i_edge++) {
-          var edge = this.edges[i_edge];
+        for (var i_edge = 0; i_edge < edges.length; i_edge++) {
+          var edge = edges[i_edge];
           if ('i_fillLeft' in edge) {
             var i_fill = edge.i_fillLeft;
             var i_edges = fillStyles[i_fill].i_edges;
             i_edges.push(~i_edge);
             var pt = edge.startPoint;
-            for (var j_edge = i_edge + 1; j_edge < this.edges.length; j_edge++) {
-              var otherEdge = this.edges[j_edge];
+            for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
+              var otherEdge = edges[j_edge];
               if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
                 i_edges.push(~j_edge);
                 pt = otherEdge.startPoint;
@@ -144,8 +144,8 @@ define(function() {
             var i_edges = fillStyles[i_fill].i_edges;
             i_edges.push(i_edge);
             var pt = edge.endPoint;
-            for (var j_edge = i_edge + 1; j_edge < this.edges.length; j_edge++) {
-              var otherEdge = this.edges[j_edge];
+            for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
+              var otherEdge = edges[j_edge];
               if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
                 i_edges.push(~j_edge);
                 pt = otherEdge.startPoint;
@@ -163,8 +163,8 @@ define(function() {
             var i_edges = lineStyles[i_line].i_edges;
             i_edges.push(i_edge);
             var pt = edge.endPoint;
-            for (var j_edge = i_edge + 1; j_edge < this.edges.length; j_edge++) {
-              var otherEdge = this.edges[j_edge];
+            for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
+              var otherEdge = edges[j_edge];
               if (otherEdge.i_line === i_line && pt.isEqualTo(otherEdge.startPoint)) {
                 i_edges.push(j_edge);
                 pt = otherEdge.endPoint;
