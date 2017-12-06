@@ -27,7 +27,7 @@ define(function() {
           lineStyles = this.readLineStylesFrom(bytes);
         }
         else {
-          fillStyles = ['none', '#000'];
+          fillStyles = [{type:'solid', fill:'none'}, {type:'solid', fill:'#000'}];
           lineStyles = [{stroke:'none', width:0}];
         }
         var indexBits = bytes.readUint8();
