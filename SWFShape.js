@@ -69,6 +69,9 @@ define(function() {
               if (!(flags & 1)) {
                 pt = new Point(0, 0);
               }
+              if (!(flags & 2)) i_fillLeft = 0;
+              if (!(flags & 4)) i_fillRight = 0;
+              if (!(flags & 8)) i_line = 0;
               break;
             }
           }
