@@ -128,17 +128,17 @@ define(function() {
             var i_edges = [];
             fillStyles[i_fill].i_edges.push(i_edges);
             i_edges.push(~i_edge);
-            var pt = edge.startPoint;
+            var pt = edge.endPoint;
             for (var j_edge = i_edge + 1; j_edge < edges.length; j_edge++) {
               var otherEdge = edges[j_edge];
-              if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
+              if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.startPoint)) {
                 i_edges.push(~j_edge);
-                pt = otherEdge.startPoint;
+                pt = otherEdge.endPoint;
                 delete otherEdge.i_fillLeft;
               }
-              else if (otherEdge.i_fillRight === i_fill && pt.isEqualTo(otherEdge.startPoint)) {
+              else if (otherEdge.i_fillRight === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
                 i_edges.push(j_edge);
-                pt = otherEdge.endPoint;
+                pt = otherEdge.startPoint;
                 delete otherEdge.i_fillRight;
               }
             }
