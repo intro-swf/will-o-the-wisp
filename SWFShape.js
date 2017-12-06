@@ -108,7 +108,7 @@ define(function() {
               endPt = new Point(controlPt.x + endX, controlPt.y + endY);
               edge = new Curve(pt, controlPt, endPt);
             }
-            if (i_fillLeft || i_fillRight) {
+            if ((i_fillLeft || i_fillRight) && (i_fillLeft !== i_fillRight)) {
               edge.i_fillLeft = i_fillLeft;
               edge.i_fillRight = i_fillRight;
             }
