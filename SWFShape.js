@@ -161,7 +161,7 @@ define(function() {
               }
             }
           }
-          if ('i_line' in edge) {
+          if (edge.i_line) {
             var i_l = edge.i_line;
             var i_edges = lineStyles[i_l].i_edges;
             i_edges.push(i_edge);
