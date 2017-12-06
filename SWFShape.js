@@ -2,18 +2,12 @@ define(function() {
 
   'use strict';
   
-  const DEFAULT_FILL_STYLES = ['none', '#000'];
-  const DEFAULT_LINE_STYLES = [{stroke:'none', width:0}];
-  
   function percentFromByte(v) {
     // reversible (remember to use Math.round) to get 0-255 back
     return +(v*100/255).toFixed(1) + '%';
   }
   
   function SWFShape() {
-    this.edges = [];
-    this.regions = [];
-    this.lines = [];
   }
   SWFShape.prototype = {
     isMorphShape: false,
@@ -24,78 +18,32 @@ define(function() {
     readFrom: function(bytes) {
       var pt = new Point(0, 0);
       var i_fillLeft = 0, i_fillRight = 0, i_line = 0;
-      var i_leftStart = -1, i_rightStart = -1, i_lineStart = -1;
-      mainLoop: for (;;) {
+      var finished = false;
+      var layers = this.layers = [];
+      do {
         var fillStyles, lineStyles;
         if (this.hasStyles) {
           fillStyles = this.readFillStylesFrom(bytes);
           lineStyles = this.readLineStylesFrom(bytes);
         }
         else {
-          fillStyles = DEFAULT_FILL_STYLES;
-          lineStyles = DEFAULT_LINE_STYLES;
+          fillStyles = ['none', '#000'];
+          lineStyles = [{stroke:'none', width:0}];
         }
         var indexBits = bytes.readUint8();
         var fillIndexBits = indexBits >>> 4;
         var lineIndexBits = indexBits & 0xf;
-        this.connectEnd = Object.create(null);
+        var layer = {fillStyles:fillStyles, lineStyles:lineStyles};
+        var edges = layer.edges = [];
+        layers.push(layer);
         for (;;) {
           if (bytes.readTopBits(1, false) === 0) {
             // setup
             var flags = bytes.readTopBits(5, false);
-            var leftRegion, rightRegion;
-            if (i_fillLeft && (flags&0x12 || !flags)) {
-              var startPt = pt;
-              var endPt = this.edges[i_leftStart].startPoint;
-              var startKey = i_fillLeft + ',' + startPt.x + ',' + startPt.y;
-              if (startKey in this.connectEnd) {
-                leftRegion = this.connectEnd[startKey];
-                delete this.connectEnd[startKey];
-              }
-              else {
-                leftRegion = new FillRegion(fillStyles[i_fillLeft]);
-                leftRegion.startPoint = startPt;
-                this.regions.push(leftRegion);
-              }
-              leftRegion.addLeft(i_leftStart, this.edges.length-1);
-              if (!endPt.isEqualTo(leftRegion.startPoint)) {
-                var endKey = i_fillLeft + ',' + endPt.x + ',' + endPt.y;
-                this.connectEnd[endKey] = leftRegion;
-              }
-            }
-            else leftRegion = null;
-            if (i_fillRight && (flags&0x14 || !flags)) {
-              var startPt = this.edges[i_rightStart].startPoint;
-              var endPt = pt;
-              var startKey = i_fillRight + ',' + startPt.x + ',' + startPt.y;
-              if (startKey in this.connectEnd) {
-                rightRegion = this.connectEnd[startKey];
-                delete this.connectEnd[startKey];
-              }
-              else {
-                rightRegion = new FillRegion(fillStyles[i_fillRight]);
-                rightRegion.startPoint = startPt;
-                this.regions.push(rightRegion);
-              }
-              rightRegion.addRight(i_rightStart, this.edges.length-1);
-              if (!endPt.isEqualTo(rightRegion.startPoint)) {
-                var endKey = i_fillRight + ',' + endPt.x + ',' + endPt.y;
-                this.connectEnd[endKey] = rightRegion;
-              }
-            }
-            else rightRegion = null;
-            if (i_line && (flags&0x18 || !flags)) {
-              this.lines.push(new Stroke(i_lineStart, this.edges.length-1, lineStyles[i_line]));
-            }
-            if (leftRegion) {
-              leftRegion.touchRight(rightRegion);
-            }
-            if (rightRegion) {
-              rightRegion.touchLeft(leftRegion);
-            }
             if (flags === 0) {
               // end of shape
-              break mainLoop;
+              finished = true;
+              break;
             }
             if (flags & 1) {
               // move-to
@@ -106,15 +54,12 @@ define(function() {
             }
             if (flags & 2) {
               i_fillLeft = bytes.readTopBits(fillIndexBits, false);
-              i_leftStart = i_fillLeft ? this.edges.length : -1;
             }
             if (flags & 4) {
               i_fillRight = bytes.readTopBits(fillIndexBits, false);
-              i_rightStart = i_fillRight ? this.edges.length : -1;
             }
             if (flags & 8) {
               i_line = bytes.readTopBits(lineIndexBits, false);
-              i_lineStart = this.edges.length;
             }
             if (flags & 0x10) {
               if (this.hasNoStyles) {
@@ -124,15 +69,15 @@ define(function() {
               if (!(flags & 1)) {
                 pt = new Point(0, 0);
               }
-              continue mainLoop;
+              break;
             }
           }
           else {
             // edge
+            var endPt, edge;
             if (bytes.readTopBits(1, false)) {
               // straight edge flag
               var coordBits = 2 + bytes.readTopBits(4, false);
-              var endPt;
               if (bytes.readTopBits(1, false)) {
                 // general line flag
                 var x = bytes.readTopBits(coordBits, true);
@@ -147,8 +92,7 @@ define(function() {
                 // horizontal
                 endPt = new Point(pt.x + bytes.readTopBits(coordBits, true), pt.y);
               }
-              this.edges.push(new Line(pt, endPt));
-              pt = endPt;
+              edge = new Line(pt, endPt);
             }
             else {
               // curved edge
@@ -158,13 +102,78 @@ define(function() {
               var endX = bytes.readTopBits(coordBits, true);
               var endY = bytes.readTopBits(coordBits, true);
               var controlPt = new Point(pt.x + controlX, pt.y + controlY);
-              var endPt = new Point(controlPt.x + endX, controlPt.y + endY);
-              this.edges.push(new Curve(pt, controlPt, endPt));
-              pt = endPt;
+              endPt = new Point(controlPt.x + endX, controlPt.y + endY);
+              edge = new Curve(pt, controlPt, endPt);
+            }
+            edge.i_fillLeft = i_fillLeft;
+            edge.i_fillRight = i_fillRight;
+            edge.i_line = i_line;
+            edges.push(edge);
+            pt = endPt;
+          }
+        }
+        for (var i_fillStyle = 0; i_fillStyle < fillStyles.length; i_fillStyle++) {
+          fillStyles[i_fillStyle].i_edges = [];
+        }
+        for (var i_lineStyle = 0; i_lineStyle < lineStyles.length; i_lineStyle++) {
+          lineStyles[i_lineStyle].i_edges = [];
+        }
+        for (var i_edge = 0; i_edge < this.edges.length; i_edge++) {
+          var edge = this.edges[i_edge];
+          if ('i_fillLeft' in edge) {
+            var i_fill = edge.i_fillLeft;
+            var i_edges = fillStyles[i_fill].i_edges;
+            i_edges.push(~i_edge);
+            var pt = edge.startPoint;
+            for (var j_edge = i_edge + 1; j_edge < this.edges.length; j_edge++) {
+              var otherEdge = this.edges[j_edge];
+              if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
+                i_edges.push(~j_edge);
+                pt = otherEdge.startPoint;
+                delete otherEdge.i_fillLeft;
+              }
+              else if (otherEdge.i_fillRight === i_fill && pt.isEqualTo(otherEdge.startPoint)) {
+                i_edges.push(j_edge);
+                pt = otherEdge.endPoint;
+                delete otherEdge.i_fillRight;
+              }
+            }
+          }
+          if ('i_fillRight' in edge) {
+            var i_fill = edge.i_fillRight;
+            var i_edges = fillStyles[i_fill].i_edges;
+            i_edges.push(i_edge);
+            var pt = edge.endPoint;
+            for (var j_edge = i_edge + 1; j_edge < this.edges.length; j_edge++) {
+              var otherEdge = this.edges[j_edge];
+              if (otherEdge.i_fillLeft === i_fill && pt.isEqualTo(otherEdge.endPoint)) {
+                i_edges.push(~j_edge);
+                pt = otherEdge.startPoint;
+                delete otherEdge.i_fillLeft;
+              }
+              else if (otherEdge.i_fillRight === i_fill && pt.isEqualTo(otherEdge.startPoint)) {
+                i_edges.push(j_edge);
+                pt = otherEdge.endPoint;
+                delete otherEdge.i_fillRight;
+              }
+            }
+          }
+          if ('i_line' in edge) {
+            var i_line = edge.i_line;
+            var i_edges = lineStyles[i_line].i_edges;
+            i_edges.push(i_edge);
+            var pt = edge.endPoint;
+            for (var j_edge = i_edge + 1; j_edge < this.edges.length; j_edge++) {
+              var otherEdge = this.edges[j_edge];
+              if (otherEdge.i_line === i_line && pt.isEqualTo(otherEdge.startPoint)) {
+                i_edges.push(j_edge);
+                pt = otherEdge.endPoint;
+                delete otherEdge.i_line;
+              }
             }
           }
         }
-      }
+      } while (!finished);
       bytes.flushBits();
     },
     readFillStylesFrom: function(bytes) {
@@ -339,6 +348,7 @@ define(function() {
       return style;
     },
     writeSVGTo: function(xml) {
+      /*
       for (var i_region = 0; i_region < this.regions.length; i_region++) {
         var region = this.regions[i_region];
         var pathData = [];
@@ -379,6 +389,7 @@ define(function() {
         attrs.d = pathData.join('');
         xml.empty('path', attrs);
       }
+      */
     },
   };
   
