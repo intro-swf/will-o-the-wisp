@@ -348,6 +348,7 @@ define(function() {
                     var movie = document.getElementById('movie');
                     var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
                     use.setAttribute('href', url);
+                    use.setAttribute('visibility', 'hidden');
                     for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
                       if (part[i_modifier][0] === 'transform') {
                         use.setAttribute('transform', part[i_modifier][1]);
