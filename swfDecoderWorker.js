@@ -170,6 +170,17 @@ function(
           if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
           if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
           nextFrame.updates.push(insertion);
+          for (var i = nextFrame.updates.length-2; i >= 0; i--) {
+            if (nextFrame.updates[i][0] === 'd' && nextFrame.updates[i][0] === depth) {
+              nextFrame.updates.pop();
+              insertion.splice(0, 3, 'u', depth);
+              if (!colorTransform || colorTransform.isIdentity) {
+                insertion.push(["colorMatrix", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"]);
+              }
+              nextFrame[i] = insertion;
+              break;
+            }
+          }
           break;
         case TAG_REMOVE_OBJECT:
           var characterID = data.readUint16LE();
