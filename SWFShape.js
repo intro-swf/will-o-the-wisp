@@ -17,9 +17,9 @@ define(function() {
     hasExtendedLineStyle: false,
     readFrom: function(bytes) {
       var pt = new Point(0, 0);
-      var i_fillLeft = 0, i_fillRight = 0, i_line = 0;
       var finished = false;
       var layers = this.layers = [];
+      var next_fillLeft=0, next_fillRight=0, next_line=0;
       do {
         var fillStyles, lineStyles;
         if (this.hasStyles) {
@@ -33,9 +33,11 @@ define(function() {
         var indexBits = bytes.readUint8();
         var fillIndexBits = indexBits >>> 4;
         var lineIndexBits = indexBits & 0xf;
-        var layer = {fillStyles:fillStyles, lineStyles:lineStyles};
-        var edges = layer.edges = [];
-        layers.push(layer);
+        var patches = new PatchList(fillStyles, lineStyles);
+        patches.i_fillLeft = next_fillLeft;
+        patches.i_fillRight = next_fillRight;
+        patches.i_line = next_line;
+        layers.push(patches);
         for (;;) {
           if (bytes.readTopBits(1, false) === 0) {
             // setup
@@ -52,27 +54,25 @@ define(function() {
               var y = bytes.readTopBits(coordBitCount, true);
               pt = new Point(x, y);
             }
-            if (flags & 2) {
-              i_fillLeft = bytes.readTopBits(fillIndexBits, false);
-            }
-            if (flags & 4) {
-              i_fillRight = bytes.readTopBits(fillIndexBits, false);
-            }
-            if (flags & 8) {
-              i_line = bytes.readTopBits(lineIndexBits, false);
-            }
             if (flags & 0x10) {
               if (this.hasNoStyles) {
                 throw new Error('newStyles in styleless shape');
               }
+              if (!(flags & 1)) pt = new Point(0, 0);
+              next_fillLeft = (flags & 2) ? bytes.readTopBits(fillIndexBits, false) : 0;
+              next_fillRight = (flags & 4) ? bytes.readTopBits(fillIndexBits, false) : 0;
+              next_line = (flags & 8) ? bytes.readTopBits(lineIndexBits, false) : 0;
               bytes.flushBits();
-              if (!(flags & 1)) {
-                pt = new Point(0, 0);
-              }
-              if (!(flags & 2)) i_fillLeft = 0;
-              if (!(flags & 4)) i_fillRight = 0;
-              if (!(flags & 8)) i_line = 0;
               break;
+            }
+            if (flags & 2) {
+              patches.i_fillLeft = bytes.readTopBits(fillIndexBits, false);
+            }
+            if (flags & 4) {
+              patches.i_fillRight = bytes.readTopBits(fillIndexBits, false);
+            }
+            if (flags & 8) {
+              patches.i_line = bytes.readTopBits(lineIndexBits, false);
             }
           }
           else {
@@ -108,106 +108,11 @@ define(function() {
               endPt = new Point(controlPt.x + endX, controlPt.y + endY);
               edge = new Curve(pt, controlPt, endPt);
             }
-            if ((i_fillLeft || i_fillRight) && (i_fillLeft !== i_fillRight)) {
-              edge.i_fillLeft = i_fillLeft;
-              edge.i_fillRight = i_fillRight;
-            }
-            if (i_line) {
-              edge.i_line = i_line;
-            }
-            edges.push(edge);
+            patches.addEdge(edge);
             pt = endPt;
           }
         }
-        for (var i_fillStyle = 0; i_fillStyle < fillStyles.length; i_fillStyle++) {
-          fillStyles[i_fillStyle].i_edges = [];
-        }
-        for (var i_lineStyle = 1; i_lineStyle < lineStyles.length; i_lineStyle++) {
-          lineStyles[i_lineStyle].i_edges = [];
-        }
-        for (var i_edge = 0; i_edge < edges.length; i_edge++) {
-          var edge = edges[i_edge];
-          if ('i_fillLeft' in edge) {
-            fillStyles[edge.i_fillLeft].i_edges.push(~i_edge);
-          }
-          if ('i_fillRight' in edge) {
-            fillStyles[edge.i_fillRight].i_edges.push(i_edge);
-          }
-          if ('i_line' in edge) {
-            lineStyles[edge.i_line].i_edges.push(i_edge);
-          }
-        }
-        for (var i_fillStyle = 0; i_fillStyle < fillStyles.length; i_fillStyle++) {
-          var segments = [];
-          var i_edges = fillStyles[i_fillStyle].i_edges;
-          delete fillStyles[i_fillStyle].i_edges;
-          while (i_edges.length) {
-            var i_edge = i_edges.shift();
-            var segment = [i_edge];
-            segments.push(segment);
-            if (!i_edges.length) break;
-            var pt;
-            if (i_edge < 0) {
-              pt = edges[~i_edge].startPoint;
-            }
-            else {
-              pt = edges[i_edge].endPoint;
-            }
-            connecting: for (;;) {
-              for (var ii_edge = 0; ii_edge < i_edges.length; ii_edge++) {
-                i_edge = i_edges[ii_edge];
-                var otherPt;
-                if (i_edge < 0) {
-                  otherPt = edges[~i_edge].endPoint;
-                }
-                else {
-                  otherPt = edges[i_edge].startPoint;
-                }
-                if (pt.isEqualTo(otherPt)) {
-                  segment.push(i_edge);
-                  i_edges.splice(ii_edge, 1);
-                  if (i_edge < 0) {
-                    pt = edges[~i_edge].startPoint;
-                  }
-                  else {
-                    pt = edges[i_edge].endPoint;
-                  }
-                  continue connecting;
-                }
-              }
-              // no further connections were found
-              break connecting;
-            }
-          }
-          fillStyles[i_fillStyle].segments = segments;
-        }
-        for (var i_lineStyle = 1; i_lineStyle < lineStyles.length; i_lineStyle++) {
-          var segments = [];
-          var i_edges = lineStyles[i_lineStyle].i_edges;
-          delete lineStyles[i_lineStyle].i_edges;
-          while (i_edges.length) {
-            var i_edge = i_edges.shift();
-            var segment = [i_edge];
-            segments.push(segment);
-            if (!i_edges.length) break;
-            var pt = edges[i_edge].endPoint;
-            connecting: for (;;) {
-              for (var ii_edge = 0; ii_edge < i_edges.length; ii_edge++) {
-                i_edge = i_edges[ii_edge];
-                var otherPt = edges[i_edge].startPoint;
-                if (pt.isEqualTo(otherPt)) {
-                  segment.push(i_edge);
-                  i_edges.splice(ii_edge, 1);
-                  pt = edges[i_edge].endPoint;
-                  continue connecting;
-                }
-              }
-              // no further connections were found
-              break connecting;
-            }
-          }
-          lineStyles[i_lineStyle].segments = segments;
-        }
+        patches.close();
       } while (!finished);
       bytes.flushBits();
     },
@@ -386,9 +291,9 @@ define(function() {
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
-        if (layer.fillStyles.length > 1) {
-          var outline = layer.fillStyles[0];
-          var patches = outline.segments;
+        if (layer.fills.length > 1) {
+          var fill = layer.fills[0];
+          var patches = fill.segments;
           for (var i_patch = 0; i_patch < patches.length; i_patch++) {
             var patch = patches[i_patch];
             var pathData = [];
@@ -410,11 +315,11 @@ define(function() {
             xml.empty('path', {d:pathData.join(''), fill:'#f00'});
           }
         }
-        for (var i_line = 1; i_line < layer.lineStyles.length; i_line++) {
-          var lineStyle = layer.lineStyles[i_line];
+        for (var i_line = 1; i_line < layer.lines.length; i_line++) {
+          var line = layer.lines[i_line];
           var pathData = [];
-          for (var i_segment = 0; i_segment < lineStyle.segments.length; i_segment++) {
-            var seg = lineStyle.segments[i_segment];
+          for (var i_segment = 0; i_segment < line.segments.length; i_segment++) {
+            var seg = line.segments[i_segment];
             pathData.push(edges[seg[0]].pathStartRight);
             for (var ii_edge = 0; ii_edge < seg.length; ii_edge++) {
               var i_edge = seg[ii_edge];
@@ -424,19 +329,19 @@ define(function() {
           var attr = {
             d: pathData.join(''),
             fill: 'none',
-            stroke: lineStyle.stroke.solidColor,
+            stroke: line.style.stroke.solidColor,
             'stroke-width': 20,
-            'stroke-linejoin': lineStyle.joinStyle,
-            'stroke-linecap': lineStyle.startCapStyle,
+            'stroke-linejoin': line.style.joinStyle,
+            'stroke-linecap': line.style.startCapStyle,
           };
-          if (lineStyle.stroke.opacity !== 1) {
-            attr['stroke-opacity'] = lineStyle.stroke.opacity;
+          if (line.style.stroke.opacity !== 1) {
+            attr['stroke-opacity'] = line.style.stroke.opacity;
           }
-          if (lineStyle.startCapStyle !== lineStyle.endCapStyle) {
+          if (line.style.startCapStyle !== line.style.endCapStyle) {
             throw new Error('NYI: differing cap styles');
           }
-          if (lineStyle.joinStyle === 'miter') {
-            attr['stroke-miterlimit'] = lineStyle.miterLimitFactor;
+          if (line.style.joinStyle === 'miter') {
+            attr['stroke-miterlimit'] = line.style.miterLimitFactor;
           }
           xml.empty('path', attr);
         }
@@ -622,6 +527,95 @@ define(function() {
     this.i_edge2 = i_edge2;
     this.style = style;
   }
+  
+  function PatchList(fillStyles, lineStyles) {
+    this.edges = [];
+    this.fills = new Array(fillStyles.length);
+    for (var i = 0; i < fillStyles.length; i++) {
+      this.fills[i] = new Patch(this, fillStyles[i]);
+    }
+    this.lines = new Array(lineStyles.length);
+    for (var i = 1; i < lineStyles.length; i++) {
+      this.lines[i] = new Patch(this, lineStyles[i]);
+    }
+  }
+  PatchList.prototype = {
+    i_fillLeft: 0, i_fillRight: 0, i_line: 0,
+    addEdge: function(edge) {
+      var i_edge = this.edges.push(edge) - 1;
+      if (this.i_fillLeft !== this.i_fillRight) {
+        this.fills[this.i_fillLeft].addEdgeByIndex(i_edge, true);
+        this.fills[this.i_fillRight].addEdgeByIndex(i_edge);
+      }
+      if (this.i_line !== 0) {
+        this.lines[this.i_line].addEdgeByIndex(i_edge);
+      }
+    },
+    close: function() {
+      for (var i = 0; i < this.fills.length; i++) {
+        this.fills[i].close();
+      }
+      for (var i = 1; i < this.lines.length; i++) {
+        this.lines[i].close();
+      }
+    },
+  };
+
+  function Patch(shape, style) {
+    this.shape = shape;
+    this.style = style;
+    this.i_edges = [];
+  }
+  Patch.prototype = {
+    addEdgeByIndex: function(i_edge, invert) {
+      if (invert) i_edge = ~i_edge;
+      this.i_edges.push(i_edge);
+    },
+    close: function() {
+      const i_edges = this.i_edges;
+      const segments = this.segments = [];
+      const edges = this.shape.edges;
+      delete this.i_edges;
+      for (var i = 0; i < i_edges.length; i++) {
+        var i_edge = i_edges.shift();
+        var segment = [i_edge];
+        segments.push(segment);
+        if (!i_edges.length) break;
+        var pt;
+        if (i_edge < 0) {
+          pt = edges[~i_edge].startPoint;
+        }
+        else {
+          pt = edges[i_edge].endPoint;
+        }
+        connecting: for (;;) {
+          for (var i = 0; i < i_edges.length; i++) {
+            i_edge = i_edges[i];
+            var otherPt;
+            if (i_edge < 0) {
+              otherPt = edges[~i_edge].endPoint;
+            }
+            else {
+              otherPt = edges[i_edge].startPoint;
+            }
+            if (pt.isEqualTo(otherPt)) {
+              segment.push(i_edge);
+              i_edges.splice(i, 1);
+              if (i_edge < 0) {
+                pt = edges[~i_edge].startPoint;
+              }
+              else {
+                pt = edges[i_edge].endPoint;
+              }
+              continue connecting;
+            }
+          }
+          // no further connections were found
+          break connecting;
+        }
+      }
+    },
+  };
   
   return SWFShape;
 
