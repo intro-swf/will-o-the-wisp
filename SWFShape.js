@@ -576,7 +576,7 @@ define(function() {
       const segments = this.segments = [];
       const edges = this.shape.edges;
       delete this.i_edges;
-      for (var i = 0; i < i_edges.length; i++) {
+      while (i_edges.length > 0) {
         var i_edge = i_edges.shift();
         var segment = [i_edge];
         segments.push(segment);
