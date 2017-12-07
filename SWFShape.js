@@ -134,7 +134,7 @@ define(function() {
             fillStyles[edge.i_fillRight].i_edges.push(i_edge);
           }
           if ('i_line' in edge) {
-            lineStyles[i_lineStyle].i_edges.push(i_edge);
+            lineStyles[edge.i_line].i_edges.push(i_edge);
           }
         }
         for (var i_fillStyle = 0; i_fillStyle < fillStyles.length; i_fillStyle++) {
