@@ -422,11 +422,12 @@ define(function() {
             }
           }
           var attr = {
-            d:pathData.join(''),
-            stroke:lineStyle.stroke.solidColor,
-            'stroke-width':20,
-            'stroke-linejoin':lineStyle.joinStyle,
-            'stroke-linecap':lineStyle.startCapStyle,
+            d: pathData.join(''),
+            fill: 'none',
+            stroke: lineStyle.stroke.solidColor,
+            'stroke-width': 20,
+            'stroke-linejoin': lineStyle.joinStyle,
+            'stroke-linecap': lineStyle.startCapStyle,
           };
           if (lineStyle.stroke.opacity !== 1) {
             attr['stroke-opacity'] = lineStyle.stroke.opacity;
