@@ -354,9 +354,9 @@ define(function() {
           style = this.readExtendedLineStyleFrom(bytes);
         }
         else {
-          style = {};
+          style = {joinStyle:'round', startCapStyle:'round', endCapStyle:'round'};
         }
-        style.width = width;
+        style.strokeWidth = width;
         style.stroke = bytes.readSWFColor(this.hasNoAlpha);
         lineStyles[i] = style;
       }
@@ -386,27 +386,55 @@ define(function() {
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
-        var outline = layer.fillStyles[0];
-        var patches = outline.segments;
-        for (var i_patch = 0; i_patch < patches.length; i_patch++) {
-          var patch = patches[i_patch];
-          var pathData = [];
-          if (patch[0] < 0) {
-            pathData.push(edges[~patch[0]].pathStartLeft);
-          }
-          else {
-            pathData.push(edges[patch[0]].pathStartRight);
-          }
-          for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
-            var i_edge = patch[ii_edge];
-            if (i_edge < 0) {
-              pathData.push(edges[~i_edge].pathStepLeft);
+        if (layer.fillStyles.length > 1) {
+          var outline = layer.fillStyles[0];
+          var patches = outline.segments;
+          for (var i_patch = 0; i_patch < patches.length; i_patch++) {
+            var patch = patches[i_patch];
+            var pathData = [];
+            if (patch[0] < 0) {
+              pathData.push(edges[~patch[0]].pathStartLeft);
             }
             else {
+              pathData.push(edges[patch[0]].pathStartRight);
+            }
+            for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+              var i_edge = patch[ii_edge];
+              if (i_edge < 0) {
+                pathData.push(edges[~i_edge].pathStepLeft);
+              }
+              else {
+                pathData.push(edges[i_edge].pathStepRight);
+              }
+            }
+            xml.empty('path', {d:pathData.join(''), fill:'#f00'});
+          }
+        }
+        for (var i_line = 1; i_line < layer.lineStyles.length; i_line++) {
+          var lineStyle = layer.lineStyles[i_line];
+          var pathData = [];
+          for (var i_segment = 0; i_segment < lineStyle.segments.length; i_segment++) {
+            var seg = lineStyle.segments[i_segment];
+            pathData.push(edges[seg[0]].pathStartRight);
+            for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+              var i_edge = seg[ii_edge];
               pathData.push(edges[i_edge].pathStepRight);
             }
           }
-          xml.empty('path', {d:pathData.join(''), fill:'#f00', stroke:'#fff', 'stroke-width':20});
+          var attr = {
+            d:pathData.join(''),
+            stroke:lineStyle.stroke,
+            'stroke-width':20,
+            'stroke-linejoin':lineStyle.joinStyle,
+            'stroke-linecap':lineStyle.startCapStyle,
+          };
+          if (lineStyle.startCapStyle !== lineStyle.endCapStyle) {
+            throw new Error('NYI: differing cap styles');
+          }
+          if (lineStyle.joinStyle === 'miter') {
+            attr['stroke-miterlimit'] = lineStyle.miterLimitFactor;
+          }
+          xml.empty('path', attr);
         }
       }
       /*
