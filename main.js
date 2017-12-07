@@ -549,6 +549,12 @@ else require([
     movie.timeline = new DisplayListTimeline;
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
+    function drawFrame(n) {
+      for (var el = movie.firstElementChild; el; el = el.nextElementSibling) {
+        el.visibility.baseVal = 'hidden';
+      }
+      movie.timeline.playHead = n;
+    }
     client.onframeset = function onframeset(frameset) {
       var parts = frameset.bounds.split(/ /g);
       movie.setAttribute('viewBox', frameset.bounds);
@@ -558,7 +564,7 @@ else require([
       scrubber.max = frameset.count-1;
       scrubber.onchange = function(e) {
         var frame = +this.value;
-        console.log(frame);
+        drawFrame(frame);
       };
       console.log('frameset', frameset);
     };
