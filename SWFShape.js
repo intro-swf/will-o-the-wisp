@@ -416,7 +416,7 @@ define(function() {
           for (var i_segment = 0; i_segment < lineStyle.segments.length; i_segment++) {
             var seg = lineStyle.segments[i_segment];
             pathData.push(edges[seg[0]].pathStartRight);
-            for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+            for (var ii_edge = 0; ii_edge < seg.length; ii_edge++) {
               var i_edge = seg[ii_edge];
               pathData.push(edges[i_edge].pathStepRight);
             }
