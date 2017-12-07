@@ -171,7 +171,7 @@ function(
           if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
           nextFrame.updates.push(insertion);
           for (var i = nextFrame.updates.length-2; i >= 0; i--) {
-            if (nextFrame.updates[i][0] === 'd' && nextFrame.updates[i][0] === depth) {
+            if (nextFrame.updates[i][0] === 'd' && nextFrame.updates[i][1] === depth) {
               nextFrame.updates.pop();
               insertion.splice(0, 3, 'u', depth);
               if (!colorTransform || colorTransform.isIdentity) {
