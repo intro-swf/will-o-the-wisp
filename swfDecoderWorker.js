@@ -177,7 +177,7 @@ function(
               if (!colorTransform || colorTransform.isIdentity) {
                 insertion.push(["colorMatrix", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"]);
               }
-              nextFrame[i] = insertion;
+              nextFrame.updates[i] = insertion;
               break;
             }
           }
