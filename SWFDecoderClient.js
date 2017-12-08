@@ -342,32 +342,33 @@ define(function() {
               switch (part[0]) {
                 case 'i':
                   var insertion = new InsertUpdate;
-                  var depth = part[1];
-                  var url = part[2];
-                  if (/#shape/.test(url)) {
-                    var movie = document.getElementById('movie');
-                    var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-                    use.setAttribute('href', url);
-                    use.setAttribute('visibility', 'hidden');
-                    for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
-                      if (part[i_modifier][0] === 'transform') {
-                        use.setAttribute('transform', part[i_modifier][1]);
-                      }
-                    }
-                    movie.appendChild(use);
+                  insertion.order = part[1];
+                  insertion.url = part[2];
+                  for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
+                    insertion.addModifier.apply(insertion, part[i_modifier]);
                   }
                   frame.updates.push(insertion);
                   break;
                 case 'm':
                   var modification = new ModifyUpdate;
+                  modification.order = part[1];
+                  for (var i_modifier = 2; i_modifier < part.length; i_modifier++) {
+                    modification.addModifier.apply(modification, part[i_modifier]);
+                  }
                   frame.updates.push(modification);
                   break;
                 case 'r':
                   var replacement = new ReplaceUpdate;
+                  replacement.order = part[1];
+                  replacement.url = part[2];
+                  for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
+                    replacement.addModifier.apply(insertion, part[i_modifier]);
+                  }
                   frame.updates.push(replacement);
                   break;
                 case 'd':
                   var deletion = new DeleteUpdate;
+                  deletion.order = part[1];
                   frame.updates.push(deletion);
                   break;
                 case 'do':
@@ -404,21 +405,29 @@ define(function() {
   };
   
   function InsertUpdate() {
+    this.settings = Object.create(null);
   }
   InsertUpdate.prototype = {
     type: 'insert',
+    addModifier: function(name, value) {
+      this.settings[name] = value;
+    },
   };
   
   function ModifyUpdate() {
+    this.settings = Object.create(null);
   }
   ModifyUpdate.prototype = {
     type: 'modify',
+    addModifier: InsertUpdate.prototype.addModifier,
   };
   
   function ReplaceUpdate() {
+    this.settings = Object.create(null);
   }
   ReplaceUpdate.prototype = {
     type: 'replace',
+    addModifier: InsertUpdate.prototype.addModifier,
   };
   
   function DeleteUpdate() {
