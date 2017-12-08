@@ -569,6 +569,14 @@ else require([
       console.log('frameset', frameset);
     };
     client.onframe = function onframe(frame) {
+      for (var i_update = 0; i_update < frame.updates.length; i_update++) {
+        var update = frame.updates[i_update];
+        switch (update.type) {
+          case 'insert':
+            console.log(update.depth, update.url, update.settings);
+            break;
+        }
+      }
       movie.timeline.writeHead += frame.count;
     };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
