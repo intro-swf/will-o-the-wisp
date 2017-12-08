@@ -551,7 +551,7 @@ else require([
     client = new SWFDecoderClient;
     function drawFrame(n) {
       for (var el = movie.firstElementChild; el; el = el.nextElementSibling) {
-        el.visibility.baseVal = 'hidden';
+        el.style.visibility = 'hidden';
       }
       movie.timeline.playHead = n;
     }
