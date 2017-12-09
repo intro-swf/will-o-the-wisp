@@ -31,15 +31,19 @@
         image-rendering: -webkit-optimize-contrast;
         image-rendering: pixelated;
       }
+      .button {
+        cursor: pointer;
+        pointer-events: visiblepainted;
+      }
       .button > * {
         display: none;
+        pointer-events: none;
       }
       .button:hover:not(:active) > .over, .button:active > .down, .button:not(:hover):not(:active) > .up {
         display: inline;
       }
       .button > .hit-test {
         pointer-events: painted;
-        cursor: pointer;
       }
     </style>
   </head>
