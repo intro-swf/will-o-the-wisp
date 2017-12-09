@@ -573,7 +573,7 @@ else require([
         var update = frame.updates[i_update];
         switch (update.type) {
           case 'insert':
-            console.log(update.depth, update.url, update.settings);
+            console.log(update.order, update.url, update.settings);
             break;
         }
       }
