@@ -173,7 +173,7 @@ function(
           for (var i = nextFrame.updates.length-2; i >= 0; i--) {
             if (nextFrame.updates[i][0] === 'd' && nextFrame.updates[i][1] === depth) {
               nextFrame.updates.pop();
-              insertion.splice(0, 3, 'u', depth);
+              insertion.splice(0, 3, 'm', depth);
               if (!colorTransform || colorTransform.isIdentity) {
                 insertion.push(["colorMatrix", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"]);
               }
