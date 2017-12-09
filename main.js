@@ -533,6 +533,10 @@ else require([
   
   'use strict';
   
+  function createSVGElement(name) {
+    return document.createElementNS('http://www.w3.org/2000/svg', name);
+  }
+  
   var client;
   
   // function called when it's time to look at the location hash
@@ -579,7 +583,7 @@ else require([
         var update = frame.updates[i_update];
         switch (update.type) {
           case 'insert':
-            var displayObject = document.createSVGElement('use');
+            var displayObject = createSVGElement('use');
             displayObject.setAttribute('href', update.url);
             displayObject.style.display = 'none';
             displayObject.order = update.order;
