@@ -31,21 +31,15 @@
         image-rendering: -webkit-optimize-contrast;
         image-rendering: pixelated;
       }
-      #movie .button > * {
+      .button > * {
         display: none;
-        cursor: pointer;
       }
-      #movie .button:not(:hover):not(.down) > .up {
+      .button:hover:not(:active) > .over, .button:active > .down, .button:not(:hover):not(:active) > .up {
         display: inline;
       }
-      #movie .button:hover:not(.down) > .over {
-        display: inline;
-      }
-      #movie .button.down > .down {
-        display: inline;
-      }
-      #movie .button > .hit-test {
+      .button > .hit-test {
         pointer-events: painted;
+        cursor: pointer;
       }
     </style>
   </head>
