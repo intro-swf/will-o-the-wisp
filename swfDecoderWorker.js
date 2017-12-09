@@ -149,12 +149,12 @@ function(
             // no color transform until DefineButton2
             var insertion = ['i', depth + characterID/65536, displayObjects[characterID]];
             if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
-            var classes = ['class'];
+            var classes = [];
             if (flags & 1) classes.push('up');
             if (flags & 2) classes.push('over');
             if (flags & 4) classes.push('down');
             if (flags & 8) classes.push('hit-test');
-            insertion.push(classes);
+            insertion.push(['class', classes.join(' ')]);
             def.push(insertion);
           }
           def.push(['on', ['t', 'overdown', 'overup'], data.readSWFActions()]);
