@@ -329,7 +329,7 @@ define(function() {
           case 'btn':
             var button = new Button;
             button.id = message[1];
-            for (var i_part = 2; i_part < button.length; i_part++) {
+            for (var i_part = 2; i_part < message.length; i_part++) {
               var part = message[i_part];
               switch (part[0]) {
                 case 'i':
