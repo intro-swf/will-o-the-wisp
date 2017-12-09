@@ -104,7 +104,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
       if (settings) for (k in settings) {
         slot.setAt(this._writeHead, k, settings[k]);
       }
-      var i_slot = this._writeHeadSlots.binarySearch(slot, COMPARE_ORDER);
+      var i_slot = this._writeHeadSlots.sortedIndexOf(slot, COMPARE_ORDER);
       if (i_slot < 0) {
         this._writeHeadSlots.splice(~i_slot, 0, slot);
       }
@@ -115,7 +115,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
     },
 
     writeUpdate: function(order, settings) {
-      var i_slot = this._writeHeadSlots.binarySearch(order, COMPARE_ORDER);
+      var i_slot = this._writeHeadSlots.sortedIndexOf(order, COMPARE_ORDER);
       if (i_slot < 0) return null;
       var slot = this._writeHeadSlots[i_slot];
       if (arguments.length === 3) {
@@ -128,7 +128,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
     },
 
     writeRemove: function(order) {
-      var i_slot = this._writeHeadSlots.binarySearch(order, COMPARE_ORDER);
+      var i_slot = this._writeHeadSlots.sortedIndexOf(order, COMPARE_ORDER);
       if (i_slot < 0) return false;
       this._writeHeadSlots[i_slot].lastFrame = this._writeHead-1;
       this._writeHeadSlots.splice(i_slot, 1);
