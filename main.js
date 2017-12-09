@@ -606,6 +606,9 @@ else require([
           case 'modify':
             movie.timeline.writeUpdate(update.order, update.settings);
             break;
+          case 'delete':
+            movie.timeline.writeRemove(update.order);
+            break;
         }
       }
       movie.timeline.writeHead += frame.count;
