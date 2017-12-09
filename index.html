@@ -15,6 +15,7 @@
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
+        pointer-events: none;
       }
       #scrubber {
         position: fixed;
@@ -29,6 +30,22 @@
         image-rendering: optimize-contrast;
         image-rendering: -webkit-optimize-contrast;
         image-rendering: pixelated;
+      }
+      #movie .button > * {
+        display: none;
+        cursor: pointer;
+      }
+      #movie .button:not(:hover):not(.down) > .up {
+        display: inline;
+      }
+      #movie .button:hover:not(.down) > .over {
+        display: inline;
+      }
+      #movie .button.down > .down {
+        display: inline;
+      }
+      #movie .button > .hit-test {
+        pointer-events: painted;
       }
     </style>
   </head>
