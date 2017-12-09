@@ -573,7 +573,12 @@ else require([
         var update = frame.updates[i_update];
         switch (update.type) {
           case 'insert':
-            console.log(update.order, update.url, update.settings);
+            var displayObject = document.createSVGElement('use');
+            displayObject.setAttribute('href', update.url);
+            movie.timeline.writeInsert(update.order, displayObject, update.settings);
+            break;
+          case 'modify':
+            movie.timeline.writeUpdate(update.order, update.settings);
             break;
         }
       }
