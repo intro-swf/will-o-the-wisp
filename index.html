@@ -36,11 +36,11 @@
         pointer-events: visiblepainted;
       }
       .button > * {
-        display: none;
+        visibility: hidden;
         pointer-events: none;
       }
       .button:hover:not(:active) > .over, .button:active > .down, .button:not(:hover):not(:active) > .up {
-        display: inline;
+        visibility: visible;
       }
       .button > .hit-test {
         pointer-events: painted;
