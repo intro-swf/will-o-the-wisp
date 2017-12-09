@@ -378,7 +378,7 @@ define(function() {
             d: pathData.join(''),
             fill: 'none',
             stroke: line.style.stroke.solidColor,
-            'stroke-width': 20,
+            'stroke-width': line.style.strokeWidth,
             'stroke-linejoin': line.style.joinStyle,
             'stroke-linecap': line.style.startCapStyle,
           };
