@@ -669,7 +669,7 @@ else require([
               member.setAttribute('transform', v);
               break;
             case 'class':
-              member.setAttribute('class', v.join(' '));
+              member.setAttribute('class', v);
               break;
           }
         }
