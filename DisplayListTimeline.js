@@ -70,8 +70,8 @@ define(['arrayExtensions'], function(arrayExtensions) {
     },
   };
 
-  function DisplayListTimeline() {
-    this._selfSlot = new DisplayListSlot(0, this, -1);
+  function DisplayListTimeline(displayObject) {
+    this._selfSlot = new DisplayListSlot(0, displayObject, -1);
     this._selfSlot.frameCount = 1;
     this._allSlots = [this._selfSlot];
     this._writeHeadSlots = [this._selfSlot];
