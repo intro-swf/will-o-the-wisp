@@ -598,6 +598,10 @@ else require([
         var update = frame.updates[i_update];
         switch (update.type) {
           case 'insert':
+          case 'replace':
+            if (update.type === 'replace') {
+              movie.timeline.writeRemove(update.order);
+            }
             var displayObject = createSVGElement('use');
             displayObject.setAttribute('href', update.url);
             displayObject.style.display = 'none';
