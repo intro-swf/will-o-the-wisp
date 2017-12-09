@@ -557,10 +557,25 @@ else require([
     client = new SWFDecoderClient;
     var slotObjects = [];
     function drawFrame(n) {
-      for (var el = movie.firstElementChild; el; el = el.nextElementSibling) {
-        el.style.visibility = 'hidden';
+      for (var i = 0; i < movie.timeline._allSlots.length; i++) {
+        var slot = movie.timeline._allSlots[i];
+        var el = slot.displayObject;
+        if (slot.firstFrame > n || slot.lastFrame < n) {
+          el.style.display = 'none';
+          continue;
+        }
+        for (var i_change = 1; i_change < slot.changes.length; i_change++) {
+          var change = slot.changes[i_change];
+          if (change.frame > n) break;
+          switch (change.settingName) {
+            case 'transform':
+              el.style.transform = change.value;
+              break;
+          }
+        }
+        el.style.display = 'inline';
       }
-      movie.timeline.playHead = n;
+      //movie.timeline.playHead = n;
     }
     client.onframeset = function onframeset(frameset) {
       var parts = frameset.bounds.split(/ /g);
