@@ -101,7 +101,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
     writeInsert: function(order, displayObject, settings) {
       var slot = new DisplayListSlot(this._writeHead, displayObject, order);
       this._allSlots.push(slot);
-      if (settings) for (k in settings) {
+      if (settings) for (var k in settings) {
         slot.setAt(this._writeHead, k, settings[k]);
       }
       var i_slot = this._writeHeadSlots.sortedIndexOf(slot, COMPARE_ORDER);
@@ -121,7 +121,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
       if (arguments.length === 3) {
         slot.setAt(this._writeHead, arguments[1], arguments[2]);
       }
-      else for (k in settings) {
+      else for (var k in settings) {
         slot.setAt(this._writeHead, k, settings[k]);
       }
       return true;
