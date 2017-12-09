@@ -327,6 +327,23 @@ define(function() {
             }
             break;
           case 'btn':
+            var button = new Button;
+            button.id = message[1];
+            for (var i_part = 2; i_part < button.length; i_part++) {
+              var part = message[i_part];
+              switch (part[0]) {
+                case 'i':
+                  var insertion = new InsertUpdate;
+                  insertion.order = part[1];
+                  insertion.url = part[2];
+                  for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
+                    insertion.addModifier.apply(insertion, part[i_modifier]);
+                  }
+                  button.contentUpdates.push(insertion);
+                  break;
+              }
+            }
+            this.onbutton(button);
             break;
           case 'f':
             var frame = new DecodedFrame;
@@ -434,6 +451,12 @@ define(function() {
   }
   DeleteUpdate.prototype = {
     type: 'delete',
+  };
+  
+  function Button() {
+    this.contentUpdates = [];
+  }
+  Button.prototype = {
   };
   
   return SWFDecoderClient;
