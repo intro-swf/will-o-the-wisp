@@ -161,6 +161,75 @@ function(
           nextUpdates.push(def);
           displayObjects[id] = '#button' + id;
           break;
+        case TAG_DEFINE_BUTTON_2:
+          var id = data.readUint16LE();
+          var def = ['btn', '#button' + id];
+          if (data.readUint8() & 1) {
+            def.push(['mode', 'menu']);
+          }
+          var membersLength = data.readUint16LE();
+          if (membersLength !== 0) {
+            var membersData = data.readSubarray(membersLength - 2);
+            for (;;) {
+              var flags = membersData.readUint8();
+              if (flags === 0) break;
+              var characterID = membersData.readUint16LE();
+              var depth = membersData.readUint16LE();
+              var matrix = membersData.readSWFMatrix();
+              var colorTransform = membersData.readSWFColorTransform();
+              var insertion = ['i', depth + characterID/65536, displayObjects[characterID]];
+              if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
+              if (!colorTransform.isIdentity) insertion.push(['colorTransform', colorTransform.toString()]);
+              var classes = [];
+              if (flags & 1) classes.push('up');
+              if (flags & 2) classes.push('over');
+              if (flags & 4) classes.push('down');
+              if (flags & 8) classes.push('hit-test');
+              insertion.push(['class', classes.join(' ')]);
+              def.push(insertion);
+            }
+          }
+          for (;;) {
+            var actionLen = data.readUint16LE();
+            if (actionLen === 0) break;
+            var actsrc = data.readSubarray(actionLen - 2);
+            var key = actsrc.readTopBits(7);
+            switch (key) {
+              // KeyboardEvent.key values
+              case 0: break;
+              case 1: key = 'ArrowLeft'; break;
+              case 2: key = 'ArrowRight'; break;
+              case 3: key = 'Home'; break;
+              case 4: key = 'End'; break;
+              case 5: key = 'Insert'; break;
+              case 6: key = 'Delete'; break;
+              case 8: key = 'Backspace'; break;
+              case 13: key = 'Enter'; break;
+              case 14: key = 'ArrowUp'; break;
+              case 15: key = 'ArrowDown'; break;
+              case 16: key = 'PageUp'; break;
+              case 17: key = 'PageDown'; break;
+              case 18: key = 'Tab'; break;
+              case 19: key = 'Escape'; break;
+              default: key = String.fromCharCode(key); break;
+            }
+            var on = ['on'];
+            if (key) on.push(['key', key]);
+            if (actsrc.readTopBits(1)) on.push(['t', 'overdown', 'idle']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'idle', 'overdown']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'outdown', 'idle']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'outdown', 'overdown']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'overdown', 'outdown']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'overdown', 'overup']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'overup', 'overdown']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'overup', 'idle']);
+            if (actsrc.readTopBits(1)) on.push(['t', 'idle', 'overup']);
+            on.push(actsrc.readSWFActions());
+            def.push(on);
+          }
+          nextUpdates.push(def);
+          displayObjects[id] = '#button' + id;
+          break;
         case TAG_PLACE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
