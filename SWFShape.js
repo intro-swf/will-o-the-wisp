@@ -291,9 +291,9 @@ define(function() {
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
-        if (layer.fills.length > 1) {
-          var fill = layer.fills[0];
-          var fillStyle = layer.fills[1].style;
+        for (var i_fill = 1; i_fill < layer.fills.length; i_fill++) {
+          var fill = layer.fills[i_fill];
+          var fillStyle = fill.style;
           var patches = fill.segments;
           for (var i_patch = 0; i_patch < patches.length; i_patch++) {
             var patch = patches[i_patch];
