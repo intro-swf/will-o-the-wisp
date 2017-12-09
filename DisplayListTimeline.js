@@ -59,7 +59,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
       return null;
     },
     setAt: function(i_frame, settingName, value) {
-      var i_change = this.changes.sortedIndexOf(i_frame);
+      var i_change = this.changes.sortedIndexOf(i_frame, COMPARE_FRAME);
       if (i_change < 0) {
         i_change = ~i_change;
       }
