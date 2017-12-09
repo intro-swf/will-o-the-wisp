@@ -182,9 +182,44 @@ function(
             }
           }
           break;
+        case TAG_PLACE_OBJECT_2:
+          var flags = data.readUint8();
+          var order = data.readUint16LE();
+          var update = flags & 1 ? (flags & 2 ? ['r'] : ['m']) : ['i'];
+          var settings = {};
+          if (flags & 2) {
+            update.push(data.readUint16LE());
+          }
+          if (flags & 4) {
+            update.push(['transform', data.readSWFMatrix().toString()]);
+          }
+          if (flags & 8) {
+            update.push(['colorTransform', data.readSWFColorTransform().toString()]);
+          }
+          if (flags & 0x10) {
+            var v = data.readUint16LE();
+            update.push(['morphRatio', v / 0xffff]);
+            update.push(['spriteReplaceCheck', v]);
+          }
+          if (flags & 0x20) {
+            update.push(['name', data.readByteString('\0')]);
+          }
+          if (flags & 0x40) {
+            update.push(['clipDepth', data.readUint16LE()]);
+          }
+          if (flags & 0x80) {
+            throw new Error('NYI: clip actions');
+          }
+          data.warnIfMore();
+          nextFrame.updates.push(update);
+          break;
         case TAG_REMOVE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
+          nextFrame.updates.push(['d', depth]);
+          break;
+        case TAG_REMOVE_OBJECT_2:
+          var depth = data.readUint16LE();
           nextFrame.updates.push(['d', depth]);
           break;
         case TAG_DO_ACTION:
