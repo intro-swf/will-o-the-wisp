@@ -521,10 +521,12 @@ function(
 })
 else require([
   'domReady!' // use domReady.js plugin to require DOM readiness
+  ,'arrayExtensions'
   ,'SWFDecoderClient'
   ,'DisplayListTimeline'
 ], function(
   _ // domReady
+  ,_ // arrayExtensions
   ,SWFDecoderClient
   ,DisplayListTimeline
 ) {
@@ -549,6 +551,7 @@ else require([
     movie.timeline = new DisplayListTimeline;
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
+    var slotObjects = [];
     function drawFrame(n) {
       for (var el = movie.firstElementChild; el; el = el.nextElementSibling) {
         el.style.visibility = 'hidden';
@@ -568,6 +571,9 @@ else require([
       };
       console.log('frameset', frameset);
     };
+    const COMPARE_ORDER = function(a, b) {
+      return a.order - b.order;
+    };
     client.onframe = function onframe(frame) {
       for (var i_update = 0; i_update < frame.updates.length; i_update++) {
         var update = frame.updates[i_update];
@@ -575,6 +581,22 @@ else require([
           case 'insert':
             var displayObject = document.createSVGElement('use');
             displayObject.setAttribute('href', update.url);
+            displayObject.style.display = 'none';
+            displayObject.order = update.order;
+            var i_slot = slotObjects.sortedIndexOf(displayObject, COMPARE_ORDER);
+            if (i_slot < 0) {
+              i_slot = ~i_slot;
+            }
+            else while (i_slot < slotObjects.length && slotObjects[i_slot].order === displayObject.order) {
+              i_slot++;
+            }
+            if (i_slot === slotObjects.length) {
+              movie.appendChild(displayObject);
+            }
+            else {
+              movie.insertBefore(displayObject, slotObjects[i_slot]);
+            }
+            slotObjects.splice(i_slot, 0, displayObject);
             movie.timeline.writeInsert(update.order, displayObject, update.settings);
             break;
           case 'modify':
