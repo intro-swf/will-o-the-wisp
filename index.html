@@ -37,7 +37,8 @@
       .button > * {
         visibility: hidden;
       }
-      .button:not(:hover:active) > .up,
+      .button:not(:active) > .up,
+      .button:active:not(:hover) > .up,
       .button:hover:not(:active) > .over,
       .button:active:not(:hover) > .over,
       .button:active:hover > .down {
