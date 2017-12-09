@@ -571,6 +571,9 @@ else require([
             case 'transform':
               el.setAttribute('transform', change.value);
               break;
+            case 'background':
+              el.style.background = change.value;
+              break;
           }
         }
         el.style.display = 'inline';
