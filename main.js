@@ -552,6 +552,8 @@ else require([
       client.close();
     }
     var movie = document.getElementById('movie');
+    movie.appendChild(movie.defs = createSVGElement('defs'));
+    movie.appendChild(movie.stage = createSVGElement('g'));
     movie.timeline = new DisplayListTimeline(movie);
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
@@ -617,10 +619,10 @@ else require([
               i_slot++;
             }
             if (i_slot === slotObjects.length) {
-              movie.appendChild(displayObject);
+              movie.stage.appendChild(displayObject);
             }
             else {
-              movie.insertBefore(displayObject, slotObjects[i_slot]);
+              movie.stage.insertBefore(displayObject, slotObjects[i_slot]);
             }
             slotObjects.splice(i_slot, 0, displayObject);
             movie.timeline.writeInsert(update.order, displayObject, update.settings);
@@ -634,6 +636,45 @@ else require([
         }
       }
       movie.timeline.writeHead += frame.count;
+    };
+    client.onbutton = function(button) {
+      var button = createSVGElement('g');
+      button.setAttribute('class', 'button');
+      button.setAttribute('id', button.id.replace(/^#/, ''));
+      var memberList = [];
+      for (var i = 0; i < button.contentUpdates.length; i++) {
+        var update = button.contentUpdates[i];
+        // always 'insert'
+        var member = createSVGElement('use');
+        member.setAttribute('href', update.url);
+        member.order = update.order;
+        var i_member = memberList.sortedIndexOf(member, COMPARE_ORDER);
+        if (i_member < 0) {
+          i_member = ~i_member;
+        }
+        else while (i_member < memberList.length && memberList[i_member].order === member.order) {
+          i_member++;
+        }
+        if (i_member === memberList.length) {
+          button.appendChild(member);
+        }
+        else {
+          button.insertBefore(member, memberList[i_member]);
+        }
+        memberList.splice(i_member, 0, member);
+        for (var k in update.settings) {
+          var v = update.settings[k];
+          switch (k) {
+            case 'transform':
+              member.setAttribute('transform', v);
+              break;
+            case 'class':
+              member.setAttribute('class', v.join(' '));
+              break;
+          }
+        }
+      }
+      movie.defs.appendChild(button);
     };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
