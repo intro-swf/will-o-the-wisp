@@ -569,7 +569,7 @@ else require([
           if (change.frame > n) break;
           switch (change.settingName) {
             case 'transform':
-              el.style.transform = change.value;
+              el.setAttribute('transform', change.value);
               break;
           }
         }
