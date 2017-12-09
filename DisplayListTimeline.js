@@ -8,6 +8,12 @@ define(['arrayExtensions'], function(arrayExtensions) {
     return a - b;
   };
 
+  const COMPARE_FRAME = function(a, b) {
+    if (typeof a !== 'number') a = a.frame;
+    if (typeof b !== 'number') b = b.frame;
+    return a - b;
+  };
+
   function DisplayListSlot(frame, displayObject, order) {
     this.order = order;
     this.changes = [
@@ -53,7 +59,14 @@ define(['arrayExtensions'], function(arrayExtensions) {
       return null;
     },
     setAt: function(i_frame, settingName, value) {
-      this.changes.push({frame:i_frame, settingName:settingName, value:value});
+      var i_change = this.changes.sortedIndexOf(i_frame);
+      if (i_change < 0) {
+        i_change = ~i_change;
+      }
+      else while (i_change < this.changes.length && this.changes[i_change].frame === i_frame) {
+        i_change++;
+      }
+      this.changes.splice(i_change, 0, {frame:i_frame, settingName:settingName, value:value});
     },
   };
 
@@ -116,7 +129,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
 
     writeUpdate: function(order, settings) {
       var i_slot = this._writeHeadSlots.sortedIndexOf(order, COMPARE_ORDER);
-      if (i_slot < 0) return null;
+      if (i_slot < 0) return false;
       var slot = this._writeHeadSlots[i_slot];
       if (arguments.length === 3) {
         slot.setAt(this._writeHead, arguments[1], arguments[2]);
