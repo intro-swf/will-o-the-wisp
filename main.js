@@ -641,6 +641,7 @@ else require([
       var el = createSVGElement('g');
       el.setAttribute('class', 'button');
       el.setAttribute('id', button.id.replace(/^#/, ''));
+      el.setAttribute('tabindex', '0');
       var memberList = [];
       for (var i = 0; i < button.contentUpdates.length; i++) {
         var update = button.contentUpdates[i];
