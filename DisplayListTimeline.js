@@ -74,7 +74,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
     this._selfSlot = new DisplayListSlot(0, this, -1);
     this._selfSlot.frameCount = 1;
     this._allSlots = [this._selfSlot];
-    this._writeHeadSlots = [];
+    this._writeHeadSlots = [this._selfSlot];
     this.eventTarget = self;
   }
   DisplayListTimeline.prototype = {
