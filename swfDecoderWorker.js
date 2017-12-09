@@ -184,11 +184,9 @@ function(
           break;
         case TAG_PLACE_OBJECT_2:
           var flags = data.readUint8();
-          var order = data.readUint16LE();
-          var update = flags & 1 ? (flags & 2 ? ['r'] : ['m']) : ['i'];
-          var settings = {};
+          var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), data.readUint16LE()];
           if (flags & 2) {
-            update.push(data.readUint16LE());
+            update.push(displayObjects[data.readUint16LE()]);
           }
           if (flags & 4) {
             update.push(['transform', data.readSWFMatrix().toString()]);
