@@ -552,7 +552,7 @@ else require([
       client.close();
     }
     var movie = document.getElementById('movie');
-    movie.timeline = new DisplayListTimeline;
+    movie.timeline = new DisplayListTimeline(movie);
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
     var slotObjects = [];
