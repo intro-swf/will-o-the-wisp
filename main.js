@@ -598,6 +598,7 @@ else require([
     const COMPARE_ORDER = function(a, b) {
       return a.order - b.order;
     };
+    var buttons = {};
     client.onframe = function onframe(frame) {
       for (var i_update = 0; i_update < frame.updates.length; i_update++) {
         var update = frame.updates[i_update];
@@ -607,8 +608,14 @@ else require([
             if (update.type === 'replace') {
               movie.timeline.writeRemove(update.order);
             }
-            var displayObject = createSVGElement('use');
-            displayObject.setAttribute('href', update.url);
+            var displayObject;
+            if (update.url in buttons) {
+              displayObject = buttons[update.url].cloneNode(true);
+            }
+            else {
+              displayObject = createSVGElement('use');
+              displayObject.setAttribute('href', update.url);
+            }
             displayObject.style.display = 'none';
             displayObject.order = update.order;
             var i_slot = slotObjects.sortedIndexOf(displayObject, COMPARE_ORDER);
@@ -640,7 +647,6 @@ else require([
     client.onbutton = function(button) {
       var el = createSVGElement('g');
       el.setAttribute('class', 'button');
-      el.setAttribute('id', button.id.replace(/^#/, ''));
       el.setAttribute('tabindex', '0');
       var memberList = [];
       for (var i = 0; i < button.contentUpdates.length; i++) {
@@ -675,7 +681,7 @@ else require([
           }
         }
       }
-      movie.defs.appendChild(el);
+      buttons[button.id] = el;
     };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
