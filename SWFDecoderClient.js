@@ -362,7 +362,7 @@ define(function() {
                   replacement.order = part[1];
                   replacement.url = part[2];
                   for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
-                    replacement.addModifier.apply(insertion, part[i_modifier]);
+                    replacement.addModifier.apply(replacement, part[i_modifier]);
                   }
                   frame.updates.push(replacement);
                   break;
