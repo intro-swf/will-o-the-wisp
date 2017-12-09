@@ -525,8 +525,8 @@ else require([
   ,'SWFDecoderClient'
   ,'DisplayListTimeline'
 ], function(
-  _ // domReady
-  ,_ // arrayExtensions
+  domReady
+  ,arrayExtensions
   ,SWFDecoderClient
   ,DisplayListTimeline
 ) {
