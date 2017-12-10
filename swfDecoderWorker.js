@@ -127,7 +127,6 @@ function(
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
           shape.writeSVGTo(g);
-          var url = URL.createObjectURL(svg.toBlob('image/svg+xml'))+'#shape'+id;
           nextUpdates.push(['shape', '#shape'+id, svg.toString()]);
           displayObjects[id] = '#shape'+id;
           break;
