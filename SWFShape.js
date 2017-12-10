@@ -335,7 +335,7 @@ define(function() {
                 gradientUnits: 'userSpaceOnUse',
                 gradientTransform: fillStyle.matrix.toString(),
               };
-              if (fill.mode === 'radial') {
+              if (fillStyle.mode === 'radial') {
                 gradAttr.r = 16384;
                 gradAttr.cx = 0;
                 gradAttr.cy = 0;
