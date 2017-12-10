@@ -332,10 +332,10 @@ define(function() {
             }
             break;
           case 'shape':
-            var doc = domParser.parseFromString(message[2], 'image/svg+xml');
+            var doc = domParser.parseFromString(message[1], 'image/svg+xml');
             var el = doc.documentElement;
             el = el.removeChild(el.firstChild);
-            this.onshape(message[1], el);
+            this.onshape(el);
             break;
           case 'btn':
             var button = new Button;
