@@ -623,9 +623,6 @@ else require([
         switch (update.type) {
           case 'insert':
           case 'replace':
-            if (update.type === 'replace') {
-              movie.timeline.writeRemove(update.order);
-            }
             var displayObject;
             if (update.url in buttons) {
               displayObject = buttons[update.url].cloneNode(true);
@@ -650,7 +647,12 @@ else require([
               movie.stage.insertBefore(displayObject, slotObjects[i_slot]);
             }
             slotObjects.splice(i_slot, 0, displayObject);
-            movie.timeline.writeInsert(update.order, displayObject, update.settings);
+            if (update.type === 'replace') {
+              movie.timeline.writeReplace(update.order, displayObject, update.settings);
+            }
+            else {
+              movie.timeline.writeInsert(update.order, displayObject, update.settings);
+            }
             break;
           case 'modify':
             movie.timeline.writeUpdate(update.order, update.settings);
