@@ -4,6 +4,8 @@ define(function() {
   
   const NULLFUNC = function(){};
   
+  const domParser = new DOMParser;
+  
   function SWFDecoderClient() {
     this.dependingURLs = {};
     this.send = this.send_queue;
@@ -226,6 +228,9 @@ define(function() {
     // })
     onbitmap: NULLFUNC,
     
+    // onshape(id, <SVGElement>)
+    onshape: NULLFUNC,
+    
     // onexport('font', 'exportedFont', <font>)
     // onexport('sprite', 'exportedSprite', <sprite>);
     // onexport('sound', 'exportedSound', <sound>);
@@ -325,6 +330,12 @@ define(function() {
             for (var i_dep = 3; i_dep < message.length; i_dep++) {
               this.onurldependency(message[2], message[i_dep]);
             }
+            break;
+          case 'shape':
+            var doc = domParser.parseFromString(message[2], 'image/svg+xml');
+            var el = doc.documentElement;
+            el = el.removeChild(el.firstChild);
+            this.onshape(message[1], el);
             break;
           case 'btn':
             var button = new Button;
