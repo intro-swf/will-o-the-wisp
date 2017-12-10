@@ -584,7 +584,70 @@ function(
           return action;
         case 0x8B: return ['SetTarget', data.readByteString('\0')];
         case 0x8C: return ['GotoLabel', data.readByteString('\0')];
-        default: throw new Error('unknown action code ' + code);
+        case 0x0A: return 'Add';
+        case 0x0B: return 'Subtract';
+        case 0x0C: return 'Multiply';
+        case 0x0D: return 'Divide';
+        case 0x8D:
+          var thenSkipActions = data.readUint8();
+          var action = ['WaitForFrame2'];
+          while (thenSkipActions-- > 0) {
+            action.push(this.readSWFAction());
+          }
+          return action;
+        case 0x0E: return 'Equals';
+        case 0x0F: return 'Less';
+        case 0x10: return 'And';
+        case 0x11: return 'Or';
+        case 0x12: return 'Not';
+        case 0x13: return 'StringEquals';
+        case 0x14: return 'StringLength';
+        case 0x15: return 'StringExtract';
+        case 0x96:
+          if (data.readUint8() === 0) {
+            return ['Push', data.readByteString('\0')];
+          }
+          return ['Push', data.readFloat32LE()];
+        case 0x17: return 'Pop';
+        case 0x18: return 'ToInteger';
+        case 0x1C: return 'GetVariable';
+        case 0x1D: return 'SetVariable';
+        case 0x20: return 'SetTarget2';
+        case 0x21: return 'StringAdd';
+        case 0x22: return 'GetProperty';
+        case 0x23: return 'SetProperty';
+        case 0x24: return 'CloneSprite';
+        case 0x25: return 'RemoveSprite';
+        case 0x26: return 'Trace';
+        case 0x27: return 'StartDrag';
+        case 0x28: return 'EndDrag';
+        case 0x29: return 'StringLess';
+        case 0x30: return 'RandomNumber';
+        case 0x31: return 'MBStringLength';
+        case 0x32: return 'CharToAscii';
+        case 0x33: return 'AsciiToChar';
+        case 0x34: return 'GetTime';
+        case 0x35: return 'MBStringExtract';
+        case 0x36: return 'MBCharToAscii';
+        case 0x37: return 'MBAsciiToChar';
+        case 0x99: return ['Jump', data.readInt16LE()];
+        case 0x9A:
+          switch (data.readUint8()) {
+            case 0: return ['GetURL2'];
+            case 1: return ['GetURL2', 'send_vars=url_params'];
+            case 2: return ['GetURL2', 'send_vars=post_data'];
+            default: throw new Error('unknown GetURL2 mode');
+          }
+        case 0x9D: return ['If', data.readInt16LE()];
+        case 0x9E: return ['Call'];
+        case 0x9F:
+          if (data.readUint8()) {
+            return ['GotoFrame2', 'and_play=true'];
+          }
+          else {
+            return ['GotoFrame2'];
+          }
+          break;
       }
     },
     readSWFActions: function() {
