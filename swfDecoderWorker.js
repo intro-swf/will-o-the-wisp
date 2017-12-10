@@ -126,8 +126,8 @@ function(
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
-          shape.writeSVGTo(g);
-          nextUpdates.push(['shape', '#shape'+id, svg.toString()]);
+          shape.writeSVGTo(g, id);
+          nextUpdates.push(['shape', svg.toString()]);
           displayObjects[id] = '#shape'+id;
           break;
         case TAG_DEFINE_TEXT:
