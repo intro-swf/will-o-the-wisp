@@ -662,6 +662,10 @@ else require([
       }
       movie.timeline.writeHead += frame.count;
     };
+    client.onshape = function(id, shape) {
+      shape.setAttribute('id', id.replace(/^#/, ''));
+      movie.defs.appendChild(shape);
+    };
     client.onbutton = function(button) {
       var el = createSVGElement('g');
       el.setAttribute('class', 'button');
