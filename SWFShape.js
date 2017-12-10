@@ -355,7 +355,7 @@ define(function() {
                 }
                 grad.empty('stop', stopAttr);
               }
-              //attr.fill = 'url(#'+id+')';
+              attr.fill = 'url(#'+id+')';
               break;
             default:
               throw new Error('NYI: fill style ' + fillStyle.type);
