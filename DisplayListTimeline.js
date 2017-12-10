@@ -68,6 +68,13 @@ define(['arrayExtensions'], function(arrayExtensions) {
       }
       this.changes.splice(i_change, 0, {frame:i_frame, settingName:settingName, value:value});
     },
+    getFinalSettings: function() {
+      var settings = {};
+      for (var i = 1; i < this.changes.length-1; i++) {
+        settings[this.changes[i].settingName] = this.changes[i].value;
+      }
+      return settings;
+    },
   };
 
   function DisplayListTimeline(displayObject) {
@@ -146,6 +153,24 @@ define(['arrayExtensions'], function(arrayExtensions) {
       this._writeHeadSlots[i_slot].lastFrame = this._writeHead-1;
       this._writeHeadSlots.splice(i_slot, 1);
       return true;
+    },
+    
+    writeReplace: function(order, displayObject, settings) {
+      var slot = new DisplayListSlot(this._writeHead, displayObject, order);
+      this._allSlots.push(slot);
+      var i_slot = this._writeHeadSlots.sortedIndexOf(order, COMPARE_ORDER);
+      if (i_slot < 0) {
+        this._writeHeadSlots.splice(~i_slot, 0, slot);
+      }
+      else {
+        var replacing = this._writeHeadSlots[i_slot];
+        replacing.lastFrame = this._writeHead-1;
+        settings = Object.assign(replacing.getFinalSettings(), settings || {});
+        this._writeHeadSlots[i_slot] = slot;
+      }
+      if (settings) for (var k in settings) {
+        slot.setAt(this._writeHead, k, settings[k]);
+      }
     },
 
     // ready frames
