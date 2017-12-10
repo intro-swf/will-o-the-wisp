@@ -662,8 +662,7 @@ else require([
       }
       movie.timeline.writeHead += frame.count;
     };
-    client.onshape = function(id, shape) {
-      shape.setAttribute('id', id.replace(/^#/, ''));
+    client.onshape = function(shape) {
       movie.defs.appendChild(shape);
     };
     client.onbutton = function(button) {
