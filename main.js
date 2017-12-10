@@ -558,6 +558,7 @@ else require([
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
     var slotObjects = [];
+    var colorTransforms = {nextID:1};
     function drawFrame(n) {
       for (var i = 0; i < movie.timeline._allSlots.length; i++) {
         var slot = movie.timeline._allSlots[i];
@@ -572,6 +573,22 @@ else require([
           switch (change.settingName) {
             case 'transform':
               el.setAttribute('transform', change.value);
+              break;
+            case 'colorTransform':
+              if (change.value in colorTransforms) {
+                el.setAttribute('filter', 'url("#' + colorTransforms[change.value] + '")');
+              }
+              else {
+                var filter = createSVGElement('filter');
+                var id = 'filter' + colorTransforms.nextID++;
+                filter.setAttribute('id', id);
+                var colorMatrix = createSVGElement('feColorMatrix');
+                colorMatrix.setAttribute('values', change.value);
+                filter.appendChild(colorMatrix);
+                movie.defs.appendChild(filter);
+                colorTransforms[change.value] = id;
+                el.setAttribute('filter', 'url("#' + id + '")');
+              }
               break;
             case 'background':
               el.style.background = change.value;
