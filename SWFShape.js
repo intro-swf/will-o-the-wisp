@@ -287,7 +287,7 @@ define(function() {
       }
       return style;
     },
-    writeSVGTo: function(xml) {
+    writeSVGTo: function(xml, baseID) {
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
@@ -328,8 +328,7 @@ define(function() {
               }
               break;
             case 'gradient':
-              xml.nextID = xml.nextID || 1;
-              var id = '_' + xml.nextID++;
+              var id = 'gradient' + baseID + '_' i_layer + '_' + i_fill;
               var gradAttr = {
                 id: id,
                 gradientUnits: 'userSpaceOnUse',
