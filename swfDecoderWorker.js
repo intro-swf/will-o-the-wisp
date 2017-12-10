@@ -319,6 +319,97 @@ function(
         case TAG_SET_BACKGROUND_COLOR:
           nextFrame.updates.push(['m', -1, ['background', data.readSWFColor(true)]]);
           break;
+        case TAG_DEFINE_SPRITE:
+          var id = data.readUint16LE();
+          var spriteFrameCount = data.readUint16LE();
+          var def = ['sprite', '#sprite'+id];
+          var nextSpriteFrame = new FrameInfo;
+          var spriteData = data;
+          spriteLoop: while (spriteData.offset < spriteData.length) {
+            var tagAndLen = spriteData.readUint16LE();
+            var tag = tagAndLen >>> 6;
+            var len = tagAndLen & 0x3f;
+            if (len === 0x3f) {
+              len = spriteData.readUint32LE();
+            }
+            var data = (len === 0) ? null : spriteData.readSubarray(len);
+            switch (tag) {
+              case TAG_END: break spriteLoop;
+              case TAG_PLACE_OBJECT:
+                var characterID = data.readUint16LE();
+                var depth = data.readUint16LE() + characterID/65536;
+                var matrix = data.readSWFMatrix();
+                var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
+                var insertion = ['i', depth, displayObjects[characterID]];
+                if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
+                if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
+                nextSpriteFrame.updates.push(insertion);
+                for (var i = nextSpriteFrame.updates.length-2; i >= 0; i--) {
+                  if (nextSpriteFrame.updates[i][0] === 'd' && nextSpriteFrame.updates[i][1] === depth) {
+                    nextSpriteFrame.updates.pop();
+                    insertion.splice(0, 3, 'm', depth);
+                    if (!colorTransform || colorTransform.isIdentity) {
+                      insertion.push(["colorMatrix", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"]);
+                    }
+                    nextSpriteFrame.updates[i] = insertion;
+                    break;
+                  }
+                }
+                continue spriteLoop;
+              case TAG_PLACE_OBJECT_2:
+                var flags = data.readUint8();
+                var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), data.readUint16LE()];
+                if (flags & 2) {
+                  update.push(displayObjects[data.readUint16LE()]);
+                }
+                if (flags & 4) {
+                  update.push(['transform', data.readSWFMatrix().toString()]);
+                }
+                if (flags & 8) {
+                  update.push(['colorTransform', data.readSWFColorTransform().toString()]);
+                }
+                if (flags & 0x10) {
+                  var v = data.readUint16LE();
+                  update.push(['morphRatio', v / 0xffff]);
+                  update.push(['spriteReplaceCheck', v]);
+                }
+                if (flags & 0x20) {
+                  update.push(['name', data.readByteString('\0')]);
+                }
+                if (flags & 0x40) {
+                  update.push(['clipDepth', data.readUint16LE()]);
+                }
+                if (flags & 0x80) {
+                  throw new Error('NYI: clip actions');
+                }
+                data.warnIfMore();
+                nextSpriteFrame.updates.push(update);
+                continue spriteLoop;
+              case TAG_REMOVE_OBJECT:
+                var characterID = data.readUint16LE();
+                var depth = data.readUint16LE() + characterID/65536;
+                nextSpriteFrame.updates.push(['d', depth]);
+                continue spriteLoop;
+              case TAG_REMOVE_OBJECT_2:
+                var depth = data.readUint16LE();
+                nextSpriteFrame.updates.push(['d', depth]);
+                continue spriteLoop;
+              case TAG_SHOW_FRAME:
+                def.push(nextSpriteFrame);
+                spriteFrameCount--;
+                nextSpriteFrame = new FrameInfo;
+                continue spriteLoop;
+            }
+          }
+          if (spriteFrameCount === 1) {
+            def.push(nextSpriteFrame);
+          }
+          else if (spriteFrameCount > 0) {
+            throw new Error('not enough sprite frames');
+          }
+          nextUpdates.push(def);
+          displayObjects[id] = '#sprite' + id;
+          break;
         default:
           //console.log('unhandled tag: ' + typeCode, data);
           break;
