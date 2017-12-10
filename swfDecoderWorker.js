@@ -128,7 +128,8 @@ function(
           var g = svg.open('g', {id:'shape'+id});
           shape.writeSVGTo(g);
           var url = URL.createObjectURL(svg.toBlob('image/svg+xml'))+'#shape'+id;
-          displayObjects[id] = url;
+          nextUpdates.push(['shape', '#shape'+id, svg.toString()]);
+          displayObjects[id] = '#shape'+id;
           break;
         case TAG_DEFINE_TEXT:
           var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
