@@ -358,7 +358,8 @@ define(function() {
               attr.fill = 'url(#'+id+')';
               break;
             default:
-              throw new Error('NYI: fill style ' + fillStyle.type);
+              console.warn('NYI: fill style ' + fillStyle.type);
+              break;
           }
           xml.empty('path', attr);
         }
