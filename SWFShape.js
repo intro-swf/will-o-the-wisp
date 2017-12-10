@@ -344,7 +344,7 @@ define(function() {
                 gradAttr.x1 = -16384;
                 gradAttr.x2 = 16384;
               }
-              var grad = xml.open('defs').open(fillStyle.mode + 'Gradient', gradAttr);
+              var grad = xml.open(fillStyle.mode + 'Gradient', gradAttr);
               for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
                 var stop = fillStyle.stops[i_stop];
                 var stopAttr = {
@@ -356,7 +356,7 @@ define(function() {
                 }
                 grad.empty('stop', stopAttr);
               }
-              attr.fill = 'url(#'+id+')';
+              //attr.fill = 'url(#'+id+')';
               break;
             default:
               throw new Error('NYI: fill style ' + fillStyle.type);
