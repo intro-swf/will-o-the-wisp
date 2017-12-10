@@ -409,8 +409,8 @@ function(
       }
       if (this.readTopBits(1, false)) {
         var rotSkewBits = this.readTopBits(5, false);
-        matrix.b = this.readTopBits(rotSkewBits, true);
-        matrix.c = this.readTopBits(rotSkewBits, true);
+        matrix.b = this.readTopBits(rotSkewBits, true) / 0x10000;
+        matrix.c = this.readTopBits(rotSkewBits, true) / 0x10000;
       }
       var translateBits = this.readTopBits(5, false);
       if (translateBits) {
