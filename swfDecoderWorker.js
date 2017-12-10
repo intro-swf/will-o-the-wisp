@@ -305,6 +305,10 @@ function(
             case 'adpcm':
               sound.url = URL.createObjectURL(data.readADPCMForSWF(sound.sampleCount, sound.hz, sound.channels));
               break;
+            case 'mp3':
+              sound.sampleSeek = data.readUint16LE();
+              sound.url = URL.createObjectURL(new Blob([data.subarray(data.offset)], {type:'audio/mpeg'}));
+              break;
             default:
               throw new Error('NYI: DefineSound ' + sound.encoding);
           }
