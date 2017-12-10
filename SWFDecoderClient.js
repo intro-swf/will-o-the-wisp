@@ -337,6 +337,11 @@ define(function() {
             el = el.removeChild(el.firstChild);
             this.onshape(el);
             break;
+          case 'sprite':
+            var sprite = new Sprite;
+            sprite.id = message[1];
+            this.onsprite(sprite);
+            break;
           case 'btn':
             var button = new Button;
             button.id = message[1];
@@ -468,6 +473,12 @@ define(function() {
     this.contentUpdates = [];
   }
   Button.prototype = {
+  };
+  
+  function Sprite() {
+    this.frames = [];
+  }
+  Sprite.prototype = {
   };
   
   return SWFDecoderClient;
