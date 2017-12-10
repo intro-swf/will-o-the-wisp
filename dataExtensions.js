@@ -2,6 +2,10 @@ define('dataExtensions', function() {
 
   'use strict';
   
+  const BUF = new ArrayBuffer(4);
+  const U32_BUF = new Uint32Array(BUF);
+  const F32_BUF = new Float32Array(BUF);
+  
   const CRC_TABLE = (function(table) {
     for (var i = 0; i < table.length; i++) {
       var c = i;
@@ -82,6 +86,10 @@ define('dataExtensions', function() {
       var v = this[o+3] | (this[o+2] << 8) | (this[o+1] << 16) | (this[o] << 24);
       this.offset += 4;
       return v >>> 0;
+    },
+    readFloat32LE: function() {
+      U32_BUF[0] = this.readUint32LE();
+      return F32_BUF[0];
     },
     readByteString: function(n) {
       if (n === '\0') {
