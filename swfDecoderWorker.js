@@ -116,6 +116,7 @@ function(
           return;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
+        case TAG_DEFINE_SHAPE_3:
           var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
           var id = data.readUint16LE();
           var bounds = data.readSWFRect();
