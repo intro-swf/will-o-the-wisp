@@ -328,7 +328,7 @@ define(function() {
               }
               break;
             case 'gradient':
-              var id = 'gradient' + baseID + '_' i_layer + '_' + i_fill;
+              var id = 'gradient' + baseID + '_' + i_layer + '_' + i_fill;
               var gradAttr = {
                 id: id,
                 gradientUnits: 'userSpaceOnUse',
