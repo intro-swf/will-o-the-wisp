@@ -580,6 +580,7 @@ else require([
               }
               else {
                 var filter = createSVGElement('filter');
+                filter.setAttribute('color-interpolation-filters', 'sRGB');
                 var id = 'filter' + colorTransforms.nextID++;
                 filter.setAttribute('id', id);
                 var colorMatrix = createSVGElement('feColorMatrix');
