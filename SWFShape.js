@@ -295,9 +295,9 @@ define(function() {
           var fill = layer.fills[i_fill];
           var fillStyle = fill.style;
           var patches = fill.segments;
+          var pathData = [];
           for (var i_patch = 0; i_patch < patches.length; i_patch++) {
             var patch = patches[i_patch];
-            var pathData = [];
             if (patch[0] < 0) {
               pathData.push(edges[~patch[0]].pathStartLeft);
             }
@@ -313,55 +313,55 @@ define(function() {
                 pathData.push(edges[i_edge].pathStepRight);
               }
             }
-            var attr = {d:pathData.join('')};
-            switch (fillStyle.type) {
-              case 'solid':
-                if (typeof fillStyle.fill === 'string') {
-                  attr.fill = fillStyle.fill;
-                }
-                else {
-                  attr.fill = fillStyle.fill.solidColor;
-                  if (fillStyle.fill.opacity !== 1) {
-                    attr['opacity'] = fillStyle.fill.opacity;
-                  }
-                }
-                break;
-              case 'gradient':
-                xml.nextID = xml.nextID || 1;
-                var id = '_' + xml.nextID++;
-                var gradAttr = {
-                  id: id,
-                  gradientUnits: 'userSpaceOnUse',
-                  gradientTransform: fillStyle.matrix.toString(),
-                };
-                if (fill.mode === 'radial') {
-                  gradAttr.r = 16384;
-                  gradAttr.cx = 0;
-                  gradAttr.cy = 0;
-                }
-                else {
-                  gradAttr.x1 = -16384;
-                  gradAttr.x2 = 16384;
-                }
-                var grad = xml.open(fillStyle.mode + 'Gradient', gradAttr);
-                for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
-                  var stop = fillStyle.stops[i_stop];
-                  var stopAttr = {
-                    offset: stop.ratio,
-                    'stop-color': stop.color.solidColor,
-                  };
-                  if (stop.color.opacity !== 1) {
-                    stopAttr['stop-opacity'] = stop.color.opacity;
-                  }
-                  grad.empty('stop', stopAttr);
-                }
-                attr.fill = 'url("#'+id+'")';
-                break;
-              default:
-                throw new Error('NYI: fill style ' + fillStyle.type);
-            }
-            xml.empty('path', attr);
           }
+          var attr = {d:pathData.join('')};
+          switch (fillStyle.type) {
+            case 'solid':
+              if (typeof fillStyle.fill === 'string') {
+                attr.fill = fillStyle.fill;
+              }
+              else {
+                attr.fill = fillStyle.fill.solidColor;
+                if (fillStyle.fill.opacity !== 1) {
+                  attr['opacity'] = fillStyle.fill.opacity;
+                }
+              }
+              break;
+            case 'gradient':
+              xml.nextID = xml.nextID || 1;
+              var id = '_' + xml.nextID++;
+              var gradAttr = {
+                id: id,
+                gradientUnits: 'userSpaceOnUse',
+                gradientTransform: fillStyle.matrix.toString(),
+              };
+              if (fill.mode === 'radial') {
+                gradAttr.r = 16384;
+                gradAttr.cx = 0;
+                gradAttr.cy = 0;
+              }
+              else {
+                gradAttr.x1 = -16384;
+                gradAttr.x2 = 16384;
+              }
+              var grad = xml.open(fillStyle.mode + 'Gradient', gradAttr);
+              for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
+                var stop = fillStyle.stops[i_stop];
+                var stopAttr = {
+                  offset: stop.ratio,
+                  'stop-color': stop.color.solidColor,
+                };
+                if (stop.color.opacity !== 1) {
+                  stopAttr['stop-opacity'] = stop.color.opacity;
+                }
+                grad.empty('stop', stopAttr);
+              }
+              attr.fill = 'url("#'+id+'")';
+              break;
+            default:
+              throw new Error('NYI: fill style ' + fillStyle.type);
+          }
+          xml.empty('path', attr);
         }
         for (var i_line = 1; i_line < layer.lines.length; i_line++) {
           var line = layer.lines[i_line];
