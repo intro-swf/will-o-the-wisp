@@ -356,7 +356,7 @@ define(function() {
                 }
                 grad.empty('stop', stopAttr);
               }
-              attr.fill = 'url("#'+id+'")';
+              attr.fill = 'url(#'+id+')';
               break;
             default:
               throw new Error('NYI: fill style ' + fillStyle.type);
@@ -547,7 +547,7 @@ define(function() {
           stopEl.attr('stop-opacity', stop.opacity);
         }
       }
-      return 'url("#' + id + '")';
+      return 'url(#' + id + ')';
     },
   };
   
@@ -566,7 +566,7 @@ define(function() {
           stopEl.attr('stop-opacity', stop.opacity);
         }
       }
-      return 'url("#' + id + '")';
+      return 'url(#' + id + ')';
     },
   };
   
