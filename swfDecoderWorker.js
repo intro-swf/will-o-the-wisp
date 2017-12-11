@@ -270,7 +270,7 @@ function(
           var g = svg.open('text', {id:'text'+id});
           var NO_ALPHA = (typeCode < TAG_DEFINE_TEXT_2);
           var b;
-          var attr = {'xml:space':'preserve', fill:'#000', 'text-rendering':'geometricPrecision'};
+          var attr = {'xml:space':'preserve', fill:'#000'};
           var nextX = 0;
           while (b = data.readUint8()) {
             if (b & 0x80) {
