@@ -228,8 +228,8 @@ define(function() {
     // })
     onbitmap: NULLFUNC,
     
-    // onshape(id, <SVGElement>)
-    onshape: NULLFUNC,
+    // ondef(<SVGElement>)
+    ondef: NULLFUNC,
     
     // onexport('font', 'exportedFont', <font>)
     // onexport('sprite', 'exportedSprite', <sprite>);
@@ -331,11 +331,24 @@ define(function() {
               this.onurldependency(message[2], message[i_dep]);
             }
             break;
+          case 'font':
+            var styleDef = document.createElement('STYLE');
+            styleDef.innerText = [
+              '@font-face {',
+                'font-family: "'+message[1]+'";',
+                //'font-weight: '+(font.bold?'bold':'normal')+';',
+                //'font-style: '+(font.italic?'italic':'normal')+';',
+                'src: url("'+message[2]+'") format("opentype");',
+              '}',
+            ].join('\n');
+            document.head.appendChild(styleDef);
+            break;
           case 'shape':
+          case 'text':
             var doc = domParser.parseFromString(message[1], 'image/svg+xml');
             var el = doc.documentElement;
             el = el.removeChild(el.firstChild);
-            this.onshape(el);
+            this.ondef(el);
             break;
           case 'sprite':
             var sprite = new Sprite;
