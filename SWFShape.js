@@ -437,6 +437,79 @@ define(function() {
       }
       */
     },
+    toCompactFontFormat: function() {
+      var cff = [];
+      var last = null;
+      var x = 0, y = 0;
+      for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
+        var layer = this.layers[i_layer];
+        var edges = layer.edges;
+        var segments = layer.fills[1].segments;
+        for (var i_seg = 0; i_seg < segments.length; i_seg++) {
+          var i_edges = segments[i_seg];
+          if (i_edges[0] < 0) {
+            var firstEdge = edges[~i_edges[0]];
+            var dx = firstEdge.endPoint.x - x;
+            var dy = firstEdge.endPoint.y - y;
+            x += dx;
+            y += dy;
+            if (!dy) {
+              if (dx) cff.push(['hmoveto', dx]);
+            }
+            else if (!dx) {
+              cff.push(['vmoveto', -dy]);
+            }
+            else {
+              cff.push(['rmoveto', dx, -dy]);
+            }
+          }
+          var last = null;
+          for (var ii_edge = 0; ii_edge < i_edges.length; ii_edge++) {
+            var i_edge = i_edges[ii_edge];
+            var endPoint = null, controlPoint = null;
+            if (i_edge < 0) {
+              var edge = edges[~i_edge];
+              endPoint = edge.startPoint;
+              controlPoint = edge.controlPoint;
+            }
+            else {
+              var edge = edges[i_edge];
+              endPoint = edge.endPoint;
+              controlPoint = edge.controlPoint;
+            }
+            if (controlPoint) {
+              var cubicX1 = x + (controlPoint.x - x) * 2 / 3;
+              var cubicY1 = y + (controlPoint.y - y) * 2 / 3;
+              var cubicX2 = endPoint.x + (controlPoint.x - endPoint.x) * 2 / 3;
+              var cubicY2 = endPoint.y + (controlPoint.y - endPoint.y) * 2 / 3;
+              var dc1x = cubicX1 - x;
+              var dc1y = cubicY1 - y;
+              var dc2x = cubicX2 - cubicX1;
+              var dc2y = cubicY2 - cubicY1;
+              var dx = (x = endPoint.x) - cubicX2;
+              var dy = (y = endPoint.y) - cubicY2;
+              if (last && last[0] === 'rrcurveto') {
+                if (last.push(dc1x,-dc1y, dc2x,-dc2y, dx,-dy) >= 49) last = null;
+              }
+              else {
+                cff.push(last = ['rrcurveto', dc1x,-dc1y, dc2x,-dc2y, dx,-dy]);
+              }
+            }
+            else {
+              var dx = endPoint.x - x, dy = endPoint.y - y;
+              x += dx; y += dy;
+              if (last && last[0] === 'rlineto') {
+                if (last.push(dx, -dy) >= 49) last = null;
+              }
+              else {
+                cff.push(last = ['rlineto', dx, -dy]);
+              }
+            }
+          }
+        }
+      }
+      return cff;
+    },
   };
   
   function Point(x, y) {
