@@ -262,7 +262,7 @@ function(
           var id = data.readUint16LE();
           var bounds = data.readSWFRect();
           var matrix = data.readSWFMatrix();
-          var baseX = matrix.e, baseY = matrix.y;
+          var baseX = matrix.e, baseY = matrix.f;
           var glyphBits = data.readUint8();
           var advanceBits = data.readUint8();
           if (glyphBits > 32 || advanceBits > 32) {
