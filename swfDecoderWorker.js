@@ -315,7 +315,7 @@ function(
             }
             data.flushBits();
             attr.x = xList.join(' ');
-            g.open('tspan', attr).text(chars.join(''));
+            g.open('tspan', Object.assign({}, attr)).text(chars.join(''));
           }
           nextUpdates.push(['text', svg.toString()]);
           displayObjects[id] = '#text' + id;
