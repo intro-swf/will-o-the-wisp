@@ -164,12 +164,12 @@ function(
           var i_glyph = 0;
           if (has16BitChars) {
             while (data.offset < data.length) {
-              glyphs[i_glyph++].char = data.readUTF16LE(1);
+              font.glyphs[i_glyph++].char = data.readUTF16LE(1);
             }
           }
           else {
             while (data.offset < data.length) {
-              glyphs[i_glyph++].char = data.readByteString(1);
+              font.glyphs[i_glyph++].char = data.readByteString(1);
             }
           }
           break;
