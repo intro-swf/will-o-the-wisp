@@ -262,6 +262,7 @@ function(
           var id = data.readUint16LE();
           var bounds = data.readSWFRect();
           var matrix = data.readSWFMatrix();
+          var baseX = matrix.e, baseY = matrix.y;
           var glyphBits = data.readUint8();
           var advanceBits = data.readUint8();
           if (glyphBits > 32 || advanceBits > 32) {
@@ -270,8 +271,8 @@ function(
           var g = svg.open('text', {id:'text'+id});
           var NO_ALPHA = (typeCode < TAG_DEFINE_TEXT_2);
           var b;
-          var attr = {'xml:space':'preserve', fill:'#000'};
-          var nextX = 0;
+          var attr = {'xml:space':'preserve', fill:'#000', y:baseY};
+          var nextX = baseX;
           while (b = data.readUint8()) {
             if (b & 0x80) {
               var hasX = b & 1;
@@ -297,10 +298,10 @@ function(
                 }
               }
               if (b & 1) {
-                nextX = data.readInt16LE();
+                nextX = baseX + data.readInt16LE();
               }
               if (b & 2) {
-                attr.y = data.readInt16LE();
+                attr.y = baseY + data.readInt16LE();
               }
               if (b & 8) {
                 attr['font-size'] = data.readUint16LE();
