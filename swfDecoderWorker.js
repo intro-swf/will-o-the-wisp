@@ -303,7 +303,7 @@ function(
                 attr.y = data.readInt16LE();
               }
               if (b & 8) {
-                var fontHeight = data.readUint16LE();
+                attr['font-size'] = data.readUint16LE();
               }
               continue;
             }
