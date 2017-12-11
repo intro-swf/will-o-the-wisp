@@ -664,8 +664,8 @@ else require([
       }
       movie.timeline.writeHead += frame.count;
     };
-    client.onshape = function(shape) {
-      movie.defs.appendChild(shape);
+    client.ondef = function(def) {
+      movie.defs.appendChild(def);
     };
     client.onbutton = function(button) {
       var el = createSVGElement('g');
