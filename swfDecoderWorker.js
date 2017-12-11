@@ -309,11 +309,11 @@ function(
             }
             var xList = [], chars = [];
             for (var i_glyph = 0; i_glyph < b; i_glyph++) {
-              chars.push(font.glyphs[data.readSWFBits(glyphBits, false)].char);
+              chars.push(font.glyphs[data.readTopBits(glyphBits, false)].char);
               xList.push(nextX);
-              nextX += data.readSWFBits(advanceBits, true);
+              nextX += data.readTopBits(advanceBits, true);
             }
-            data.flushSWFBits();
+            data.flushBits();
             attr.x = xList.join(' ');
             g.open('tspan', attr).text(chars.join(''));
           }
