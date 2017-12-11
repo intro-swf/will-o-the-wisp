@@ -447,21 +447,25 @@ define(function() {
         var segments = layer.fills[1].segments;
         for (var i_seg = 0; i_seg < segments.length; i_seg++) {
           var i_edges = segments[i_seg];
+          var firstPoint;
           if (i_edges[0] < 0) {
-            var firstEdge = edges[~i_edges[0]];
-            var dx = firstEdge.endPoint.x - x;
-            var dy = firstEdge.endPoint.y - y;
-            x += dx;
-            y += dy;
-            if (!dy) {
-              if (dx) cff.push(['hmoveto', dx]);
-            }
-            else if (!dx) {
-              cff.push(['vmoveto', -dy]);
-            }
-            else {
-              cff.push(['rmoveto', dx, -dy]);
-            }
+            firstPoint = edges[~i_edges[0]].endPoint;
+          }
+          else {
+            firstPoint = edges[i_edges[0]].startPoint;
+          }
+          var dx = firstPoint.x - x;
+          var dy = firstPoint.y - y;
+          x += dx;
+          y += dy;
+          if (!dy) {
+            if (dx) cff.push(['hmoveto', dx]);
+          }
+          else if (!dx) {
+            cff.push(['vmoveto', -dy]);
+          }
+          else {
+            cff.push(['rmoveto', dx, -dy]);
           }
           var last = null;
           for (var ii_edge = 0; ii_edge < i_edges.length; ii_edge++) {
