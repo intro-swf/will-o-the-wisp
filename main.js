@@ -594,6 +594,15 @@ else require([
             case 'background':
               el.style.background = change.value;
               break;
+            case 'clipDepth':
+              if (!el.clipContainer || el.clipContainer.maxDepth !== change.value) {
+                el.clipContainer = createSVGElement('clipPath');
+                el.clipContainer.maxDepth = change.value;
+                el.clipContainer.setAttribute('id', 'clip' + slot.order + '_' + change.value);
+                el.clipContainer.appendChild(el.parentNode.removeChild(el));
+                movie.defs.appendChild(el.clipContainer);
+              }
+              break;
           }
         }
         el.style.display = 'inline';
