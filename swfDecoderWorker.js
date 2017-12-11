@@ -1179,8 +1179,8 @@ function(
     }
     var info = {
       flags: (
-        1 // y value of 0 specifies baseline
-        | 8 // integer math
+        1 /* y value of 0 specifies baseline */
+        // | 8 /* integer math */
       ),
       unitsPerEm: 1024,
       xMin: 0, yMin: 0,
