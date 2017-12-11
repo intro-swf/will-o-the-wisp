@@ -28,7 +28,7 @@ define(function() {
       return this;
     },
     text: function(str) {
-      this.attrValues[''] = (this.attrValues || '') + str;
+      this.attrValues[''] = (this.attrValues[''] || '') + str;
       return this;
     },
     open: function(name, attr) {
