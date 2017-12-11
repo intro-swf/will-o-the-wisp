@@ -6,12 +6,14 @@ require([
   ,'ChunkReader'
   ,'MakeshiftXML'
   ,'SWFShape'
+  ,'OTFTable'
 ],
 function(
   dataExtensions
   ,ChunkReader
   ,MakeshiftXML
   ,SWFShape
+  ,OTFTable
 ) {
   
   'use strict';
@@ -69,6 +71,7 @@ function(
     var displayObjects = {};
     var sounds = {};
     var nextUpdates = [];
+    var fonts = {};
     var nextFrame = new FrameInfo;
     function showFrame() {
       frameCount--;
@@ -130,13 +133,192 @@ function(
           nextUpdates.push(['shape', svg.toString()]);
           displayObjects[id] = '#shape'+id;
           break;
+        case TAG_DEFINE_FONT:
+          var id = data.readUint16LE();
+          var dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
+          var font = {};
+          var glyphs = font.glyphs = new Array(dv.getUint16(2, true) / 2);
+          for (var i_glyph = 0; i_glyph < glyphs.length; i_glyph++) {
+            data.offset = 2 + dv.getUint16(2 + i_glyph*2, true);
+            var shape = new SWFShape;
+            shape.readFrom(data);
+            glyphs[i_glyph] = {shape: shape};
+          }
+          fonts[id] = font;
+          break;
+        case TAG_DEFINE_FONT_INFO:
+        case TAG_DEFINE_FONT_INFO_2:
+          var id = data.readUint16LE();
+          var font = fonts[id];
+          var nameLen = data.readUint8();
+          font.name = data.readByteString(nameLen);
+          var flags = data.readUint8();
+          var has16BitChars = !!(flags & 1);
+          font.bold = !!(flags & 2);
+          font.italic = !!(flags & 4);
+          font.ansi = !!(flags & 8);
+          font.shiftJIS = !!(flags & 0x10);
+          if (typeCode >= TAG_DEFINE_FONT_INFO_2) {
+            font.languageCode = data.readUint8();
+          }
+          var i_glyph = 0;
+          if (has16BitChars) {
+            while (data.offset < data.length) {
+              glyphs[i_glyph++].char = data.readUTF16LE(1);
+            }
+          }
+          else {
+            while (data.offset < data.length) {
+              glyphs[i_glyph++].char = data.readByteString(1);
+            }
+          }
+          break;
+        case TAG_DEFINE_FONT_2:
+          var id = data.readUint16LE();
+          var font = {};
+          var flags = data.readUint8();
+          font.bold = !!(flags & 1);
+          font.italic = !!(flags & 2);
+          var has16BitChars = !!(flags & 4);
+          var has32BitOffsets = !!(flags & 8);
+          font.ansi = !!(flags & 0x10);
+          font.shiftJIS = !!(flags & 0x40);
+          var hasLayout = !!(flags & 0x80);
+          font.languageCode = data.readUint8(); // SWF5+
+          var nameLen = data.readUint8();
+          font.name = data.readByteString(nameLen);
+          var glyphs = font.glyphs = new Array(data.readUint16LE());
+          var offsetBase = data.offset;
+          var mapOffset;
+          if (has32BitOffsets) {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i] = offsetBase + data.readUint32LE();
+            }
+            mapOffset = offsetBase + data.readUint32LE();
+          }
+          else {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i] = offsetBase + data.readUint16LE();
+            }
+            mapOffset = offsetBase + data.readUint16LE();
+          }
+          for (var i = 0; i < glyphs.length; i++) {
+            if (data.offset !== glyphs[i]) {
+              throw new Error('unexpected data');
+            }
+            var shape = new SWFShape;
+            shape.readFrom(data);
+            glyphs[i] = {shape: shape};
+          }
+          if (data.offset !== mapOffset) {
+            throw new Error('unexpected data');
+          }
+          if (has16BitChars) {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i].char = data.readUTF16LE(1);
+            }
+          }
+          else {
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i].char = data.readByteString(1);
+            }
+          }
+          if (hasLayout) {
+            font.ascent = data.readInt16LE();
+            font.descent = data.readInt16LE();
+            font.leadingHeight = data.readInt16LE();
+            var advance = data.readSubarray(glyphs.length * 2);
+            for (var i = 0; i < glyphs.length; i++) {
+              glyphs[i].advance = advance.readInt16LE();
+              glyphs[i].bounds = data.readSWFRect();
+            }
+            var kerning = font.kerning = new Array(data.readUint16LE());
+            if (has16BitChars) {
+              for (var i_kerning = 0; i_kerning < kerning.length; i_kerning++) {
+                var chars = data.readUTF16LE(2);
+                var adjust = data.readInt16LE();
+                kerning[i_kerning] = {chars:chars, adjust:adjust};
+              }
+            }
+            else {
+              for (var i_kerning = 0; i_kerning < kerning.length; i_kerning++) {
+                var chars = data.readByteString(2);
+                var adjust = data.readInt16LE();
+                kerning[i_kerning] = {chars:chars, adjust:adjust};
+              }
+            }
+          }
+          data.warnIfMore();
+          fonts[id] = font;
+          break;
+        case TAG_DEFINE_FONT_NAME:
+          var id = data.readUint16LE();
+          fonts[id].displayName = data.readByteString('\0');
+          fonts[id].copyrightMessage = data.readByteString('\0');
+          break;
         case TAG_DEFINE_TEXT:
+        case TAG_DEFINE_TEXT_2:
           var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
           var id = data.readUint16LE();
-          var g = svg.open('g', {id:'text'+id});
-          g.open('text').text('hello');
-          var url = URL.createObjectURL(svg.toBlob('image/svg+xml'))+'#text'+id;
-          displayObjects[id] = url;          
+          var bounds = data.readSWFRect();
+          var matrix = data.readSWFMatrix();
+          var glyphBits = data.readUint8();
+          var advanceBits = data.readUint8();
+          if (glyphBits > 32 || advanceBits > 32) {
+            throw new Error('glyph/advance data out of 32-bit range');
+          }
+          var g = svg.open('text', {id:'text'+id});
+          var NO_ALPHA = (typeCode < TAG_DEFINE_TEXT_2);
+          var b;
+          var attr = {'xml:space':'preserve', fill:'#000'};
+          var nextX = 0;
+          while (b = data.readUint8()) {
+            if (b & 0x80) {
+              var hasX = b & 1;
+              var hasY = b & 2;
+              var hasColor = b & 4;
+              if (b & 8) {
+                var font = fonts[data.readUint16LE()];
+                if (!font.definedFamily) {
+                  font.file = buildFont(font);
+                  nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
+                  font.definedFamily = 'font'+id;
+                }
+                attr['font-family'] = '"' + font.definedFamily + '"';
+              }
+              if (b & 4) {
+                var color = data.readSWFColor(NO_ALPHA);
+                attr.fill = color.solidColor;
+                if (color.opacity === 1) {
+                  delete attr.opacity;
+                }
+                else {
+                  attr.opacity = color.opacity;
+                }
+              }
+              if (b & 1) {
+                nextX = data.readInt16LE();
+              }
+              if (b & 2) {
+                attr.y = data.readInt16LE();
+              }
+              if (b & 8) {
+                var fontHeight = data.readUint16LE();
+              }
+              continue;
+            }
+            var xList = [], chars = [];
+            for (var i_glyph = 0; i_glyph < b; i_glyph++) {
+              chars.push(font.glyphs[data.readSWFBits(glyphBits, false)].char);
+              xList.push(nextX);
+              nextX += data.readSWFBits(advanceBits, true);
+            }
+            data.flushSWFBits();
+            attr.x = xList.join(' ');
+            g.open('tspan', attr).text(chars.join(''));
+          }
+          nextUpdates.push(['text', svg.toString()]);
+          displayObjects[id] = '#text' + id;
           break;
         case TAG_DEFINE_BUTTON:
           var id = data.readUint16LE();
@@ -977,6 +1159,122 @@ function(
       return json.concat(this.updates);
     },
   };
+  
+  function buildFont(font) {
+    var strings = [];
+    strings.push({platformId:0, encodingId:0, languageId:0, nameId:1, text:'Anon'});
+    if (font.bold) {
+      if (font.italic) {
+        strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Bold Italic'});
+      }
+      else {
+        strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Bold'});
+      }
+    }
+    else if (font.italic) {
+      strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Italic'});
+    }
+    else {
+      strings.push({platformId:0, encodingId:0, languageId:0, nameId:2, text:'Regular'});
+    }
+    var info = {
+      flags: (
+        1 // y value of 0 specifies baseline
+        | 8 // integer math
+      ),
+      unitsPerEm: 1024,
+      xMin: 0, yMin: 0,
+      xMax: 1024, yMax: 1024,
+      macStyle: (font.bold?1:0) | (font.italic?2:0),
+      smallestReadablePixelSize: 1, // not sure
+      longOffsets: false,
+
+      ascender: 1024,
+      descender: 0,
+      lineGap: 0,
+      advanceWidthMax: 1024,
+      minLeftSideBearing: 0,
+      minRightSideBearing: 0,
+      xMaxExtent: 1024,
+      caretSlopeRise: 1,
+      caretSlopeRun: 0,
+      caretOffset: 0,
+
+      glyphs: new Array(font.glyphs.length),
+
+      strings: strings,
+
+      xAvgCharWidth: 1024,
+      usWeightClass: font.bold ? 700 : 500,
+      usWidthClass: 5,
+      fsType: 0,
+      ySubscriptXSize: 512,
+      ySubscriptYSize: 512,
+      ySubscriptXOffset: 0,
+      ySubscriptYOffset: 0,
+      ySuperscriptXSize: 512,
+      ySuperscriptYSize: 512,
+      ySuperscriptXOffset: 0,
+      ySuperscriptYOffset: 512,
+      yStrikeoutSize: 64,
+      yStrikeoutPosition: 256,
+      sFamilyClass: 0,
+      // all PANOSE set to 0
+      ulUnicodeRange1: 3, // 0x00-0xFF
+      ulUnicodeRange2: 0,
+      ulUnicodeRange3: 0,
+      ulUnicodeRange4: 0,
+      vendor4CC: 'wotw',
+      fsSelection: (font.italic?1:0) | (font.bold?1<<5:0),
+      usFirstCharIndex: 0x20,
+      usLastCharIndex: 0xFFFF,
+      sTypoAscender: 1024,
+      sTypoDescender: 0,
+      sTypoLineGap: 0,
+      usWinAscent: 1024,
+      usWinDescent: 0,
+      ulCodePageRange1: 1, // Latin-1
+      ulCodePageRange2: 0,
+      sxHeight: 0,
+      sCapHeight: 0,
+      usDefaultChar: 0,
+      usBreakChar: 0x20,
+      usMaxContext: 1,
+      usLowerOpticalPointSize: 1,
+      usUpperOpticalPointSize: 0xFFFF,
+
+      underlinePosition: 0,
+      underlineThickness: 16,
+      isMonospace: 1,
+    };
+    for (var i_glyph = 0; i_glyph < font.glyphs.length; i_glyph++) {
+      var glyph = font.glyphs[i_glyph];
+      glyph.char = glyph.char || String.fromCodePoint(33 + i_glyph);
+      info.glyphs[i_glyph] = {
+        char: glyph.char,
+        charString: glyph.shape.toCompactFontFormat(),
+        advanceWidth: 1024,
+        leftSideBearing: 0,
+      };
+    }
+    info.glyphs.splice(0, 0, {
+      char: '\0',
+      charString: [],
+      advanceWidth: 1024,
+      leftSideBearing: 0,
+    });
+    return OTFTable.joinToFile([
+      new OTFTable.CharacterGlyphMap(info),
+      new OTFTable.FontHeader(info),
+      new OTFTable.HorizontalHeader(info),
+      new OTFTable.HorizontalMetrics(info),
+      new OTFTable.MaximumProfile(info),
+      new OTFTable.Naming(info),
+      new OTFTable.MetricsForOS2(info),
+      new OTFTable.PostScript(info),
+      new OTFTable.CompactFontFormat(info),
+    ], 'font.otf');
+  }
   
   self.postMessage('[["ready"]]');
   
