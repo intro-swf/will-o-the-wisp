@@ -596,13 +596,13 @@ else require([
     }
     var colorTransforms = {nextID:1};
     function drawFrame(n) {
-      for (var i = 0; i < movie.timeline._allSlots.length; i++) {
-        var slot = movie.timeline._allSlots[i];
+      for (var i_slot = 0; i_slot < movie.timeline._allSlots.length; i_slot++) {
+        var slot = movie.timeline._allSlots[i_slot];
         var el = slot.displayObject;
         if (slot.firstFrame > n || slot.lastFrame < n) {
           if (el.clippedGroups) {
-            for (var i = 0; i < el.clippedGroups.length; i++) {
-              el.clippedGroups[i].setAttribute('clip-path', 'none');
+            for (var i_clip = 0; i_clip < el.clippedGroups.length; i_clip++) {
+              el.clippedGroups[i_clip].setAttribute('clip-path', 'none');
             }
           }
           else {
@@ -646,8 +646,8 @@ else require([
                 el.clipContainer.appendChild(el.parentNode.removeChild(el));
                 movie.defs.appendChild(el.clipContainer);
                 el.clippedGroups = getSlotGroups(slot.order + 1, change.value);
-                for (var i = 0; i < el.clippedGroups.length; i++) {
-                  el.clippedGroups[i].setAttribute('clip-path', 'url(#' + clipID + ')');
+                for (var i_clip = 0; i_clip < el.clippedGroups.length; i_clip++) {
+                  el.clippedGroups[i_clip].setAttribute('clip-path', 'url(#' + clipID + ')');
                 }
               }
               break;
