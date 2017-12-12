@@ -558,13 +558,55 @@ else require([
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
     var slotObjects = [];
+    const COMPARE_ORDER = function(a, b) {
+      if (typeof a !== 'number') a = a.order;
+      if (typeof b !== 'number') b = b.order;
+      return a - b;
+    };
+    function getSlotGroups(fromOrder, toOrder) {
+      var i_from = slotObjects.sortedIndexOf(fromOrder);
+      if (i_from < 0) {
+        i_from = ~i_from;
+      }
+      else while (i_from > 0 && slotObjects[i_from-1].order === fromOrder) {
+        i_from--;
+      }
+      var i_to = slotObjects.sortedIndexOf(toOrder);
+      if (i_to < 0) {
+        i_to = ~i_to - 1;
+      }
+      else while (slotObjects[i_to+1] && slotObjects[i_to+1].order === toOrder) {
+        i_to++;
+      }
+      if (i_to < i_from) return [];
+      var groups = [];
+      var fromEl = slotObjects[i_from];
+      var toEl = slotObjects[i_to];
+      if (fromEl.parentNode !== toEl.parentNode) {
+        throw new Error('NYI: complex clipping groups');
+      }
+      var group = createSVGElement('g');
+      fromEl.parentNode.insertBefore(group, fromEl);
+      do {
+        var removed = fromEl.parentNode.removeChild(group.nextElementSibling);
+        group.appendChild(removed);
+      } while (removed !== toEl);
+      return [group];
+    }
     var colorTransforms = {nextID:1};
     function drawFrame(n) {
       for (var i = 0; i < movie.timeline._allSlots.length; i++) {
         var slot = movie.timeline._allSlots[i];
         var el = slot.displayObject;
         if (slot.firstFrame > n || slot.lastFrame < n) {
-          el.style.display = 'none';
+          if (el.clippedGroups) {
+            for (var i = 0; i < el.clippedGroups.length; i++) {
+              el.clippedGroups[i].setAttribute('clip-path', 'none');
+            }
+          }
+          else {
+            el.style.display = 'none';
+          }
           continue;
         }
         for (var i_change = 1; i_change < slot.changes.length; i_change++) {
@@ -598,9 +640,14 @@ else require([
               if (!el.clipContainer || el.clipContainer.maxDepth !== change.value) {
                 el.clipContainer = createSVGElement('clipPath');
                 el.clipContainer.maxDepth = change.value;
-                el.clipContainer.setAttribute('id', 'clip' + slot.order + '_' + change.value);
+                var clipID = 'clip' + slot.order + '_' + change.value;
+                el.clipContainer.setAttribute('id', clipID);
                 el.clipContainer.appendChild(el.parentNode.removeChild(el));
                 movie.defs.appendChild(el.clipContainer);
+                el.clippedGroups = getSlotGroups(slot.order + 1, change.value);
+                for (var i = 0; i < el.clippedGroups.length; i++) {
+                  el.clippedGroups[i].setAttribute('clip-path', 'url(#' + clipID + ')');
+                }
               }
               break;
           }
@@ -621,9 +668,6 @@ else require([
         drawFrame(frame);
       };
       console.log('frameset', frameset);
-    };
-    const COMPARE_ORDER = function(a, b) {
-      return a.order - b.order;
     };
     var buttons = {};
     client.onframe = function onframe(frame) {
