@@ -586,9 +586,10 @@ else require([
         throw new Error('NYI: complex clipping groups');
       }
       var group = createSVGElement('g');
-      fromEl.parentNode.insertBefore(group, fromEl);
+      var context = fromEl.parentNode;
+      context.insertBefore(group, fromEl);
       do {
-        var removed = fromEl.parentNode.removeChild(group.nextElementSibling);
+        var removed = context.removeChild(group.nextElementSibling);
         group.appendChild(removed);
       } while (removed !== toEl);
       return [group];
