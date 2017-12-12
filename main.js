@@ -612,7 +612,7 @@ else require([
         var context = fromEl.parentNode;
         var toContext = toEl.parentNode;
         while (toContext.parentNode !== context) {
-          toContext = context.parentNode;
+          toContext = toContext.parentNode;
         }
         var group = createSVGElement('g');
         context.insertBefore(group, fromEl);
