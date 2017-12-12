@@ -582,8 +582,45 @@ else require([
       var groups = [];
       var fromEl = slotObjects[i_from];
       var toEl = slotObjects[i_to];
-      if (fromEl.parentNode !== toEl.parentNode) {
-        throw new Error('NYI: complex clipping groups');
+      while (!fromEl.parentNode.contains(toEl)) {
+        if (!fromEl.previousSibling) {
+          fromEl = fromEl.parentNode;
+        }
+        else {
+          var group = createSVGElement('g');
+          var context = fromEl.parentNode;
+          context.insertBefore(group, fromEl);
+          do {
+            group.appendChild(group.nextSibling);
+          } while (group.nextSibling);
+          groups.push(group);
+          while (!context.nextSibling) {
+            context = context.parentNode;
+          }
+          fromEl = context.nextSibling;
+        }
+      }
+      while (fromEl.parentNode !== toEl.parentNode) {
+        if (!toEl.nextSibling) {
+          toEl = toEl.parentNode;
+          continue;
+        }
+        if (fromEl.contains(toEl)) {
+          fromEl = fromEl.firstChild;
+          continue;
+        }
+        var context = fromEl.parentNode;
+        var toContext = toEl.parentNode;
+        while (toContext.parentNode !== context) {
+          toContext = context.parentNode;
+        }
+        var group = createSVGElement('g');
+        context.insertBefore(group, fromEl);
+        do {
+          group.appendChild(group.nextSibling);
+        } while (group.nextSibling !== toContext);
+        groups.push(group);
+        fromEl = toContext;
       }
       var group = createSVGElement('g');
       var context = fromEl.parentNode;
@@ -592,7 +629,8 @@ else require([
         var removed = context.removeChild(group.nextElementSibling);
         group.appendChild(removed);
       } while (removed !== toEl);
-      return [group];
+      groups.push(group);
+      return groups;
     }
     var colorTransforms = {nextID:1};
     function drawFrame(n) {
