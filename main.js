@@ -681,7 +681,18 @@ else require([
                 el.clipContainer.maxDepth = change.value;
                 var clipID = 'clip' + slot.order + '_' + change.value;
                 el.clipContainer.setAttribute('id', clipID);
-                el.clipContainer.appendChild(el.parentNode.removeChild(el));
+                el.parentNode.removeChild(el);
+                if (el.hasAttribute('transform')) {
+                  el.clipContainer.setAttribute('transform', el.getAttribute('transform'));
+                }
+                var pathEl = document.getElementById(el.getAttribute('href').replace(/^#/, ''));
+                for (var subEl = pathEl.firstChild; subEl; subEl = subEl.nextSibling) {
+                  if (subEl.nodeName === 'path') {
+                    var copy = createSVGElement('path');
+                    copy.setAttribute('d', subEl.getAttribute('d'));
+                    el.clipContainer.appendChild(copy);
+                  }
+                }
                 movie.defs.appendChild(el.clipContainer);
                 el.clippedGroups = getSlotGroups(slot.order + 1, change.value);
                 for (var i_clip = 0; i_clip < el.clippedGroups.length; i_clip++) {
