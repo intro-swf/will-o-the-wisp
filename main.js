@@ -564,14 +564,14 @@ else require([
       return a - b;
     };
     function getSlotGroups(fromOrder, toOrder) {
-      var i_from = slotObjects.sortedIndexOf(fromOrder);
+      var i_from = slotObjects.sortedIndexOf(fromOrder, COMPARE_ORDER);
       if (i_from < 0) {
         i_from = ~i_from;
       }
       else while (i_from > 0 && slotObjects[i_from-1].order === fromOrder) {
         i_from--;
       }
-      var i_to = slotObjects.sortedIndexOf(toOrder);
+      var i_to = slotObjects.sortedIndexOf(toOrder, COMPARE_ORDER);
       if (i_to < 0) {
         i_to = ~i_to - 1;
       }
