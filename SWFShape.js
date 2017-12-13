@@ -636,7 +636,7 @@ define(function() {
     },
     close: function() {
       for (var i = 0; i < this.fills.length; i++) {
-        this.fills[i].close();
+        this.fills[i].close(true);
       }
       for (var i = 1; i < this.lines.length; i++) {
         this.lines[i].close();
@@ -654,7 +654,7 @@ define(function() {
       if (invert) i_edge = ~i_edge;
       this.i_edges.push(i_edge);
     },
-    close: function() {
+    close: function(joinEnds) {
       const i_edges = this.i_edges;
       const segments = this.segments = [];
       const edges = this.shape.edges;
@@ -664,13 +664,14 @@ define(function() {
         var segment = [i_edge];
         segments.push(segment);
         if (!i_edges.length) break;
-        var pt;
+        var startPt;
         if (i_edge < 0) {
-          pt = edges[~i_edge].startPoint;
+          startPt = edges[~i_edge].startPoint;
         }
         else {
-          pt = edges[i_edge].endPoint;
+          startPt = edges[i_edge].endPoint;
         }
+        var pt = startPt;
         connecting: for (;;) {
           for (var i = 0; i < i_edges.length; i++) {
             i_edge = i_edges[i];
@@ -694,6 +695,11 @@ define(function() {
             }
           }
           // no further connections were found
+          if (joinEnds && !startPt.isEqualTo(otherPt)) {
+            // we don't know what's on the other side of the fill?
+            throw new Error('fill with unconnected edges');
+            //segment.push(edges.push(new Line(otherPt, startPt)) - 1);
+          }
           break connecting;
         }
       }
