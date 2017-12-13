@@ -638,7 +638,7 @@ define(function() {
     },
     close: function() {
       for (var i = 0; i < this.fills.length; i++) {
-        this.fills[i].close(true);
+        this.fills[i].close(i > 0);
       }
       for (var i = 1; i < this.lines.length; i++) {
         this.lines[i].close();
