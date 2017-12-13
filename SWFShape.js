@@ -704,7 +704,7 @@ define(function() {
           // no further connections were found
           if (joinEnds && !startPt.isEqualTo(pt)) {
             if (startOpposite === opposite) {
-              var finalEdge = new Line(otherPt, startPt);
+              var finalEdge = new Line(pt, startPt);
               finalEdge.i_fillRight = this.i_style;
               finalEdge.i_fillLeft = opposite;
               segment.push(edges.push(finalEdge) - 1);
