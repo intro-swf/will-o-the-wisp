@@ -664,7 +664,7 @@ define(function() {
         var segment = [i_edge];
         segments.push(segment);
         if (!i_edges.length) break;
-        var startPt;
+        var startPt, endPt;
         if (i_edge < 0) {
           startPt = edges[~i_edge].startPoint;
         }
@@ -695,7 +695,7 @@ define(function() {
             }
           }
           // no further connections were found
-          if (joinEnds && !startPt.isEqualTo(otherPt)) {
+          if (joinEnds && !startPt.isEqualTo(pt)) {
             // we don't know what's on the other side of the fill?
             throw new Error('fill with unconnected edges');
             //segment.push(edges.push(new Line(otherPt, startPt)) - 1);
