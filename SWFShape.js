@@ -615,11 +615,11 @@ define(function() {
     this.edges = [];
     this.fills = new Array(fillStyles.length);
     for (var i = 0; i < fillStyles.length; i++) {
-      this.fills[i] = new Patch(this, fillStyles[i]);
+      this.fills[i] = new Patch(this, fillStyles[i], i);
     }
     this.lines = new Array(lineStyles.length);
     for (var i = 1; i < lineStyles.length; i++) {
-      this.lines[i] = new Patch(this, lineStyles[i]);
+      this.lines[i] = new Patch(this, lineStyles[i], i);
     }
   }
   PatchList.prototype = {
@@ -644,9 +644,10 @@ define(function() {
     },
   };
 
-  function Patch(shape, style) {
+  function Patch(shape, style, i_style) {
     this.shape = shape;
     this.style = style;
+    this.i_style = i_style;
     this.i_edges = [];
   }
   Patch.prototype = {
@@ -664,14 +665,16 @@ define(function() {
         var segment = [i_edge];
         segments.push(segment);
         if (!i_edges.length) break;
-        var startPt, endPt;
+        var startPt, startOpposite;
         if (i_edge < 0) {
           startPt = edges[~i_edge].startPoint;
+          startOpposite = edges[~i_edge].i_fillRight;
         }
         else {
           startPt = edges[i_edge].endPoint;
+          startOpposite = edges[i_edge].i_fillLeft;
         }
-        var pt = startPt;
+        var pt = startPt, opposite;
         connecting: for (;;) {
           for (var i = 0; i < i_edges.length; i++) {
             i_edge = i_edges[i];
@@ -687,18 +690,27 @@ define(function() {
               i_edges.splice(i, 1);
               if (i_edge < 0) {
                 pt = edges[~i_edge].startPoint;
+                opposite = edges[~i_edge].i_fillRight;
               }
               else {
                 pt = edges[i_edge].endPoint;
+                opposite = edges[i_edge].i_fillLeft;
               }
               continue connecting;
             }
           }
           // no further connections were found
           if (joinEnds && !startPt.isEqualTo(pt)) {
-            // we don't know what's on the other side of the fill?
-            throw new Error('fill with unconnected edges');
-            //segment.push(edges.push(new Line(otherPt, startPt)) - 1);
+            if (startOpposite === opposite) {
+              var finalEdge = new Line(otherPt, startPt);
+              finalEdge.i_fillRight = this.i_style;
+              finalEdge.i_fillLeft = opposite;
+              segment.push(edges.push(finalEdge) - 1);
+            }
+            else {
+              // we don't know what's on the other side of the fill?
+              throw new Error('fill with unconnected edges');
+            }
           }
           break connecting;
         }
