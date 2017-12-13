@@ -627,6 +627,8 @@ define(function() {
     addEdge: function(edge) {
       var i_edge = this.edges.push(edge) - 1;
       if (this.i_fillLeft !== this.i_fillRight) {
+        edge.i_fillLeft = this.i_fillLeft;
+        edge.i_fillRight = this.i_fillRight;
         this.fills[this.i_fillLeft].addEdgeByIndex(i_edge, true);
         this.fills[this.i_fillRight].addEdgeByIndex(i_edge);
       }
