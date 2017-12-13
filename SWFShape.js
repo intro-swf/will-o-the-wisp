@@ -394,48 +394,6 @@ define(function() {
           xml.empty('path', attr);
         }
       }
-      /*
-      for (var i_region = 0; i_region < this.regions.length; i_region++) {
-        var region = this.regions[i_region];
-        var pathData = [];
-        if (region.i_edges[0] < 0) {
-          pathData.push(this.edges[~region.i_edges[0]].pathStartLeft);
-        }
-        else {
-          pathData.push(this.edges[region.i_edges[0]].pathStartRight);
-        }
-        for (var i_segment = 0; i_segment < region.i_edges.length; i_segment += 2) {
-          var i_edge1 = region.i_edges[i_segment],
-              i_edge2 = region.i_edges[i_segment+1];
-          if (i_edge1 < 0) {
-            i_edge1 = ~i_edge1;
-            i_edge2 = ~i_edge2;
-            for (var i_edge = i_edge1; i_edge >= i_edge2; i_edge--) {
-              var edge = this.edges[i_edge];
-              pathData.push(edge.pathStepLeft);
-            }
-          }
-          else {
-            for (var i_edge = i_edge1; i_edge <= i_edge2; i_edge++) {
-              var edge = this.edges[i_edge];
-              pathData.push(edge.pathStepRight);
-            }
-          }
-        }
-        xml.empty('path', {d:pathData.join(''), fill:region.fill.toString()});
-      }
-      for (var i_line = 0; i_line < this.lines.length; i_line++) {
-        var line = this.lines[i_line];
-        var pathData = [];
-        var attrs = {fill:'none', 'stroke-width':line.style.width, stroke:line.style.stroke};
-        pathData.push(this.edges[line.i_edge1].pathStartRight);
-        for (var i_edge = line.i_edge1; i_edge <= line.i_edge2; i_edge++) {
-          pathData.push(this.edges[i_edge].pathStepRight);
-        }
-        attrs.d = pathData.join('');
-        xml.empty('path', attrs);
-      }
-      */
     },
     toCompactFontFormat: function() {
       var cff = [];
