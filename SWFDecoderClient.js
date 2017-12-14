@@ -345,6 +345,7 @@ define(function() {
             break;
           case 'shape':
           case 'text':
+          case 'def':
             var doc = domParser.parseFromString(message[1], 'image/svg+xml');
             var el = doc.documentElement;
             el = el.removeChild(el.firstChild);
