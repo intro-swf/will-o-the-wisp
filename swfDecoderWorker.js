@@ -144,7 +144,7 @@ function(
         case TAG_DEFINE_BITS_2:
           var characterID = data.readUint16LE();
           var jpeg;
-          if (data[0] === 0xff && data[1] && 0xd9) {
+          if (data[0] === 0xff && data[1] === 0xd9) {
             data.offset = 2;
             var info = data.readJPEGInfo();
             data.warnIfMore();
