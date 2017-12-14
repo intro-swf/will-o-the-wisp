@@ -91,10 +91,13 @@ define(['dataExtensions'], function(dataExtensions) {
           throw new Error('unexpected end of JPEG data');
         }
         for (;;) {
-          if (data.readUint8() === 0xFF && data.readUint8() !== 0) {
-            data.offset -= 2;
-            break;
+          if (data.readUint8() !== 0xFF) continue;
+          var marker = data.readUint8();
+          if (marker === 0 || (marker >= MARKER_RST0 && marker <= MARKER_RST7)) {
+            continue;
           }
+          data.offset -= 2;
+          break;
         }
         continue;
       
