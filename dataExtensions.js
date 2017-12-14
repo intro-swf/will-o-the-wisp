@@ -136,6 +136,16 @@ define('dataExtensions', function() {
       this.bitBufSize -= n;
       return value;
     },
+    readLowBits: function(n) {
+      while (this.bitBufSize < n) {
+        this.bitBuf |= this.readUint8() << this.bitBufSize;
+        this.bitBufSize += 8;
+      }
+      var v = this.bitBuf & ((1 << n) - 1);
+      this.bitBuf >>>= n;
+      this.bitBufSize -= n;
+      return v;
+    },
   });
   
   var lib = {
