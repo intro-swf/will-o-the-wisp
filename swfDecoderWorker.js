@@ -222,7 +222,54 @@ function(
           imageSVG.empty('image', {id:imageID, href:url, width:width, height:height});
           bitmaps[characterID] = {id:imageID, width:width, height:height};
           nextUpdates.push(['def', imageSVG.toString()]);
-          break;          
+          break;
+        case TAG_DEFINE_BITS_LOSSLESS_2:
+          var characterID = data.readUint16LE();
+          var format = data.readUint8();
+          var width = data.readUint16LE();
+          var height = data.readUint16LE();
+          var paletteSize = (format === 3) ? data.readUint8() + 1 : 0;
+          var compressed = data.subarray(data.offset);
+          var uncompressedLength;
+          var rowBytes;
+          switch (format) {
+            case 3:
+              rowBytes = (width + 3) & ~3;
+              uncompressedLength = paletteSize * 4 + rowBytes * height;
+              break;
+            case 5:
+              rowBytes = width*4;
+              uncompressedLength = rowBytes * height;
+              break;
+            default:
+              throw new Error('unknown bitmap format');
+          }
+          var uncompressed = zlib.inflate(compressed, uncompressedLength);
+          var bitmapFile;
+          switch (format) {
+            case 3:
+              var palette = new Uint32Array(uncompressed.buffer, uncompressed.byteOffset, paletteSize);
+              var rows = new Array(height);
+              var pixels = uncompressed.subarray(paletteSize * 4);
+              for (var i = 0; i < height; i++) {
+                rows[i] = pixels.subarray(rowBytes*i, rowBytes*i + width);
+              }
+              bitmapFile = bitmapTools.makeBitmapBlob({
+                bpp: 8,
+                rows: rows,
+                palette: palette,
+              });
+              break;
+            default:
+              throw new Error('NYI: lossless mode ' + format);
+          }
+          var url = URL.createObjectURL(bitmapFile);
+          var imageID = 'bitmap' + characterID;
+          var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
+          imageSVG.empty('image', {id:imageID, href:url, width:width, height:height});
+          bitmaps[characterID] = {id:imageID, width:width, height:height};
+          nextUpdates.push(['def', imageSVG.toString()]);
+          break;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
         case TAG_DEFINE_SHAPE_3:
