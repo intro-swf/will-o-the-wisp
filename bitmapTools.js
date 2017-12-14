@@ -93,7 +93,7 @@ define(['dataExtensions'], function(dataExtensions) {
         for (;;) {
           if (data.readUint8() !== 0xFF) continue;
           var marker = data.readUint8();
-          if (marker === 0 || (marker >= MARKER_RST0 && marker <= MARKER_RST7)) {
+          if (marker === 0 || (marker >= 0xD0 && marker <= 0xD7)) {
             continue;
           }
           data.offset -= 2;
