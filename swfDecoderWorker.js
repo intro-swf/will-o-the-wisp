@@ -7,6 +7,7 @@ require([
   ,'MakeshiftXML'
   ,'SWFShape'
   ,'OTFTable'
+  ,'bitmapTools'
 ],
 function(
   dataExtensions
@@ -14,6 +15,7 @@ function(
   ,MakeshiftXML
   ,SWFShape
   ,OTFTable
+  ,bitmapTools
 ) {
   
   'use strict';
@@ -72,6 +74,8 @@ function(
     var sounds = {};
     var nextUpdates = [];
     var fonts = {};
+    var bitmaps = {};
+    var jpegTables;
     var nextFrame = new FrameInfo;
     function showFrame() {
       frameCount--;
@@ -117,6 +121,26 @@ function(
             }
           }
           return;
+        case TAG_JPEG_TABLES:
+          var info = data.readJPEGInfo();
+          data.warnIfMore();
+          if (!info.hasHuffmanTables) {
+            throw new Error('no huffman tables found');
+          }
+          jpegTables = info.data;
+          break;
+        case TAG_DEFINE_BITS:
+          var characterID = data.readUint16LE();
+          var info = data.readJPEGInfo();
+          data.warnIfMore();
+          var jpeg = bitmapTools.joinJPEG(jpegTables, info.data);
+          var url = URL.createObjectURL(jpeg);
+          var imageID = 'bitmap' + characterID;
+          var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
+          imageSVG.empty('image', {id:imageID, href:url, width:info.width, height:info.height});
+          bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
+          nextUpdates.push(['def', imageSVG.toString()]);
+          break;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
         case TAG_DEFINE_SHAPE_3:
