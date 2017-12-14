@@ -133,7 +133,7 @@ function(
           var characterID = data.readUint16LE();
           var info = data.readJPEGInfo();
           data.warnIfMore();
-          var jpeg = bitmapTools.joinJPEG(jpegTables, info.data);
+          var jpeg = bitmapTools.jpegJoin(jpegTables, info.data);
           var url = URL.createObjectURL(jpeg);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
