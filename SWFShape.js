@@ -638,7 +638,7 @@ define(function() {
     },
     close: function() {
       for (var i = 0; i < this.fills.length; i++) {
-        this.fills[i].close(i > 0);
+        this.fills[i].close();
       }
       for (var i = 1; i < this.lines.length; i++) {
         this.lines[i].close();
@@ -657,7 +657,7 @@ define(function() {
       if (invert) i_edge = ~i_edge;
       this.i_edges.push(i_edge);
     },
-    close: function(joinEnds) {
+    close: function() {
       const i_edges = this.i_edges;
       const segments = this.segments = [];
       const edges = this.shape.edges;
@@ -667,16 +667,14 @@ define(function() {
         var segment = [i_edge];
         segments.push(segment);
         if (!i_edges.length) break;
-        var startPt, startOpposite;
+        var startPt;
         if (i_edge < 0) {
           startPt = edges[~i_edge].startPoint;
-          startOpposite = edges[~i_edge].i_fillRight;
         }
         else {
           startPt = edges[i_edge].endPoint;
-          startOpposite = edges[i_edge].i_fillLeft;
         }
-        var pt = startPt, opposite;
+        var pt = startPt;
         connecting: for (;;) {
           for (var i = 0; i < i_edges.length; i++) {
             i_edge = i_edges[i];
@@ -692,28 +690,14 @@ define(function() {
               i_edges.splice(i, 1);
               if (i_edge < 0) {
                 pt = edges[~i_edge].startPoint;
-                opposite = edges[~i_edge].i_fillRight;
               }
               else {
                 pt = edges[i_edge].endPoint;
-                opposite = edges[i_edge].i_fillLeft;
               }
               continue connecting;
             }
           }
           // no further connections were found
-          if (joinEnds && !startPt.isEqualTo(pt)) {
-            if (startOpposite === opposite) {
-              var finalEdge = new Line(pt, startPt);
-              finalEdge.i_fillRight = this.i_style;
-              finalEdge.i_fillLeft = opposite;
-              segment.push(edges.push(finalEdge) - 1);
-            }
-            else {
-              // we don't know what's on the other side of the fill?
-              throw new Error('fill with unconnected edges');
-            }
-          }
           break connecting;
         }
       }
