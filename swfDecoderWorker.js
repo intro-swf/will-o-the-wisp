@@ -145,7 +145,7 @@ function(
           var characterID = data.readUint16LE();
           var jpeg;
           if (data[2] === 0xff && data[3] === 0xd9) {
-            data.offset = 4;
+            data.offset = 6;
             var info = data.readJPEGInfo();
             data.warnIfMore();
             jpeg = new Blob([info.data], {type:'image/jpeg'});
