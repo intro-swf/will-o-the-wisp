@@ -143,10 +143,19 @@ function(
           break;
         case TAG_DEFINE_BITS_2:
           var characterID = data.readUint16LE();
-          var tempTables = data.readJPEGInfo();
-          var info = data.readJPEGInfo();
-          data.warnIfMore();
-          var jpeg = bitmapTools.jpegJoin(tempTables.data, info.data);
+          var jpeg;
+          if (data[0] === 0xff && data[1] && 0xd9) {
+            data.offset = 2;
+            var info = data.readJPEGInfo();
+            data.warnIfMore();
+            var jpeg = new Blob([info.data], {type:'image/jpeg'});
+          }
+          else {
+            var tempTables = data.readJPEGInfo();
+            var info = data.readJPEGInfo();
+            data.warnIfMore();
+            var jpeg = bitmapTools.jpegJoin(tempTables.data, info.data);
+          }
           var url = URL.createObjectURL(jpeg);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
