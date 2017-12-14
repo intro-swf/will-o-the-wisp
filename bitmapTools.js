@@ -42,7 +42,7 @@ define(['dataExtensions'], function(dataExtensions) {
     ,MARKER_COM = 0xFFFE
   ;
   
-  Uint8Array.readJPEGInfo = function() {
+  Uint8Array.prototype.readJPEGInfo = function() {
     var data = this.subarray(this.offset);
     if (data.readUint16BE() !== MARKER_SOI) throw new Error('invalid JPEG data');
     var marker;
