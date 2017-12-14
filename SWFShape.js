@@ -358,17 +358,19 @@ define(function() {
               attr.fill = 'url(#'+id+')';
               break;
             case 'bitmap':
-              var id = 'pattern' + baseID + '_' + i_layer + '_' + i_fill;
-              var bitmap = this.bitmaps[fillStyle.bitmapID];
-              var patternAttr = {id:id, width:bitmap.width, height:bitmap.height, patternUnits:'userSpaceOnUse'};
-              if (!fillStyle.matrix.isIdentity) {
-                patternAttr.patternTransform = fillStyle.matrix.toString();
+              if (fillStyle.bitmapID !== 0xffff) {
+                var id = 'pattern' + baseID + '_' + i_layer + '_' + i_fill;
+                var bitmap = this.bitmaps[fillStyle.bitmapID];
+                var patternAttr = {id:id, width:bitmap.width, height:bitmap.height, patternUnits:'userSpaceOnUse'};
+                if (!fillStyle.matrix.isIdentity) {
+                  patternAttr.patternTransform = fillStyle.matrix.toString();
+                }
+                var pattern = xml.open('pattern', patternAttr);
+                var useAttr = {href:'#'+bitmap.id};
+                if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
+                pattern.empty('use', useAttr);
+                attr.fill = 'url(#'+id+')';
               }
-              var pattern = xml.open('pattern', patternAttr);
-              var useAttr = {href:'#'+bitmap.id};
-              if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
-              pattern.empty('use', useAttr);
-              attr.fill = 'url(#'+id+')';
               break;
             default:
               console.warn('NYI: fill style ' + fillStyle.type);
