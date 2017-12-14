@@ -66,34 +66,14 @@ define(['dataExtensions!'], function(dataExtensions) {
     .fill(5));
   const BIT_WIDTH_PERMUTATION = new Uint8Array([
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
-  const BYTE_LITERALS = (function() {
-    var a = new Array(256);
-    for (var i = 0; i < 256; i++) {
-      a[i] = new Uint8Array([i]);
-    }
-    return a;
-  })();
   
-  Uint8Array.prototype.readZBits = function(n) {
-    while (this.bitCount < n) {
-      this.bitBuf |= this.readUint8() << this.bitCount;
-      this.bitCount += 8;
-    }
-    var v = this.bitBuf & ((1 << n) - 1);
-    this.bitBuf >>>= n;
-    this.bitCount -= n;
-    return v;
-  };
-  Uint8Array.prototype.flushZBits = function() {
-    this.bitBuf = this.bitCount = 0;
-  };
   Uint8Array.prototype.readZTreeCode = function(tree) {
-    var branch = tree, i_branch = this.readZBits(tree.rootBits);
+    var branch = tree, i_branch = this.readLowBits(tree.rootBits);
     for (;;) {
       var descend = branch[i_branch];
       if (typeof descend === 'number') return descend;
       branch = descend;
-      i_branch = this.readZBits(1);
+      i_branch = this.readLowBits(1);
     }
   };
   Uint8Array.prototype.readZTreeEncodedTree = function(codeCount, bitWidthTree) {
@@ -102,17 +82,17 @@ define(['dataExtensions!'], function(dataExtensions) {
     while (i_code < codeCount) {
       switch (widthCode = this.readZTreeCode(bitWidthTree)) {
         case 16:
-          var repCount = 3 + this.readZBits(2);
+          var repCount = 3 + this.readLowBits(2);
           codeWidths.fill(codeWidths[i_code-1], i_code, i_code + repCount);
           i_code += repCount;
           continue;
         case 17:
-          var repCount = 3 + this.readZBits(3);
+          var repCount = 3 + this.readLowBits(3);
           codeWidths.fill(0, i_code, i_code + repCount);
           i_code += repCount;
           continue;
         case 18:
-          var repCount = 11 + this.readZBits(7);
+          var repCount = 11 + this.readLowBits(7);
           codeWidths.fill(0, i_code, i_code + repCount);
           i_code += repCount;
           continue;
@@ -140,11 +120,11 @@ define(['dataExtensions!'], function(dataExtensions) {
     var windowHalf2 = window.subarray(windowSize);
     var outputParts = [];
     blockLoop: for (;;) {
-      var isFinalBlock = this.readZBits(1);
+      var isFinalBlock = this.readLowBits(1);
       var litLenTree, distTree;
-      switch (this.readZBits(2)) {
+      switch (this.readLowBits(2)) {
         case 0:
-          this.flushZBits();
+          this.flushBits();
           var len = this.readUint16LE();
           if (~len !== this.readInt16LE()) {
             throw new Error('corrupt data');
@@ -168,12 +148,12 @@ define(['dataExtensions!'], function(dataExtensions) {
           distTree = FIXED_DIST_TREE;
           break;
         case 2:
-          var litLenCodes = 257 + this.readZBits(5);
-          var distCodes = 1 + this.readZBits(5);
-          var bitWidthCodes = 4 + this.readZBits(4);
+          var litLenCodes = 257 + this.readLowBits(5);
+          var distCodes = 1 + this.readLowBits(5);
+          var bitWidthCodes = 4 + this.readLowBits(4);
           var bitWidthWidths = new Uint8Array(19);
           for (var i = 0; i < bitWidthCodes; i++) {
-            bitWidthWidths[BIT_WIDTH_PERMUTATION[i]] = this.readZBits(3);
+            bitWidthWidths[BIT_WIDTH_PERMUTATION[i]] = this.readLowBits(3);
           }
           var bitWidthTree = generateCodeTree(bitWidthWidths);
           litLenTree = this.readZTreeEncodedTree(litLenCodes, bitWidthTree);
@@ -210,19 +190,19 @@ define(['dataExtensions!'], function(dataExtensions) {
           length = code - 254;
         }
         else if (code < 269) {
-          length = 11 + ((code - 265) << 1) + this.readZBits(1);
+          length = 11 + ((code - 265) << 1) + this.readLowBits(1);
         }
         else if (code < 273) {
-          length = 19 + ((code - 269) << 2) + this.readZBits(2);
+          length = 19 + ((code - 269) << 2) + this.readLowBits(2);
         }
         else if (code < 277) {
-          length = 35 + ((code - 273) << 3) + this.readZBits(3);
+          length = 35 + ((code - 273) << 3) + this.readLowBits(3);
         }
         else if (code < 281) {
-          length = 67 + ((code - 277) << 4) + this.readZBits(4);
+          length = 67 + ((code - 277) << 4) + this.readLowBits(4);
         }
         else if (code < 285) {
-          length = 131 + ((code - 281) << 5) + this.readZBits(5);
+          length = 131 + ((code - 281) << 5) + this.readLowBits(5);
         }
         else {
           length = 258;
@@ -234,7 +214,7 @@ define(['dataExtensions!'], function(dataExtensions) {
         }
         else {
           var extraBits = (code-2) >>> 1;
-          distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readZBits(extraBits);
+          distance = (2 << extraBits) + 1 + ((code - 2*(extraBits+1)) << extraBits) + this.readLowBits(extraBits);
         }
         var left = windowSize*2 - wpos;
         if (length >= left) {
@@ -254,7 +234,7 @@ define(['dataExtensions!'], function(dataExtensions) {
         } while (--length);
       }
     }
-    this.flushZBits();
+    this.flushBits();
     outputParts.adler32 = this.readUint32BE();
     return outputParts;
   };
