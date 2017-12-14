@@ -148,13 +148,13 @@ function(
             data.offset = 2;
             var info = data.readJPEGInfo();
             data.warnIfMore();
-            var jpeg = new Blob([info.data], {type:'image/jpeg'});
+            jpeg = new Blob([info.data], {type:'image/jpeg'});
           }
           else {
             var tempTables = data.readJPEGInfo();
             var info = data.readJPEGInfo();
             data.warnIfMore();
-            var jpeg = bitmapTools.jpegJoin(tempTables.data, info.data);
+            jpeg = bitmapTools.jpegJoin(tempTables.data, info.data);
           }
           var url = URL.createObjectURL(jpeg);
           var imageID = 'bitmap' + characterID;
