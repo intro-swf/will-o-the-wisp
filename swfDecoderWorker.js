@@ -137,8 +137,8 @@ function(
           var url = URL.createObjectURL(jpeg);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          imageSVG.empty('image', {id:imageID, href:url, width:info.width*20, height:info.height*20});
-          bitmaps[characterID] = {id:imageID, width:info.width*20, height:info.height*20};
+          imageSVG.empty('image', {id:imageID, href:url, width:info.width, height:info.height});
+          bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_SHAPE:
