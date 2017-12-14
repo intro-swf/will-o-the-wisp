@@ -219,8 +219,8 @@ function(
           var url = URL.createObjectURL(bitmapFile);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          imageSVG.empty('image', {id:imageID, href:url, width:info.width, height:info.height});
-          bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
+          imageSVG.empty('image', {id:imageID, href:url, width:width, height:height});
+          bitmaps[characterID] = {id:imageID, width:width, height:height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;          
         case TAG_DEFINE_SHAPE:
