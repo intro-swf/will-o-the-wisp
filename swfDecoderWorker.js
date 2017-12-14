@@ -144,24 +144,54 @@ function(
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_BITS_2:
+        case TAG_DEFINE_BITS_3:
           var characterID = data.readUint16LE();
-          var jpeg;
-          if (data[2] === 0xff && data[3] === 0xd9) {
-            data.offset = 6;
-            var info = data.readJPEGInfo();
-            data.warnIfMore();
-            jpeg = new Blob([info.data], {type:'image/jpeg'});
+          var jpegData = (typeCode < TAG_DEFINE_BITS_3)
+            ? data.subarray(data.offset)
+            : data.readSubarray(data.readUint32LE());
+          var jpegFile, info;
+          if (jpegData[0] === 0xff && jpegData[1] === 0xd9) {
+            jpegData.offset = 4;
+            info = jpegData.readJPEGInfo();
+            jpegData.warnIfMore();
+            jpegFile = new Blob([info.data], {type:'image/jpeg'});
           }
           else {
-            var tempTables = data.readJPEGInfo();
-            var info = data.readJPEGInfo();
-            data.warnIfMore();
-            jpeg = bitmapTools.jpegJoin(tempTables.data, info.data);
+            var tempTables = jpegData.readJPEGInfo();
+            info = jpegData.readJPEGInfo();
+            jpegData.warnIfMore();
+            jpegFile = bitmapTools.jpegJoin(tempTables.data, info.data);
           }
-          var url = URL.createObjectURL(jpeg);
+          var maskID;
+          if (typeCode >= TAG_DEFINE_BITS_3) {
+            maskID = 'mask' + characterID;
+            var uncompressedSize = info.width * info.height;
+            var compressed = data.subarray(data.offset);
+            var uncompressed = zlib.inflate(compressed, uncompressedSize);
+            if (uncompressed.length !== uncompressedSize) {
+              throw new Error('not enough mask data');
+            }
+            var rows = [];
+            for (var i = 0; i < info.height; i++) {
+              rows[i] = uncompressed.subarray(info.width*i, info.width*(i+1));
+            }
+            var palette = new Uint8Array(256 * 4);
+            for (var i = 0; i < 256; i++) {
+              palette[i*4 + 3] = i;
+            }
+            palette = new Uint32Array(palette.buffer, palette.byteOffset, 256);
+            var maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:palette, bpp:8}));
+            var maskSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
+            var maskEl = maskSVG.open('mask', {id:maskID, maskUnits:'userSpaceOnUse', width:info.width, height:info.height});
+            maskEl.empty('image', {href:maskURL, width:info.width, height:info.height});
+            nextUpdates.push(['def', maskSVG.toString()]);
+          }
+          var url = URL.createObjectURL(jpegFile);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          imageSVG.empty('image', {id:imageID, href:url, width:info.width, height:info.height});
+          var imageAttr = {id:imageID, href:url, width:info.width, height:info.height};
+          if (maskID) imageAttr.mask = 'url(#' + maskID + ')';
+          imageSVG.empty('image', imageAttr);
           bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
