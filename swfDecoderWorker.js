@@ -149,6 +149,7 @@ function(
           var bounds = data.readSWFRect();
           var shape = new SWFShape;
           shape.hasStyles = true;
+          shape.bitmaps = bitmaps;
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
