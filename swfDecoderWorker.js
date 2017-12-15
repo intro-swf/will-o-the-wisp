@@ -243,6 +243,22 @@ function(
                 palette: palette,
               });
               break;
+            case 5:
+              var rows = new Array(height);
+              for (var i = 0; i < height; i++) {
+                var row = uncompressed.subarray(rowBytes*i, rowBytes*(i+1));
+                for (var j = 0; j < width; j++) {
+                  rows[j*3] = row[j*4+1];
+                  rows[j*3+1] = row[j*4+2];
+                  rows[j*3+2] = row[j*4+3];
+                }
+                rows[i] = row.subarray(0, width*3);
+              }
+              bitmapFile = bitmapTools.makeBitmapBlob({
+                bpp: 24,
+                rows: rows,
+              });
+              break;
             default:
               throw new Error('NYI: lossless mode ' + format);
           }
