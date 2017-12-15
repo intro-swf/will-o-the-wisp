@@ -189,7 +189,7 @@ define(['dataExtensions', 'z'], function(dataExtensions, z) {
       var height = rows.length;
       IHDR.setUint32(0, width);
       IHDR.setUint32(4, height);
-      IHDR.setUint8(8, def.bpp);
+      IHDR.setUint8(8, def.palette ? def.bpp : 8);
       IHDR.setUint8(9,
         (def.palette ? 1 : 0)
         | 2 // color used
