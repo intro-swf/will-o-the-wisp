@@ -741,6 +741,7 @@ function(
               var actionData = data.readSubarray(data.readUint32LE());
               handler.push(actionData.readSWFActions());
               actionData.warnIfMore();
+              update.push(handler);
             }
           }
           data.warnIfMore();
@@ -899,6 +900,7 @@ function(
                     var actionData = data.readSubarray(data.readUint32LE());
                     handler.push(actionData.readSWFActions());
                     actionData.warnIfMore();
+                    update.push(handler);
                   }
                 }
                 data.warnIfMore();
