@@ -905,7 +905,7 @@ function(
       .then(function(count) {
         frameCount = count;
         self.postMessage(JSON.stringify([['init', {
-          v: version,
+          v: swfVersion,
           bounds: frameBounds.toString(),
           count: frameCount,
           rate: framesPerSecond,
