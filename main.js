@@ -249,7 +249,9 @@ require([
             break;
         }
       }
+      var firstFrame = movie.timeline.writeHead === 0;
       movie.timeline.writeHead += frame.count;
+      if (firstFrame) drawFrame();
     };
     client.ondef = function(def) {
       movie.defs.appendChild(def);
