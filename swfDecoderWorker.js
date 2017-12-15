@@ -306,6 +306,16 @@ function(
                 palette: palette,
               });
               break;
+            case 5:
+              var rows = new Array(height);
+              for (var i = 0; i < height; i++) {
+                rows[i] = uncompressed.subarray(rowBytes*i, rowBytes*(i+1));
+              }
+              bitmapFile = bitmapTools.makeBitmapBlob({
+                bpp: 32,
+                rows: rows,
+              });
+              break;
             default:
               throw new Error('NYI: lossless mode ' + format);
           }
