@@ -99,6 +99,7 @@ function(
     var nextUpdates = [];
     var fonts = {};
     var bitmaps = {};
+    var clipAtDepth = {};
     var jpegTables;
     var nextFrame = new FrameInfo;
     function showFrame() {
@@ -669,7 +670,9 @@ function(
           break;
         case TAG_PLACE_OBJECT_2:
           var flags = data.readUint8();
-          var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), data.readUint16LE()];
+          var depth = data.readUint16LE();
+          var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), depth];
+          
           if (flags & 2) {
             update.push(displayObjects[data.readUint16LE()]);
           }
@@ -688,7 +691,17 @@ function(
             update.push(['name', data.readByteString('\0')]);
           }
           if (flags & 0x40) {
-            update.push(['clipDepth', data.readUint16LE()]);
+            var clipDepth = data.readUint16LE();
+            if (depth in clipAtDepth && clipAtDepth[depth][2] !== clipDepth) {
+              nextFrame.updates.push(['d', clipAtDepth[depth]]);
+            }
+            update[1] = clipAtDepth[depth] = ['clip', depth+1, clipDepth];
+          }
+          else if (depth in clipAtDepth) {
+            update[1] = clipAtDepth[depth];
+            if (update[0] === 'd') {
+              delete clipAtDepth[depth];
+            }
           }
           if (flags & 0x80) {
             data.readUint16LE(); // reserved
@@ -754,7 +767,13 @@ function(
           break;
         case TAG_REMOVE_OBJECT_2:
           var depth = data.readUint16LE();
-          nextFrame.updates.push(['d', depth]);
+          if (depth in clipAtDepth) {
+            nextFrame.updates.push(['d', clipAtDepth[depth]]);
+            delete clipAtDepth[depth];
+          }
+          else {
+            nextFrame.updates.push(['d', depth]);
+          }
           break;
         case TAG_DO_ACTION:
           nextFrame.updates.push(data.readSWFActions());
@@ -792,6 +811,7 @@ function(
         case TAG_DEFINE_SPRITE:
           var id = data.readUint16LE();
           var spriteFrameCount = data.readUint16LE();
+          var spriteClipAtDepth = {};
           var def = ['sprite', '#sprite'+id];
           var nextSpriteFrame = new FrameInfo;
           var spriteData = data;
@@ -828,7 +848,8 @@ function(
                 continue spriteLoop;
               case TAG_PLACE_OBJECT_2:
                 var flags = data.readUint8();
-                var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), data.readUint16LE()];
+                var depth = data.readUint16LE();
+                var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), depth];
                 if (flags & 2) {
                   update.push(displayObjects[data.readUint16LE()]);
                 }
@@ -847,7 +868,17 @@ function(
                   update.push(['name', data.readByteString('\0')]);
                 }
                 if (flags & 0x40) {
-                  update.push(['clipDepth', data.readUint16LE()]);
+                  var clipDepth = data.readUint16LE();
+                  if (depth in spriteClipAtDepth && spriteClipAtDepth[depth][2] !== clipDepth) {
+                    nextFrame.updates.push(['d', spriteClipAtDepth[depth]]);
+                  }
+                  update[1] = spriteClipAtDepth[depth] = ['clip', depth+1, clipDepth];
+                }
+                else if (depth in spriteClipAtDepth) {
+                  update[1] = spriteClipAtDepth[depth];
+                  if (update[0] === 'd') {
+                    delete spriteClipAtDepth[depth];
+                  }
                 }
                 if (flags & 0x80) {
                   data.readUint16LE(); // reserved
