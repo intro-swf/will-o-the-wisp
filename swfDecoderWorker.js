@@ -248,9 +248,9 @@ function(
               for (var i = 0; i < height; i++) {
                 var row = uncompressed.subarray(rowBytes*i, rowBytes*(i+1));
                 for (var j = 0; j < width; j++) {
-                  rows[j*3] = row[j*4+1];
-                  rows[j*3+1] = row[j*4+2];
-                  rows[j*3+2] = row[j*4+3];
+                  row[j*3] = row[j*4+1];
+                  row[j*3+1] = row[j*4+2];
+                  row[j*3+2] = row[j*4+3];
                 }
                 rows[i] = row.subarray(0, width*3);
               }
