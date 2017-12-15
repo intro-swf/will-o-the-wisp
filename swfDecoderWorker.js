@@ -1149,11 +1149,13 @@ function(
         case 0x37: return 'MBAsciiToChar';
         case 0x99: return ['Jump', data.readInt16LE()];
         case 0x9A:
-          switch (data.readUint8()) {
+          switch (data[0]) {
             case 0: return ['GetURL2'];
             case 1: return ['GetURL2', 'send_vars=url_params'];
             case 2: return ['GetURL2', 'send_vars=post_data'];
-            default: throw new Error('unknown GetURL2 mode');
+            default:
+              console.warn('unknown GetURL2 mode: ' + data[0]);
+              return ['GetURL2'];
           }
         case 0x9D: return ['If', data.readInt16LE()];
         case 0x9E: return ['Call'];
