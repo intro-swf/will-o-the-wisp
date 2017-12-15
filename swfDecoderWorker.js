@@ -691,7 +691,58 @@ function(
             update.push(['clipDepth', data.readUint16LE()]);
           }
           if (flags & 0x80) {
-            throw new Error('clip actions on non-sprite character?');
+            data.readUint16LE(); // reserved
+            var readEventFlags = (swfVersion >= 6) ? data.readUint32LE.bind(data) : data.readUint16LE.bind(data);
+            readEventFlags(); // usedEventFlags
+            var eventFlags;
+            while (eventFlags = readEventFlags()) {
+              var handler = ['on'];
+              if (eventFlags & EVT_CONSTRUCT) handler.push('construct');
+              if (eventFlags & EVT_KEY_PRESS) handler.push('key_press');
+              if (eventFlags & EVT_DRAG_OUT) handler.push('drag_out');
+              if (eventFlags & EVT_KEY_PRESS) {
+                var key = data.readUint8();
+                switch (key) {
+                  // KeyboardEvent.key values
+                  case 1: key = 'ArrowLeft'; break;
+                  case 2: key = 'ArrowRight'; break;
+                  case 3: key = 'Home'; break;
+                  case 4: key = 'End'; break;
+                  case 5: key = 'Insert'; break;
+                  case 6: key = 'Delete'; break;
+                  case 8: key = 'Backspace'; break;
+                  case 13: key = 'Enter'; break;
+                  case 14: key = 'ArrowUp'; break;
+                  case 15: key = 'ArrowDown'; break;
+                  case 16: key = 'PageUp'; break;
+                  case 17: key = 'PageDown'; break;
+                  case 18: key = 'Tab'; break;
+                  case 19: key = 'Escape'; break;
+                  default: key = String.fromCharCode(key); break;
+                }
+                handler.push(['key', key]);
+              }
+              if (eventFlags & EVT_DRAG_OVER) handler.push('drag_over');
+              if (eventFlags & EVT_ROLL_OUT) handler.push('roll_out');
+              if (eventFlags & EVT_ROLL_OVER) handler.push('roll_out');
+              if (eventFlags & EVT_RELEASE_OUTSIDE) handler.push('release_outside');
+              if (eventFlags & EVT_RELEASE) handler.push('release');
+              if (eventFlags & EVT_PRESS) handler.push('press');
+              if (eventFlags & EVT_INITIALIZE) handler.push('initialize');
+              if (eventFlags & EVT_DATA) handler.push('data');
+              if (eventFlags & EVT_KEY_UP) handler.push('key_up');
+              if (eventFlags & EVT_KEY_DOWN) handler.push('key_down');
+              if (eventFlags & EVT_MOUSE_UP) handler.push('mouse_up');
+              if (eventFlags & EVT_MOUSE_DOWN) handler.push('mouse_down');
+              if (eventFlags & EVT_MOUSE_MOVE) handler.push('mouse_move');
+              if (eventFlags & EVT_UNLOAD) handler.push('unload');
+              if (eventFlags & EVT_ENTER_FRAME) handler.push('enter_frame');
+              if (eventFlags & EVT_ONLOAD) handler.push('onload');
+              var actionData = data.readSubarray(data.readUint32LE());
+              handler.push(actionData.readSWFActions());
+              actionData.warnIfMore();
+              update.push(handler);
+            }
           }
           data.warnIfMore();
           nextFrame.updates.push(update);
