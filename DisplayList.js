@@ -97,14 +97,18 @@ define(['arrayExtensions'], function() {
             continue groupLoop;
           }
           if ('stopDepth' in next) {
-            if (next.stopDepth > stopDepth) {
-              startMarker = this.getDepthMarker(group.stopDepth = next.startDepth);
-              continue groupLoop;
+            if (next.startDepth === stopDepth) {
+              group.stopDepth = stopDepth;
+              return this[key] = groups;
             }
             if (next.stopDepth === stopDepth) {
               group.appendChild(container.removeChild(next));
               group.stopDepth = stopDepth;
               return this[key] = groups;
+            }
+            if (next.stopDepth > stopDepth) {
+              startMarker = this.getDepthMarker(group.stopDepth = next.startDepth);
+              continue groupLoop;
             }
           }
         }
