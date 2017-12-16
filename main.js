@@ -228,10 +228,29 @@ require([
               i_slot++;
             }
             if (i_slot === slotObjects.length) {
-              movie.stage.appendChild(displayObject);
+              var container = movie.stage;
+              while (container.lastChild && 'maxClipDepth' in container.lastChild && container.lastChild.maxClipDepth >= update.order) {
+                container = container.lastChild;
+              }
+              container.appendChild(displayObject);
             }
             else {
-              movie.stage.insertBefore(displayObject, slotObjects[i_slot]);
+              var referenceNode = slotObjects[i_slot];
+              var container = referenceNode.parentNode;
+              while ('minClipDepth' in container && container.minClipDepth > update.order) {
+                referenceNode = container;
+                container = container.parentNode;
+              }
+              if (referenceNode.previousSibling && 'maxClipDepth' in referenceNode.previousSibling && referenceNode.previousSibling.maxClipDepth >= update.order) {
+                container = referenceNode.previousSibling;
+                while (container.lastChild && 'maxClipDepth' in container.lastChild && container.lastChild.maxClipDepth >= update.order) {
+                  container = container.lastChild;
+                }
+                container.appendChild(displayObject);
+              }
+              else {
+                container.insertBefore(displayObject, referenceNode);
+              }
             }
             slotObjects.splice(i_slot, 0, displayObject);
             if (update.type === 'replace') {
