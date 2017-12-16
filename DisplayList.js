@@ -40,6 +40,7 @@ define(['arrayExtensions'], function() {
         i_marker = ~i_marker;
         var insertBefore = this.depthMarkers[i_marker];
         var marker = document.createComment(depth);
+        marker.depth = depth;
         this.depthMarkers.splice(i_marker, 0, marker);
         var container = insertBefore.parentNode;
         while (container.startDepth > depth) {
