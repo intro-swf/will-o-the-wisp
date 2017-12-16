@@ -22,6 +22,24 @@ define(function() {
     }
     return ~i_lo;
   };
+  
+  Array.prototype.firstSortedIndexOf = function(value, compare) {
+    var i = this.sortedIndexOf(value, compare);
+    if (i < 0) return i;
+    while (i > 0 && !compare(this[i-1], value)) {
+      i--;
+    }
+    return i;
+  };
+
+  Array.prototype.lastSortedIndexOf = function(value, compare) {
+    var i = this.sortedIndexOf(value, compare);
+    if (i < 0) return i;
+    while (i < this.length-1 && !compare(this[i+1], value)) {
+      i++;
+    }
+    return i;
+  };
 
   return {};
 
