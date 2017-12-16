@@ -69,22 +69,45 @@ define(['arrayExtensions'], function() {
       var startMarker = this.getDepthMarker(startDepth);
       var endMarker = this.getDepthMarker(stopDepth);
       var groups = [];
-      for (;;) {
+      groupLoop: for (;;) {
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.container.addEventListener('clean', SET.bind(group.style, 'clip', 'none'));
         groups.push(group);
         group.startDepth = startMarker.depth;
-        var container = startMarker.parentNode;
-        container.insertBefore(group, startMarker);
-        do {
+        var refNode = startMarker;
+        var container = refNode.parentNode;
+        while (container.startDepth === startMarker.depth && container.stopDepth < stopDepth) {
+          refNode = container;
+          container = container.parentNode;
+        }
+        container.insertBefore(group, refNode);
+        for (;;) {
           group.appendChild(container.removeChild(group.nextSibling));
-          if (group.nextSibling === endMarker
-          || (!group.nextSibling && container.stopDepth === stopDepth)) {
+          var next = group.nextSibling;
+          if (next === endMarker) {
             group.stopDepth = stopDepth;
             return this[key] = groups;
           }
-        } while (group.nextSibling);
-        startMarker = this.getDepthMarker(group.stopDepth = container.stopDepth);
+          if (!next) {
+            if (container.stopDepth === stopDepth) {
+              group.stopDepth = stopDepth;
+              return this[key] = groups;
+            }
+            startMarker = this.getDepthMarker(group.stopDepth = container.stopDepth);
+            continue groupLoop;
+          }
+          if ('stopDepth' in next) {
+            if (next.stopDepth > stopDepth) {
+              startMarker = this.getDepthMarker(group.stopDepth = next.startDepth);
+              continue groupLoop;
+            }
+            if (next.stopDepth === stopDepth) {
+              group.appendChild(container.removeChild(next));
+              group.stopDepth = stopDepth;
+              return this[key] = groups;
+            }
+          }
+        }
       }
     },
     getDisplayObject: function(depth, template) {
