@@ -14,12 +14,12 @@ define(['arrayExtensions'], function() {
 
   function getPreviousEl(container, beforeEl) {
     if (beforeEl) return beforeEl.previousSibling;
-    return container.lastChild;
+    else return container.lastChild;
   }
 
   function setPreviousEl(container, beforeEl, newEl) {
     if (beforeEl) container.insertBefore(newEl, beforeEl);
-    container.appendChild(newEl);
+    else container.appendChild(newEl);
   }
 
   function DisplayList(el) {
