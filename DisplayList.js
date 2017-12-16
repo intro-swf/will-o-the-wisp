@@ -38,9 +38,9 @@ define(['arrayExtensions'], function() {
       var i_marker = this.depthMarkers.sortedIndexOf(depth, COMPARE_DEPTH);
       if (i_marker < 0) {
         i_marker = ~i_marker;
+        var insertBefore = this.depthMarkers[i_marker];
         var marker = document.createComment(depth);
         this.depthMarkers.splice(i_marker, 0, marker);
-        var insertBefore = this.depthMarkers[i_marker];
         var container = insertBefore.parentNode;
         while (container.startDepth > depth) {
           insertBefore = container;
