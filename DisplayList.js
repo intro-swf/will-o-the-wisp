@@ -35,7 +35,7 @@ define(['arrayExtensions'], function() {
       this.container.dispatchEvent(new Event('clean'));
     },
     getDepthMarker: function(depth) {
-      var i_marker = this.depthMarkers.sortedIndexOf(depth);
+      var i_marker = this.depthMarkers.sortedIndexOf(depth, COMPARE_DEPTH);
       if (i_marker < 0) {
         i_marker = ~i_marker;
         var marker = document.createComment(depth);
@@ -151,9 +151,9 @@ define(['arrayExtensions'], function() {
           else {
             i_change++;
           }
-        } while (i_change < this.inherited.length && this.inherited[i_change].depth === depth);
+        } while (i_change < this.inherited.length && this.inherited[i_change].depth === displayObject.depth);
       }
-      i_change = this.now.firstSortedIndexOf(change, COMPARE_DEPTH);
+      i_change = this.now.firstSortedIndexOf(displayObject, COMPARE_DEPTH);
       if (i_change >= 0) {
         do {
           if (this.now[i_change].displayObject === displayObject) {
@@ -162,7 +162,7 @@ define(['arrayExtensions'], function() {
           else {
             i_change++;
           }
-        } while (i_change < this.now.length && this.now[i_change].depth === depth);
+        } while (i_change < this.now.length && this.now[i_change].depth === displayObject.depth);
       }
       else i_change = ~i_change;
       this.now.splice(i_change, 0, SET.bind(displayObject, 'display', 'none'));
