@@ -190,7 +190,6 @@ define(['arrayExtensions'], function() {
 
   function TimelineFrame(displayList, previousFrame) {
     this.displayList = displayList;
-    var now = this.now = [];
     if (previousFrame) {
       var already = this.already = previousFrame.already.splice();
       for (var i = 0; i < previousFrame.now.length; i++) {
@@ -202,6 +201,7 @@ define(['arrayExtensions'], function() {
       }
     }
     else this.already = [];
+    this.now = [];
   }
   TimelineFrame.prototype = {
     render: function(absolute) {
