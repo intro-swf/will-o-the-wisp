@@ -89,7 +89,6 @@ require([
       movie.setAttribute('viewBox', frameset.bounds);
       movie.setAttribute('width', (parts[2] - parts[0]) / 20);
       movie.setAttribute('height', (parts[3] - parts[1]) / 20);
-      movie.timeline.frameCount = frameset.count;
       scrubber.max = frameset.count-1;
       scrubber.onchange = function(e) {
         var frame = +this.value;
