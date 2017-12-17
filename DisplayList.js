@@ -4,7 +4,7 @@ define(['arrayExtensions'], function() {
 
   const COMPARE_DEPTH = function(a, b) {
     if (typeof a !== 'number') a = a.depth;
-    if (typeof b !== 'number') b = b.depth;c
+    if (typeof b !== 'number') b = b.depth;
     return a - b;
   };
 
