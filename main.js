@@ -61,6 +61,12 @@ require([
     clipPath.displayList = new DisplayList(clipPath);
   });
   
+  function getTransformMatrix(transform) {
+    var tempEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    tempEl.setAttribute('transform', transform);
+    return tempEl.transform.baseVal.consolidate().matrix;
+  }
+  
   var client;
   
   // function called when it's time to look at the location hash
@@ -121,7 +127,7 @@ require([
       });
       templates[button.id] = template;
     };
-    client.onframe = function onframe(def) {
+    client.onframe = function onframe(def) {z
       displayList.withFrame(function(frame) {
         for (var i_update = 0; i_update < def.updates.length; i_update++) {
           var update = def.updates[i_update];
@@ -136,8 +142,12 @@ require([
                 displayObject = frame.setDisplayObjectAt(update.order, slotTemplate);
                 frame.set(displayObject, 'href', update.url);
               }
+              frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform || ''));
               break;
             case 'modify':
+              if ('transform' in update.settings) {
+                frame.set(frame.getDisplayObjectAt(update.depth), 'transform', getTransformMatrix(update.settings.transform));
+              }
               break;
             case 'delete':
               frame.setDisplayObjectAt(update.order, null);
