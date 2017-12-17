@@ -146,7 +146,7 @@ require([
               break;
             case 'modify':
               if ('transform' in update.settings) {
-                frame.set(frame.getDisplayObjectAt(update.depth), 'transform', getTransformMatrix(update.settings.transform));
+                frame.set(frame.getDisplayObjectAt(update.order), 'transform', getTransformMatrix(update.settings.transform));
               }
               break;
             case 'delete':
