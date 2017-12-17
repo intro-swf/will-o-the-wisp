@@ -174,6 +174,17 @@ define(['arrayExtensions'], function() {
       setter.value = value;
       return setter;
     },
+    framePos: -1,
+    goToFrame: function(i) {
+      if (i === this.framePos+1) {
+        this.frames[i].render(false);
+      }
+      else {
+        this.clean();
+        this.frames[i].render(true);
+      }
+      this.framePos = i;
+    },
   };
 
   function TimelineFrame(displayList, previousFrame) {
@@ -192,6 +203,14 @@ define(['arrayExtensions'], function() {
     else this.already = [];
   }
   TimelineFrame.prototype = {
+    render: function(absolute) {
+      if (absolute) for (var i = 0; i < this.already.length; i++) {
+        this.already[i]();
+      }
+      for (var i = 0; i < this.now.length; i++) {
+        this.now[i]();
+      }
+    },
     indexOfChange: function(changeList, displayObject, key) {
       const depth = displayObject.depth;
       var i_change = changeList.firstSortedIndexOf(depth, COMPARE_DEPTH);
