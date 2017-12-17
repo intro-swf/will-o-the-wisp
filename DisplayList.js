@@ -141,13 +141,40 @@ define(['arrayExtensions'], function() {
       return displayObject;
     },
     withFrame: function(fn) {
-      var frame = new TimelineFrame(this.frames[this.frames.length-1]);
+      var frame = new TimelineFrame(this, this.frames[this.frames.length-1]);
       fn(frame);
       this.frames.push(frame);
     },
+    createSetterRaw: function(displayObject, key, value) {
+      if (typeof displayObject[key] === 'object') {
+        if (displayObject[key] instanceof SVGNumber) {
+          return SET.bind(displayObject[key], 'value', value);
+        }
+        if (displayObject[key] instanceof SVGAnimatedString
+           || displayObject[key] instanceof SVGAnimatedBoolean
+           || displayObject[key] instanceof SVGAnimatedInteger
+           || displayObject[key] instanceof SVGAnimatedEnumeration) {
+          return SET.bind(displayObject[key], 'baseVal', value);
+        }
+        if (displayObject[key] instanceof SVGAnimatedTransformList) {
+          var transformList = displayObject[key].baseVal;
+          return transformList.initialize.bind(transformList, transformList.createSVGTransformFromMatrix(value));
+        }
+      }
+      if (key in displayObject.style) {
+        return SET.bind(displayObject.style, key, value);
+      }
+      return SET.bind(displayObject, key, value);
+    },
+    createSetter: function(displayObject, key, value) {
+      var setter = this.createSetterRaw(displayObject, key, value);
+      setter.depth = displayObject.depth;
+      
+    },
   };
 
-  function TimelineFrame(previousFrame) {
+  function TimelineFrame(displayList, previousFrame) {
+    this.displayList = displayList;
     var now = this.now = [];
     if (previousFrame) {
       var inherited = this.inherited = previousFrame.inherited.splice();
@@ -172,33 +199,89 @@ define(['arrayExtensions'], function() {
     else this.inherited = [];
   }
   TimelineFrame.prototype = {
-    init: function(previousFrame) {
+    set: function(displayObject, key, value) {
+      var setting;
+      if (typeof displayObject[key] === 'object') {
+        if (displayObject[key] instanceof SVGNumber) {
+          setting = SET.bind(displayObject[key], 'value', value);
+        }
+        else if (displayObject[key] instanceof SVGAnimatedString
+                 || displayObject[key] instanceof SVGAnimatedBoolean
+                 || displayObject[key] instanceof SVGAnimatedInteger
+                 || displayObject[key] instanceof SVGAnimatedEnumeration) {
+          setting = SET.bind(displayObject[key], 'baseVal', value);
+        }
+        else if (displayObject[key] instanceof SVGAnimatedTransformList) {
+          var transformList = displayObject[key].baseVal;
+          setting = transformList.initialize.bind(transformList, transformList.createSVGTransformFromMatrix(value));
+        }
+      }
+      else if (key in displayObject.style) {
+        setting = setting || SET.bind(displayObject.style, key, value);
+      }
+      else {
+        setting = setting || SET.bind(displayObject, key, value);
+      }
+      this.now.push(setting);
     },
-    remove: function(displayObject) {
+    eachChangeAt: function*(depth) {
+      var i_change = this.inherited.firstSortedIndexOf(depth, COMPARE_DEPTH);
+      if (i_change >= 0) do {
+        yield this.inherited[i_change];
+      } while (++i_change < this.inherited.length && this.inherited[i_change].depth === depth);
+      i_change = this.now.firstSortedIndexOf(depth, COMPARE_DEPTH);
+      if (i_change >= 0) do {
+        yield this.now[i_change];
+      } while (++i_change < this.now.length && this.now[i_change].depth === depth);
+    },
+    removeChangesForDisplayObject: function(displayObject) {
+      var changes = [];
       var i_change = this.inherited.firstSortedIndexOf(displayObject, COMPARE_DEPTH);
-      if (i_change >= 0) {
-        do {
-          if (this.inherited[i_change].displayObject === displayObject) {
-            this.inherited.splice(i_change, 1);
-          }
-          else {
-            i_change++;
-          }
-        } while (i_change < this.inherited.length && this.inherited[i_change].depth === displayObject.depth);
+      if (i_change >= 0) do {
+        var change = this.inherited[i_change];
+        if (change.displayObject === displayObject) {
+          changes.push(change);
+          this.inherited.splice(i_change, 1);
+        }
+        else i_change++;
+      } while (++i_change < this.inherited.length && this.inherited[i_change].depth === depth);
+      i_change = this.now.firstSortedIndexOf(depth, COMPARE_DEPTH);
+      if (i_change >= 0) do {
+        var change = this.now[i_change];
+        if (change.displayObject === displayObject) {
+          changes.push(change);
+          this.now.splice(i_change, 1);
+        }
+        else i_change++;
+      } while (i_change < this.now.length && this.now[i_change].depth === depth);
+      return changes;
+    },
+    getDisplayObjectAt: function(depth) {
+      for (let change of this.eachChangeAt(depth)) {
+        if (change.key === 'display' && change.value === '') {
+          return change.displayObject;
+        }
       }
-      i_change = this.now.firstSortedIndexOf(displayObject, COMPARE_DEPTH);
-      if (i_change >= 0) {
-        do {
-          if (this.now[i_change].displayObject === displayObject) {
-            this.now.splice(i_change, 1);
+      return null;
+    },
+    setDisplayObjectAt: function(depth, template) {
+      var oldDisplayObject = this.getDisplayObjectAt(depth);
+      var newDisplayObject = template ? this.displayList.getDisplayObject(depth, template) : null;
+      if (oldDisplayObject !== newDisplayObject) {
+        if (oldDisplayObject) {
+          var changes = this.removeChangesForDisplayObject(oldDisplayObject);
+          if (newDisplayObject) {
+            for (var i = 0; i < changes.length; i++) {
+              this.set(newDisplayObject, changes[i].key, changes[i].value);
+            }
           }
-          else {
-            i_change++;
-          }
-        } while (i_change < this.now.length && this.now[i_change].depth === displayObject.depth);
+          this.set(oldDisplayObject, 'display', 'none');
+        }
+        else {
+          this.set(newDisplayObject, 'display', '');
+        }
       }
-      else i_change = ~i_change;
-      this.now.splice(i_change, 0, SET.bind(displayObject, 'display', 'none'));
+      return newDisplayObject;
     },
   };
 
