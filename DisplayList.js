@@ -24,6 +24,9 @@ define(['arrayExtensions'], function() {
 
   function DisplayList(el) {
     this.container = el;
+    if ('displayList' in el) {
+      this.idBreadcrumb = el.displayList.idBreadcrumb + el.depth + '_';
+    }
     while (el.firstChild) el.removeChild(el.firstChild);
     var endMarker = document.createComment('end');
     endMarker.depth = Infinity;
@@ -31,6 +34,7 @@ define(['arrayExtensions'], function() {
     this.depthMarkers = [endMarker];
   }
   DisplayList.prototype = {
+    idBreadcrumb: '',
     clean: function() {
       this.container.dispatchEvent(new Event('clean'));
     },
@@ -121,6 +125,8 @@ define(['arrayExtensions'], function() {
         if (after.template === template) return after;
       }
       var displayObject = template.cloneNode(true);
+      displayObject.setAttribute('id', (template.idBase || '_') + this.idBreadcrumb + depth);
+      displayObject.displayList = this;
       displayObject.template = template;
       displayObject.depth = depth;
       if (after.nextSibling) {
@@ -129,6 +135,7 @@ define(['arrayExtensions'], function() {
       else {
         after.parentNode.appendChild(displayObject);
       }
+      template.dispatchEvent(new CustomEvent('display-list-instantiate', {displayList:this, displayObject:displayObject}));
       return displayObject;
     },
     allocateFrame: function() {
