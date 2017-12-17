@@ -169,7 +169,10 @@ define(['arrayExtensions'], function() {
     createSetter: function(displayObject, key, value) {
       var setter = this.createSetterRaw(displayObject, key, value);
       setter.depth = displayObject.depth;
-      
+      setter.displayObject = displayObject;
+      setter.key = key;
+      setter.value = value;
+      return setter;
     },
   };
 
