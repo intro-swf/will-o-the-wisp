@@ -4,7 +4,7 @@ define(['arrayExtensions'], function() {
 
   const COMPARE_DEPTH = function(a, b) {
     if (typeof a !== 'number') a = a.depth;
-    if (typeof b !== 'number') b = b.depth;
+    if (typeof b !== 'number') b = b.depth;c
     return a - b;
   };
 
@@ -225,7 +225,7 @@ define(['arrayExtensions'], function() {
       return -1;
     },
     set: function(displayObject, key, value) {
-      var setting = this.displayList.createSetting(displayObject, key, value);
+      var setting = this.displayList.createSetter(displayObject, key, value);
       var i_change = this.indexOfSetting(this.already, displayObject, key);
       if (i_change >= 0) {
         if (this.already[i_change].value === value) {
