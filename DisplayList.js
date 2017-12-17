@@ -181,51 +181,49 @@ define(['arrayExtensions'], function() {
     var now = this.now = [];
     if (previousFrame) {
       var already = this.already = previousFrame.already.splice();
-      changeLoop: for (var i = 0; i < previousFrame.now.length; i++) {
+      for (var i = 0; i < previousFrame.now.length; i++) {
         var change = previousFrame.now[i];
-        var i_change = already.firstSortedIndexOf(change, COMPARE_DEPTH);
-        if (i_change >= 0) {
-          do {
-            var compareChange = already[i_change];
-            if (compareChange.displayObject === change.displayObject && compareChange.key === change.key) {
-              already[i_change] = change;
-              continue changeLoop;
-            }
-          } while(++i_change < already.length && already[i_change].depth === change.depth);
-        }
-        else {
-          i_change = ~i_change;
-        }
+        if (change.key === 'display' && change.value === 'none') continue;
+        var i_change = already.sortedIndexOf(change, COMPARE_DEPTH);
+        if (i_change < 0) i_change = ~i_change;
         already.splice(i_change, 0, change);
       }
     }
     else this.already = [];
   }
   TimelineFrame.prototype = {
+    indexOfChange: function(changeList, displayObject, key) {
+      const depth = displayObject.depth;
+      var i_change = changeList.firstSortedIndexOf(depth, COMPARE_DEPTH);
+      if (i_change < 0) return -1;
+      do {
+        var change = changeList[i_change];
+        if (change.displayObject === displayObject && change.key === key) {
+          return i_change;
+        }
+      } while (++i_change < changeList.length && changeList[i_change].depth === depth);
+      return -1;
+    },
     set: function(displayObject, key, value) {
-      var setting;
-      if (typeof displayObject[key] === 'object') {
-        if (displayObject[key] instanceof SVGNumber) {
-          setting = SET.bind(displayObject[key], 'value', value);
+      var setting = this.displayList.createSetting(displayObject, key, value);
+      var i_change = this.indexOfSetting(this.already, displayObject, key);
+      if (i_change >= 0) {
+        if (this.already[i_change].value === value) {
+          return;
         }
-        else if (displayObject[key] instanceof SVGAnimatedString
-                 || displayObject[key] instanceof SVGAnimatedBoolean
-                 || displayObject[key] instanceof SVGAnimatedInteger
-                 || displayObject[key] instanceof SVGAnimatedEnumeration) {
-          setting = SET.bind(displayObject[key], 'baseVal', value);
-        }
-        else if (displayObject[key] instanceof SVGAnimatedTransformList) {
-          var transformList = displayObject[key].baseVal;
-          setting = transformList.initialize.bind(transformList, transformList.createSVGTransformFromMatrix(value));
-        }
+        this.already.splice(i_change, 1);
       }
-      else if (key in displayObject.style) {
-        setting = setting || SET.bind(displayObject.style, key, value);
+      i_change = this.indexOfSetting(this.now, displayObject, key);
+      if (i_change >= 0) {
+        if (this.now[i_change].value !== value) {
+          this.now[i_change] = setting;
+        }
       }
       else {
-        setting = setting || SET.bind(displayObject, key, value);
+        i_change = this.now.sortedIndexOf(displayObject, COMPARE_DEPTH);
+        if (i_change < 0) i_change = ~i_change;
+        this.now.splice(
       }
-      this.now.push(setting);
     },
     eachChangeAt: function*(depth) {
       var i_change = this.already.firstSortedIndexOf(depth, COMPARE_DEPTH);
