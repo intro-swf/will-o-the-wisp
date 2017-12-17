@@ -135,7 +135,9 @@ define(['arrayExtensions'], function() {
       else {
         after.parentNode.appendChild(displayObject);
       }
-      template.dispatchEvent(new CustomEvent('display-list-instantiate', {displayList:this, displayObject:displayObject}));
+      template.dispatchEvent(new CustomEvent('display-list-instantiate', {
+        detail: {displayList:this, displayObject:displayObject},
+      }));
       return displayObject;
     },
     allocateFrame: function() {
