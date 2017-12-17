@@ -177,26 +177,26 @@ define(['arrayExtensions'], function() {
     this.displayList = displayList;
     var now = this.now = [];
     if (previousFrame) {
-      var inherited = this.inherited = previousFrame.inherited.splice();
+      var already = this.already = previousFrame.already.splice();
       changeLoop: for (var i = 0; i < previousFrame.now.length; i++) {
         var change = previousFrame.now[i];
-        var i_change = inherited.firstSortedIndexOf(change, COMPARE_DEPTH);
+        var i_change = already.firstSortedIndexOf(change, COMPARE_DEPTH);
         if (i_change >= 0) {
           do {
-            var compareChange = inherited[i_change];
+            var compareChange = already[i_change];
             if (compareChange.displayObject === change.displayObject && compareChange.key === change.key) {
-              inherited[i_change] = change;
+              already[i_change] = change;
               continue changeLoop;
             }
-          } while(++i_change < inherited.length && inherited[i_change].depth === change.depth);
+          } while(++i_change < already.length && already[i_change].depth === change.depth);
         }
         else {
           i_change = ~i_change;
         }
-        inherited.splice(i_change, 0, change);
+        already.splice(i_change, 0, change);
       }
     }
-    else this.inherited = [];
+    else this.already = [];
   }
   TimelineFrame.prototype = {
     set: function(displayObject, key, value) {
@@ -225,10 +225,10 @@ define(['arrayExtensions'], function() {
       this.now.push(setting);
     },
     eachChangeAt: function*(depth) {
-      var i_change = this.inherited.firstSortedIndexOf(depth, COMPARE_DEPTH);
+      var i_change = this.already.firstSortedIndexOf(depth, COMPARE_DEPTH);
       if (i_change >= 0) do {
-        yield this.inherited[i_change];
-      } while (++i_change < this.inherited.length && this.inherited[i_change].depth === depth);
+        yield this.already[i_change];
+      } while (++i_change < this.already.length && this.already[i_change].depth === depth);
       i_change = this.now.firstSortedIndexOf(depth, COMPARE_DEPTH);
       if (i_change >= 0) do {
         yield this.now[i_change];
@@ -236,16 +236,16 @@ define(['arrayExtensions'], function() {
     },
     removeChangesForDisplayObject: function(displayObject) {
       var changes = [];
-      var i_change = this.inherited.firstSortedIndexOf(displayObject, COMPARE_DEPTH);
+      var i_change = this.already.firstSortedIndexOf(displayObject, COMPARE_DEPTH);
       if (i_change >= 0) do {
-        var change = this.inherited[i_change];
+        var change = this.already[i_change];
         if (change.displayObject === displayObject) {
           changes.push(change);
-          this.inherited.splice(i_change, 1);
+          this.already.splice(i_change, 1);
         }
         else i_change++;
-      } while (++i_change < this.inherited.length && this.inherited[i_change].depth === depth);
-      i_change = this.now.firstSortedIndexOf(depth, COMPARE_DEPTH);
+      } while (++i_change < this.already.length && this.already[i_change].depth === displayObject.depth);
+      i_change = this.now.firstSortedIndexOf(displayObject.depth, COMPARE_DEPTH);
       if (i_change >= 0) do {
         var change = this.now[i_change];
         if (change.displayObject === displayObject) {
@@ -253,7 +253,7 @@ define(['arrayExtensions'], function() {
           this.now.splice(i_change, 1);
         }
         else i_change++;
-      } while (i_change < this.now.length && this.now[i_change].depth === depth);
+      } while (i_change < this.now.length && this.now[i_change].depth === displayObject.depth);
       return changes;
     },
     getDisplayObjectAt: function(depth) {
