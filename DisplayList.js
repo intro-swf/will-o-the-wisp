@@ -226,14 +226,14 @@ define(['arrayExtensions'], function() {
     },
     set: function(displayObject, key, value) {
       var setting = this.displayList.createSetter(displayObject, key, value);
-      var i_change = this.indexOfSetting(this.already, displayObject, key);
+      var i_change = this.indexOfChange(this.already, displayObject, key);
       if (i_change >= 0) {
         if (this.already[i_change].value === value) {
           return;
         }
         this.already.splice(i_change, 1);
       }
-      i_change = this.indexOfSetting(this.now, displayObject, key);
+      i_change = this.indexOfChange(this.now, displayObject, key);
       if (i_change >= 0) {
         if (this.now[i_change].value !== value) {
           this.now[i_change] = setting;
