@@ -127,7 +127,7 @@ require([
       });
       templates[button.id] = template;
     };
-    client.onframe = function onframe(def) {z
+    client.onframe = function onframe(def) {
       displayList.withFrame(function(frame) {
         for (var i_update = 0; i_update < def.updates.length; i_update++) {
           var update = def.updates[i_update];
