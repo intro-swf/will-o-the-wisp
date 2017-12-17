@@ -30,7 +30,7 @@ require([
   slotTemplate.addEventListener('display-list-instantiate', function(e) {
     var displayList = e.detail.displayList;
     var slot = e.detail.displayObject;
-    displayList.addEventListener('clean', this.onclean.bind(slot));
+    displayList.container.addEventListener('clean', this.onclean.bind(slot));
   });
 
   var cxformTemplate = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
@@ -117,7 +117,7 @@ require([
       template.addEventListener('display-list-instantiate', function(e) {
         var displayList = e.detail.displayList;
         var button = e.detail.displayObject;
-        displayList.addEventListener('clean', this.onclean.bind(button));
+        displayList.container.addEventListener('clean', this.onclean.bind(button));
       });
       templates[button.id] = template;
     };
