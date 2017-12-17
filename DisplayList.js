@@ -241,7 +241,7 @@ define(['arrayExtensions'], function() {
       else {
         i_change = this.now.sortedIndexOf(displayObject, COMPARE_DEPTH);
         if (i_change < 0) i_change = ~i_change;
-        this.now.splice(
+        this.now.splice(i_change, 0, setting);
       }
     },
     eachChangeAt: function*(depth) {
