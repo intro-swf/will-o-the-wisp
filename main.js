@@ -142,7 +142,12 @@ require([
                 displayObject = frame.setDisplayObjectAt(update.order, slotTemplate);
                 frame.set(displayObject, 'href', update.url);
               }
-              frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform || 'translate(0,0)'));
+              if ('transform' in update.settings) {
+                frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
+              }
+              else if (update.type === 'insert') {
+                frame.set(displayObject, 'transform', getTransformMatrix('translate(0,0)'));
+              }
               break;
             case 'modify':
               if ('transform' in update.settings) {
