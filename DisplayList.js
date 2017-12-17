@@ -191,7 +191,7 @@ define(['arrayExtensions'], function() {
   function TimelineFrame(displayList, previousFrame) {
     this.displayList = displayList;
     if (previousFrame) {
-      var already = this.already = previousFrame.already.splice();
+      var already = this.already = previousFrame.already.slice();
       for (var i = 0; i < previousFrame.now.length; i++) {
         var change = previousFrame.now[i];
         if (change.key === 'display' && change.value === 'none') continue;
