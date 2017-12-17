@@ -140,25 +140,16 @@ define(['arrayExtensions'], function() {
       }));
       return displayObject;
     },
-    allocateFrame: function() {
-      var frame = new TimelineFrame;
-      if (this.frames) {
-        frame.init(this.frames[this.frames.length-1]);
-        this.frames.push(frame);
-      }
-      else {
-        this.frames = [frame];
-      }
-      return frame;
+    withFrame: function(fn) {
+      var frame = new TimelineFrame(this.frames[this.frames.length-1]);
+      fn(frame);
+      this.frames.push(frame);
     },
   };
 
-  function TimelineFrame() {
-    this.inherited = [];
-    this.now = [];
-  }
-  TimelineFrame.prototype = {
-    init: function(previousFrame) {
+  function TimelineFrame(previousFrame) {
+    var now = this.now = [];
+    if (previousFrame) {
       var inherited = this.inherited = previousFrame.inherited.splice();
       changeLoop: for (var i = 0; i < previousFrame.now.length; i++) {
         var change = previousFrame.now[i];
@@ -177,6 +168,11 @@ define(['arrayExtensions'], function() {
         }
         inherited.splice(i_change, 0, change);
       }
+    }
+    else this.inherited = [];
+  }
+  TimelineFrame.prototype = {
+    init: function(previousFrame) {
     },
     remove: function(displayObject) {
       var i_change = this.inherited.firstSortedIndexOf(displayObject, COMPARE_DEPTH);
