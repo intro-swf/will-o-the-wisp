@@ -24,8 +24,8 @@ define(['arrayExtensions'], function() {
 
   function DisplayList(el) {
     this.container = el;
-    if ('displayList' in el) {
-      this.idBreadcrumb = el.displayList.idBreadcrumb + el.depth + '_';
+    if ('parentDisplayList' in el) {
+      this.idBreadcrumb = el.parentDisplayList.idBreadcrumb + el.depth + '_';
     }
     while (el.firstChild) el.removeChild(el.firstChild);
     var endMarker = document.createComment('end');
@@ -126,7 +126,7 @@ define(['arrayExtensions'], function() {
       }
       var displayObject = template.cloneNode(true);
       displayObject.setAttribute('id', (template.idBase || '_') + this.idBreadcrumb + depth);
-      displayObject.displayList = this;
+      displayObject.parentDisplayList = this;
       displayObject.template = template;
       displayObject.depth = depth;
       if (after.nextSibling) {
