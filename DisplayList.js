@@ -24,6 +24,7 @@ define(['arrayExtensions'], function() {
 
   function DisplayList(el) {
     this.container = el;
+    this.frames = [];
     if ('parentDisplayList' in el) {
       this.idBreadcrumb = el.parentDisplayList.idBreadcrumb + el.depth + '_';
     }
