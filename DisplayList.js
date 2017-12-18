@@ -177,10 +177,11 @@ define(['arrayExtensions'], function() {
     },
     framePos: -1,
     goToFrame: function(i) {
-      if (i === this.framePos+1) {
+      var diff = i - this.framePos;
+      if (diff === 1) {
         this.frames[i].render(false);
       }
-      else {
+      else if (diff !== 0) {
         this.clean();
         this.frames[i].render(true);
       }
