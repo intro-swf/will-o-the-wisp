@@ -154,7 +154,7 @@ require([
                  || ct[6] !== 1 || ct[9] !== 0
                  || ct[12] !== 1 || ct[14] !== 0
                  || ct[19] !== 0) {
-                  var cxform = displayObject.getDisplayObject(update.depth, cxformTemplate);
+                  var cxform = displayList.getDisplayObject(update.depth, cxformTemplate);
                   frame.set(cxform, 'mulR', ct[0]);
                   frame.set(cxform, 'addR', ct[4]);
                   frame.set(cxform, 'mulG', ct[6]);
@@ -175,8 +175,9 @@ require([
               }
               break;
             case 'modify':
+              var displayObject = frame.getDisplayObjectAt(update.order);
               if ('transform' in update.settings) {
-                frame.set(frame.getDisplayObjectAt(update.order), 'transform', getTransformMatrix(update.settings.transform));
+                frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
               }
               if ('colorTransform' in update.settings) {
                 var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
@@ -184,7 +185,7 @@ require([
                  || ct[6] !== 1 || ct[9] !== 0
                  || ct[12] !== 1 || ct[14] !== 0
                  || ct[19] !== 0) {
-                  var cxform = displayObject.getDisplayObject(update.depth, cxformTemplate);
+                  var cxform = displayList.getDisplayObject(update.depth, cxformTemplate);
                   frame.set(cxform, 'mulR', ct[0]);
                   frame.set(cxform, 'addR', ct[4]);
                   frame.set(cxform, 'mulG', ct[6]);
