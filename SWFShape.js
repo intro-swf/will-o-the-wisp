@@ -15,6 +15,14 @@ define(function() {
     hasExtendedLength: false,
     hasNoAlpha: false,
     hasExtendedLineStyle: false,
+    get hasLines() {
+      for (var i = 0; i < this.layers.length; i++) {
+        if (this.layers[i].lines.length > 1) {
+          return true;
+        }
+      }
+      return false;
+    },
     readFrom: function(bytes) {
       var pt = new Point(0, 0);
       var finished = false;
