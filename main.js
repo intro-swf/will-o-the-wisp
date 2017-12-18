@@ -148,10 +148,56 @@ require([
               else if (update.type === 'insert') {
                 frame.set(displayObject, 'transform', getTransformMatrix('translate(0,0)'));
               }
+              if ('colorTransform' in update.settings) {
+                var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
+                if (ct[0] !== 1 || ct[4] !== 0
+                 || ct[6] !== 1 || ct[9] !== 0
+                 || ct[12] !== 1 || ct[14] !== 0
+                 || ct[19] !== 0) {
+                  var cxform = displayObject.getDisplayObject(update.depth, cxformTemplate);
+                  frame.set(cxform, 'mulR', ct[0]);
+                  frame.set(cxform, 'addR', ct[4]);
+                  frame.set(cxform, 'mulG', ct[6]);
+                  frame.set(cxform, 'addG', ct[9]);
+                  frame.set(cxform, 'mulB', ct[12]);
+                  frame.set(cxform, 'addB', ct[14]);
+                  frame.set(cxform, 'addA', ct[19]);
+                  frame.set(displayObject, 'filter', 'url(#' + cxform.getAttribute('id') + ')');
+                }
+                else {
+                  frame.set(displayObject, 'filter', '');
+                }
+                frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
+              }
+              else if (update.type === 'insert') {
+                frame.set(displayObject, 'opacity', '');
+                frame.set(displayObject, 'filter', '');
+              }
               break;
             case 'modify':
               if ('transform' in update.settings) {
                 frame.set(frame.getDisplayObjectAt(update.order), 'transform', getTransformMatrix(update.settings.transform));
+              }
+              if ('colorTransform' in update.settings) {
+                var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
+                if (ct[0] !== 1 || ct[4] !== 0
+                 || ct[6] !== 1 || ct[9] !== 0
+                 || ct[12] !== 1 || ct[14] !== 0
+                 || ct[19] !== 0) {
+                  var cxform = displayObject.getDisplayObject(update.depth, cxformTemplate);
+                  frame.set(cxform, 'mulR', ct[0]);
+                  frame.set(cxform, 'addR', ct[4]);
+                  frame.set(cxform, 'mulG', ct[6]);
+                  frame.set(cxform, 'addG', ct[9]);
+                  frame.set(cxform, 'mulB', ct[12]);
+                  frame.set(cxform, 'addB', ct[14]);
+                  frame.set(cxform, 'addA', ct[19]);
+                  frame.set(displayObject, 'filter', 'url(#' + cxform.getAttribute('id') + ')');
+                }
+                else {
+                  frame.set(displayObject, 'filter', '');
+                }
+                frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
               }
               break;
             case 'delete':
