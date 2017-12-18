@@ -800,6 +800,27 @@ function(
               sound.sampleSeek = data.readUint16LE();
               sound.url = URL.createObjectURL(new Blob([data.subarray(data.offset)], {type:'audio/mpeg'}));
               break;
+            case 'pcm':
+              if (sound.bits !== 8) throw new Error('NYI: ' + sound.bits + '-bit PCM for DefineSound');
+              var wavBuffer = new ArrayBuffer(4 + 4 + 16);
+              var dataSizeSlot = new DataView(wavBuffer, 0, 4);
+              var totalSizeSlot = new DataView(wavBuffer, 4, 4);
+              var fmt = new DataView(wavBuffer, 8);
+              dataSizeSlot.setUint32(0, data.length, true);
+              totalSizeSlot.setUint32(0, 36 + data.length, true);
+              fmt.setUint16(0, 1, true);
+              fmt.setUint16(2, sound.channels, true);
+              fmt.setUint32(4, sound.hz, true);
+              fmt.setUint32(8, sound.hz * sound.channels * sound.bits/8, true);
+              fmt.setUint16(12, sound.channels * sound.bits/8, true);
+              fmt.setUint16(14, sound.bits, true);
+              var parts = [
+                'RIFF', totalSizeSlot, 'WAVE',
+                'fmt ', String.fromCharCode(16,0,0,0), fmt,
+                'data', dataSizeSlot, data,
+              ];
+              sound.url = URL.createObjectURL(new Blob(parts, {type:'audio/x-wav'}));
+              break;
             default:
               throw new Error('NYI: DefineSound ' + sound.encoding);
           }
