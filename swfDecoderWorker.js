@@ -180,10 +180,16 @@ function(
             jpegFile = new Blob([info.data], {type:'image/jpeg'});
           }
           else {
-            var tempTables = jpegData.readJPEGInfo();
             info = jpegData.readJPEGInfo();
-            jpegData.warnIfMore();
-            jpegFile = bitmapTools.jpegJoin(tempTables.data, info.data);
+            if (jpegData.offset < jpegData.length) {
+              var tempTables = info;
+              info = jpegData.readJPEGInfo();
+              jpegData.warnIfMore();
+              jpegFile = bitmapTools.jpegJoin(tempTables.data, info.data);
+            }
+            else {
+              jpegFile = new Blob([info.data], {type:'image/jpeg'});
+            }
           }
           var maskID;
           if (typeCode >= TAG_DEFINE_BITS_3) {
