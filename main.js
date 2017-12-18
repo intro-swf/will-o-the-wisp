@@ -154,7 +154,7 @@ require([
                  || ct[6] !== 1 || ct[9] !== 0
                  || ct[12] !== 1 || ct[14] !== 0
                  || ct[19] !== 0) {
-                  var cxform = displayList.getDisplayObject(update.depth, cxformTemplate);
+                  var cxform = displayList.getDisplayObject(update.order, cxformTemplate);
                   frame.set(cxform, 'mulR', ct[0]);
                   frame.set(cxform, 'addR', ct[4]);
                   frame.set(cxform, 'mulG', ct[6]);
@@ -185,7 +185,7 @@ require([
                  || ct[6] !== 1 || ct[9] !== 0
                  || ct[12] !== 1 || ct[14] !== 0
                  || ct[19] !== 0) {
-                  var cxform = displayList.getDisplayObject(update.depth, cxformTemplate);
+                  var cxform = displayList.getDisplayObject(update.order, cxformTemplate);
                   frame.set(cxform, 'mulR', ct[0]);
                   frame.set(cxform, 'addR', ct[4]);
                   frame.set(cxform, 'mulG', ct[6]);
