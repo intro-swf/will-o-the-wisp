@@ -368,6 +368,9 @@ function(
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
           var g = svg.open('g', {id:'shape'+id});
+          if (shape.hasLines) {
+            g.attr('class', 'has-lines');
+          }
           shape.writeSVGTo(g, id);
           nextUpdates.push(['shape', svg.toString()]);
           displayObjects[id] = '#shape'+id;
