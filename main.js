@@ -90,6 +90,11 @@ require([
     function drawFrame(n) {
       displayList.goToFrame(n);
     }
+    var animFrameId = null;
+    function doAnimFrame() {
+      animFrameId = null;
+      drawFrame(+scrubber.value);
+    }
     client.onframeset = function onframeset(frameset) {
       var parts = frameset.bounds.split(/ /g);
       movie.setAttribute('viewBox', frameset.bounds);
@@ -101,8 +106,8 @@ require([
         if (frame >= displayList.frames.length) {
           this.value = displayList.frames.length-1;
         }
-        else {
-          drawFrame(frame);
+        else if (animFrameId === null) {
+          animFrameId = requestAnimationFrame(doAnimFrame);
         }
       };
       console.log('frameset', frameset);
