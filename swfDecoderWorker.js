@@ -372,7 +372,7 @@ function(
             g.attr('class', 'has-lines');
           }
           shape.writeSVGTo(g, id);
-          nextUpdates.push(['shape', svg.toString()]);
+          nextUpdates.push(['def', svg.toString()]);
           displayObjects[id] = '#shape'+id;
           break;
         case TAG_DEFINE_FONT:
@@ -560,7 +560,7 @@ function(
             attr.x = xList.join(' ');
             g.open('tspan', Object.assign({}, attr)).text(chars.join(''));
           }
-          nextUpdates.push(['text', svg.toString()]);
+          nextUpdates.push(['def', svg.toString()]);
           displayObjects[id] = '#text' + id;
           break;
         case TAG_DEFINE_BUTTON:
