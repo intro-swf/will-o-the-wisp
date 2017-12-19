@@ -1,4 +1,4 @@
-define(function() {
+define(['MakeshiftXML'], function(MakeshiftXML) {
 
   'use strict';
   
@@ -295,7 +295,8 @@ define(function() {
       }
       return style;
     },
-    writeSVGTo: function(xml, baseID) {
+    makeSVG: function(baseID) {
+      var xml = new MakeshiftXML('g', {id:baseID});
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
@@ -417,6 +418,7 @@ define(function() {
           xml.empty('path', attr);
         }
       }
+      return xml;
     },
     toCompactFontFormat: function() {
       var cff = [];
