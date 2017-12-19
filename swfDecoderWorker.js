@@ -161,8 +161,7 @@ function(
           var jpeg = bitmapTools.jpegJoin(jpegTables, info.data);
           var url = URL.createObjectURL(jpeg);
           var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          imageSVG.empty('image', {id:imageID, href:url, width:info.width, height:info.height});
+          var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:info.width, height:info.height});
           bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
@@ -210,17 +209,15 @@ function(
             }
             palette = new Uint32Array(palette.buffer, palette.byteOffset, 256);
             var maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:palette, bpp:8}));
-            var maskSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-            var maskEl = maskSVG.open('mask', {id:maskID, maskUnits:'userSpaceOnUse', width:info.width, height:info.height});
-            maskEl.empty('image', {href:maskURL, width:info.width, height:info.height});
+            var maskSVG = new MakeshiftXML('mask', {id:maskID, maskUnits:'userSpaceOnUse', width:info.width, height:info.height});
+            maskSVG.empty('image', {href:maskURL, width:info.width, height:info.height});
             nextUpdates.push(['def', maskSVG.toString()]);
           }
           var url = URL.createObjectURL(jpegFile);
           var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
           var imageAttr = {id:imageID, href:url, width:info.width, height:info.height};
           if (maskID) imageAttr.mask = 'url(#' + maskID + ')';
-          imageSVG.empty('image', imageAttr);
+          var imageSVG = new MakeshiftXML('image', imageAttr);
           bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
@@ -293,8 +290,7 @@ function(
           }
           var url = URL.createObjectURL(bitmapFile);
           var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          imageSVG.empty('image', {id:imageID, href:url, width:width, height:height});
+          var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:width, height:height});
           bitmaps[characterID] = {id:imageID, width:width, height:height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
@@ -350,15 +346,13 @@ function(
           }
           var url = URL.createObjectURL(bitmapFile);
           var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
-          imageSVG.empty('image', {id:imageID, href:url, width:width, height:height});
+          var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:width, height:height});
           bitmaps[characterID] = {id:imageID, width:width, height:height};
           nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
         case TAG_DEFINE_SHAPE_3:
-          var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
           var id = data.readUint16LE();
           var bounds = data.readSWFRect();
           var shape = new SWFShape;
@@ -367,12 +361,11 @@ function(
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
-          var g = svg.open('g', {id:'shape'+id});
+          var shapeSVG = shape.makeSVG('shape'+id);
           if (shape.hasLines) {
-            g.attr('class', 'has-lines');
+            shapeSVG.attr('class', 'has-lines');
           }
-          shape.writeSVGTo(g, id);
-          nextUpdates.push(['def', svg.toString()]);
+          nextUpdates.push(['def', shapeSVG.toString()]);
           displayObjects[id] = '#shape'+id;
           break;
         case TAG_DEFINE_FONT:
@@ -500,7 +493,6 @@ function(
           break;
         case TAG_DEFINE_TEXT:
         case TAG_DEFINE_TEXT_2:
-          var svg = new MakeshiftXML('svg', {xmlns:'http://www.w3.org/2000/svg'});
           var id = data.readUint16LE();
           var bounds = data.readSWFRect();
           var matrix = data.readSWFMatrix();
@@ -510,7 +502,7 @@ function(
           if (glyphBits > 32 || advanceBits > 32) {
             throw new Error('glyph/advance data out of 32-bit range');
           }
-          var g = svg.open('text', {id:'text'+id});
+          var textSVG = new MakeshiftXML('text', {id:'text'+id});
           var NO_ALPHA = (typeCode < TAG_DEFINE_TEXT_2);
           var b;
           var attr = {'xml:space':'preserve', fill:'#000', y:baseY};
@@ -558,9 +550,9 @@ function(
             }
             data.flushBits();
             attr.x = xList.join(' ');
-            g.open('tspan', Object.assign({}, attr)).text(chars.join(''));
+            textSVG.open('tspan', Object.assign({}, attr)).text(chars.join(''));
           }
-          nextUpdates.push(['def', svg.toString()]);
+          nextUpdates.push(['def', textSVG.toString()]);
           displayObjects[id] = '#text' + id;
           break;
         case TAG_DEFINE_BUTTON:
