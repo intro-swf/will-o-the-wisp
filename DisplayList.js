@@ -141,10 +141,18 @@ define(['arrayExtensions'], function() {
       }));
       return displayObject;
     },
+    lastFrame: null,
     withFrame: function(fn) {
-      var frame = new TimelineFrame(this, this.frames[this.frames.length-1]);
+      var frame = new TimelineFrame(this, this.lastFrame);
       fn(frame);
       this.frames.push(frame);
+      this.lastFrame = frame;
+    },
+    emptyFrames: function(count) {
+      while (count-- > 0) {
+        this.lastFrame = null;
+        this.frames.push(null);
+      }
     },
     createSetterRaw: function(displayObject, key, value) {
       if (typeof displayObject[key] === 'object') {
@@ -179,11 +187,19 @@ define(['arrayExtensions'], function() {
     goToFrame: function(i) {
       var diff = i - this.framePos;
       if (diff === 1) {
-        this.frames[i].render(false);
+        var frame = this.frames[i];
+        if (frame) {
+          this.frames[i].render(false);
+        }
       }
       else if (diff !== 0) {
         this.clean();
-        this.frames[i].render(true);
+        while (i >= 0 && !this.frames[i]) {
+          i--;
+        }
+        if (i >= 0) {
+          this.frames[i].render(true);
+        }
       }
       this.framePos = i;
     },
