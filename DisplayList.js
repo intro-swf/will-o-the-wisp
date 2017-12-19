@@ -150,7 +150,6 @@ define(['arrayExtensions'], function() {
     },
     emptyFrames: function(count) {
       while (count-- > 0) {
-        this.lastFrame = null;
         this.frames.push(null);
       }
     },
