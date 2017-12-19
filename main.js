@@ -212,6 +212,9 @@ require([
           }
         }
       });
+      if (def.count > 1) {
+        displayList.emptyFrames(def.count - 1);
+      }
       if (displayList.framePos === -1) {
         displayList.goToFrame(0);
       }
