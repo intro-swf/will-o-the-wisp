@@ -343,8 +343,6 @@ define(function() {
             ].join('\n');
             document.head.appendChild(styleDef);
             break;
-          case 'shape':
-          case 'text':
           case 'def':
             var doc = domParser.parseFromString(message[1], 'image/svg+xml');
             var el = doc.documentElement;
