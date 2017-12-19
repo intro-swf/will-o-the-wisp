@@ -344,7 +344,9 @@ define(function() {
             document.head.appendChild(styleDef);
             break;
           case 'def':
-            var doc = domParser.parseFromString(message[1], 'image/svg+xml');
+            var doc = domParser.parseFromString(
+              '<svg xmlns="http://www.w3.org/2000/svg">' + message[1] + '</svg>',
+              'image/svg+xml');
             var el = doc.documentElement;
             el = el.removeChild(el.firstChild);
             this.ondef(el);
