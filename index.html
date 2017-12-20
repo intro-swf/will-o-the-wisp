@@ -9,7 +9,7 @@
         background: #000;
         overflow: hidden;
       }
-      svg#movie {
+      svg#movie-container {
         position: fixed;
         /*
         outline: 1px solid #444;
@@ -58,7 +58,9 @@
     </style>
   </head>
   <body>
-    <svg id='movie'>
+    <svg id='movie-container'>
+      <svg id='movie'>
+      </svg>
     </svg>
     <input id='scrubber' type='range' min='0' max='0' value='0'>
   </body>
