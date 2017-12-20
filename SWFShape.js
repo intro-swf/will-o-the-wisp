@@ -304,6 +304,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var fill = layer.fills[i_fill];
           var fillStyle = fill.style;
           var patches = fill.segments;
+          var overlapStrokeData = [];
           var pathData = [];
           for (var i_patch = 0; i_patch < patches.length; i_patch++) {
             var patch = patches[i_patch];
@@ -316,10 +317,18 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
               var i_edge = patch[ii_edge];
               if (i_edge < 0) {
-                pathData.push(edges[~i_edge].pathStepLeft);
+                var edge = edges[~i_edge];
+                pathData.push(edge.pathStepLeft);
+                if (edge.i_fillRight > 0 && edge.i_fillRight < i_fill) {
+                  overlapStrokeData.push(edge.pathStartLeft, edge.pathStepLeft);
+                }
               }
               else {
-                pathData.push(edges[i_edge].pathStepRight);
+                var edge = edges[i_edge];
+                pathData.push(edge.pathStepRight);
+                if (edge.i_fillLeft > 0 && edge.i_fillLeft < i_fill) {
+                  overlapStrokeData.push(edge.pathStartRight, edge.pathStepRight);
+                }
               }
             }
           }
@@ -386,6 +395,9 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               break;
           }
           xml.empty('path', attr);
+          if (overlapStrokeData.length > 0) {
+            xml.empty('path', {d:overlapStrokeData.join(''), stroke:attr.fill, 'stroke-width':10});
+          }
         }
         for (var i_line = 1; i_line < layer.lines.length; i_line++) {
           var line = layer.lines[i_line];
