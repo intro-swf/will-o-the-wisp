@@ -396,7 +396,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           }
           xml.empty('path', attr);
           if (overlapStrokeData.length > 0) {
-            xml.empty('path', {d:overlapStrokeData.join(''), stroke:attr.fill, 'stroke-width':10, fill:'none'});
+            xml.empty('path', {d:overlapStrokeData.join(''), stroke:attr.fill, 'stroke-width':20, fill:'none'});
           }
         }
         for (var i_line = 1; i_line < layer.lines.length; i_line++) {
