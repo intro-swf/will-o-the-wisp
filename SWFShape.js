@@ -464,7 +464,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               endPoint = edge.endPoint;
               controlPoint = edge.controlPoint;
             }
-            if (controlPoint) {
+            if (/*controlPoint*/ false) {
               var cubicX1 = x + (controlPoint.x - x) * 2 / 3;
               var cubicY1 = y + (controlPoint.y - y) * 2 / 3;
               var cubicX2 = endPoint.x + (controlPoint.x - endPoint.x) * 2 / 3;
