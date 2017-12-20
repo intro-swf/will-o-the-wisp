@@ -464,7 +464,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               endPoint = edge.endPoint;
               controlPoint = edge.controlPoint;
             }
-            if (/*controlPoint*/ false) {
+            if (controlPoint) {
               var cubicX1 = x + (controlPoint.x - x) * 2 / 3;
               var cubicY1 = y + (controlPoint.y - y) * 2 / 3;
               var cubicX2 = endPoint.x + (controlPoint.x - endPoint.x) * 2 / 3;
@@ -475,7 +475,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               var dc2y = cubicY2 - cubicY1;
               var dx = (x = endPoint.x) - cubicX2;
               var dy = (y = endPoint.y) - cubicY2;
-              if (last && last[0] === 'rrcurveto') {
+              if (false && last && last[0] === 'rrcurveto') {
                 if (last.push(dc1x,-dc1y, dc2x,-dc2y, dx,-dy) >= 49) last = null;
               }
               else {
