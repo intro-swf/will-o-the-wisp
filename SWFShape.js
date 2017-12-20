@@ -319,14 +319,14 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               if (i_edge < 0) {
                 var edge = edges[~i_edge];
                 pathData.push(edge.pathStepLeft);
-                if (edge.i_fillRight > 0 && edge.i_fillRight < i_fill) {
+                if (edge.i_fillRight > i_fill) {
                   overlapStrokeData.push(edge.pathStartLeft, edge.pathStepLeft);
                 }
               }
               else {
                 var edge = edges[i_edge];
                 pathData.push(edge.pathStepRight);
-                if (edge.i_fillLeft > 0 && edge.i_fillLeft < i_fill) {
+                if (edge.i_fillLeft > i_fill) {
                   overlapStrokeData.push(edge.pathStartRight, edge.pathStepRight);
                 }
               }
