@@ -236,6 +236,31 @@ require([
       });
       templates[def.id] = template;
     };
+    client.onsprite = function(def) {
+      var template = createSVGElement('g');
+      template.idBase = def.id.replace(/^#/, '') + '_';
+      template.setAttribute('class', 'sprite');
+      template.style.display = 'none';
+      template.onclean = function() {
+        this.style.display = 'none';
+      };
+      template.addEventListener('display-list-instantiate', function(e) {
+        var displayList = e.detail.displayList;
+        var sprite = e.detail.displayObject;
+        sprite.displayList = new DisplayList(sprite);
+        for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
+          var frameDef = def.frames[i_frame];
+          sprite.displayList.withFrame(function(frame) {
+            for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
+              doUpdate(frame, frameDef.updates[i_update]);
+            }
+          });
+        }
+        sprite.displayList.goToFrame(0);
+        displayList.container.addEventListener('clean', this.onclean.bind(sprite));
+      });
+      templates[def.id] = template;
+    };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
   
