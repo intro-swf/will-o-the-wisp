@@ -118,6 +118,95 @@ require([
     client.ondef = function(def) {
       movie.defs.appendChild(def);
     };
+    function doUpdate(frame, update) {
+      switch (update.type) {
+        case 'insert':
+        case 'replace':
+          var displayObject;
+          if (update.url in templates) {
+            displayObject = frame.setDisplayObjectAt(update.order, templates[update.url]);
+          }
+          else {
+            displayObject = frame.setDisplayObjectAt(update.order, slotTemplate);
+            frame.set(displayObject, 'href', update.url);
+          }
+          if ('transform' in update.settings) {
+            frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
+          }
+          else if (update.type === 'insert') {
+            frame.set(displayObject, 'transform', getTransformMatrix('translate(0,0)'));
+          }
+          if ('colorTransform' in update.settings) {
+            var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
+            if (ct[0] !== 1 || ct[4] !== 0
+             || ct[6] !== 1 || ct[9] !== 0
+             || ct[12] !== 1 || ct[14] !== 0
+             || ct[19] !== 0) {
+              var cxform = frame.displayList.getDisplayObject(update.order, cxformTemplate);
+              frame.set(cxform, 'mulR', ct[0]);
+              frame.set(cxform, 'addR', ct[4]);
+              frame.set(cxform, 'mulG', ct[6]);
+              frame.set(cxform, 'addG', ct[9]);
+              frame.set(cxform, 'mulB', ct[12]);
+              frame.set(cxform, 'addB', ct[14]);
+              frame.set(cxform, 'addA', ct[19]);
+              frame.set(displayObject, 'filter', 'url(#' + cxform.getAttribute('id') + ')');
+            }
+            else {
+              frame.set(displayObject, 'filter', '');
+            }
+            frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
+          }
+          else if (update.type === 'insert') {
+            frame.set(displayObject, 'opacity', '');
+            frame.set(displayObject, 'filter', '');
+          }
+          break;
+        case 'modify':
+          var displayObject = frame.getDisplayObjectAt(update.order);
+          if ('transform' in update.settings) {
+            frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
+          }
+          if ('colorTransform' in update.settings) {
+            var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
+            if (ct[0] !== 1 || ct[4] !== 0
+             || ct[6] !== 1 || ct[9] !== 0
+             || ct[12] !== 1 || ct[14] !== 0
+             || ct[19] !== 0) {
+              var cxform = frame.displayList.getDisplayObject(update.order, cxformTemplate);
+              frame.set(cxform, 'mulR', ct[0]);
+              frame.set(cxform, 'addR', ct[4]);
+              frame.set(cxform, 'mulG', ct[6]);
+              frame.set(cxform, 'addG', ct[9]);
+              frame.set(cxform, 'mulB', ct[12]);
+              frame.set(cxform, 'addB', ct[14]);
+              frame.set(cxform, 'addA', ct[19]);
+              frame.set(displayObject, 'filter', 'url(#' + cxform.getAttribute('id') + ')');
+            }
+            else {
+              frame.set(displayObject, 'filter', '');
+            }
+            frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
+          }
+          break;
+        case 'delete':
+          frame.setDisplayObjectAt(update.order, null);
+          break;
+      }
+    }
+    client.onframe = function onframe(def) {
+      displayList.withFrame(function(frame) {
+        for (var i_update = 0; i_update < def.updates.length; i_update++) {
+          doUpdate(frame, def.updates[i_update]);
+        }
+      });
+      if (def.count > 1) {
+        displayList.emptyFrames(def.count - 1);
+      }
+      if (displayList.framePos === -1) {
+        displayList.goToFrame(0);
+      }
+    };
     client.onbutton = function(button) {
       var template = createSVGElement('g');
       template.idBase = button.id.replace(/^#/, '') + '_';
@@ -127,99 +216,19 @@ require([
       template.onclean = function() {
         this.style.display = 'none';
       };
+      template.displayList = new DisplayList(template);
+      template.displayList.withFrame(function(frame) {
+        for (var i_update = 0; i_update < button.contentUpdates.length; i_update++) {
+          doUpdate(frame, button.contentUpdates[i_update]);
+        }
+      });
+      template.displayList.goToFrame(0);
       template.addEventListener('display-list-instantiate', function(e) {
         var displayList = e.detail.displayList;
         var button = e.detail.displayObject;
         displayList.container.addEventListener('clean', this.onclean.bind(button));
       });
       templates[button.id] = template;
-    };
-    client.onframe = function onframe(def) {
-      displayList.withFrame(function(frame) {
-        for (var i_update = 0; i_update < def.updates.length; i_update++) {
-          var update = def.updates[i_update];
-          switch (update.type) {
-            case 'insert':
-            case 'replace':
-              var displayObject;
-              if (update.url in templates) {
-                displayObject = frame.setDisplayObjectAt(update.order, templates[update.url]);
-              }
-              else {
-                displayObject = frame.setDisplayObjectAt(update.order, slotTemplate);
-                frame.set(displayObject, 'href', update.url);
-              }
-              if ('transform' in update.settings) {
-                frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
-              }
-              else if (update.type === 'insert') {
-                frame.set(displayObject, 'transform', getTransformMatrix('translate(0,0)'));
-              }
-              if ('colorTransform' in update.settings) {
-                var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
-                if (ct[0] !== 1 || ct[4] !== 0
-                 || ct[6] !== 1 || ct[9] !== 0
-                 || ct[12] !== 1 || ct[14] !== 0
-                 || ct[19] !== 0) {
-                  var cxform = displayList.getDisplayObject(update.order, cxformTemplate);
-                  frame.set(cxform, 'mulR', ct[0]);
-                  frame.set(cxform, 'addR', ct[4]);
-                  frame.set(cxform, 'mulG', ct[6]);
-                  frame.set(cxform, 'addG', ct[9]);
-                  frame.set(cxform, 'mulB', ct[12]);
-                  frame.set(cxform, 'addB', ct[14]);
-                  frame.set(cxform, 'addA', ct[19]);
-                  frame.set(displayObject, 'filter', 'url(#' + cxform.getAttribute('id') + ')');
-                }
-                else {
-                  frame.set(displayObject, 'filter', '');
-                }
-                frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
-              }
-              else if (update.type === 'insert') {
-                frame.set(displayObject, 'opacity', '');
-                frame.set(displayObject, 'filter', '');
-              }
-              break;
-            case 'modify':
-              var displayObject = frame.getDisplayObjectAt(update.order);
-              if ('transform' in update.settings) {
-                frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
-              }
-              if ('colorTransform' in update.settings) {
-                var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
-                if (ct[0] !== 1 || ct[4] !== 0
-                 || ct[6] !== 1 || ct[9] !== 0
-                 || ct[12] !== 1 || ct[14] !== 0
-                 || ct[19] !== 0) {
-                  var cxform = displayList.getDisplayObject(update.order, cxformTemplate);
-                  frame.set(cxform, 'mulR', ct[0]);
-                  frame.set(cxform, 'addR', ct[4]);
-                  frame.set(cxform, 'mulG', ct[6]);
-                  frame.set(cxform, 'addG', ct[9]);
-                  frame.set(cxform, 'mulB', ct[12]);
-                  frame.set(cxform, 'addB', ct[14]);
-                  frame.set(cxform, 'addA', ct[19]);
-                  frame.set(displayObject, 'filter', 'url(#' + cxform.getAttribute('id') + ')');
-                }
-                else {
-                  frame.set(displayObject, 'filter', '');
-                }
-                frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
-              }
-              break;
-            case 'delete':
-              frame.setDisplayObjectAt(update.order, null);
-              break;
-          }
-        }
-      });
-      if (def.count > 1) {
-        displayList.emptyFrames(def.count - 1);
-      }
-      if (displayList.framePos === -1) {
-        displayList.goToFrame(0);
-      }
     };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
