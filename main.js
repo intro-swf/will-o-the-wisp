@@ -136,6 +136,9 @@ require([
           else if (update.type === 'insert') {
             frame.set(displayObject, 'transform', getTransformMatrix('translate(0,0)'));
           }
+          if ('class' in update.settings) {
+            frame.set(displayObject, 'className', update.settings['class']);
+          }
           if ('colorTransform' in update.settings) {
             var ct = update.settings.colorTransform.split(/ /g).map(parseFloat);
             if (ct[0] !== 1 || ct[4] !== 0
@@ -187,6 +190,9 @@ require([
               frame.set(displayObject, 'filter', '');
             }
             frame.set(displayObject, 'opacity', ct[18] === 1 ? '' : ct[18]);
+          }
+          if ('class' in update.settings) {
+            frame.set(displayObject, 'className', update.settings['class']);
           }
           break;
         case 'delete':
