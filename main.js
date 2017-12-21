@@ -207,28 +207,28 @@ require([
         displayList.goToFrame(0);
       }
     };
-    client.onbutton = function(button) {
+    client.onbutton = function(def) {
       var template = createSVGElement('g');
-      template.idBase = button.id.replace(/^#/, '') + '_';
+      template.idBase = def.id.replace(/^#/, '') + '_';
       template.setAttribute('class', 'button');
       template.setAttribute('tabindex', '0');
       template.style.display = 'none';
       template.onclean = function() {
         this.style.display = 'none';
       };
-      template.displayList = new DisplayList(template);
-      template.displayList.withFrame(function(frame) {
-        for (var i_update = 0; i_update < button.contentUpdates.length; i_update++) {
-          doUpdate(frame, button.contentUpdates[i_update]);
-        }
-      });
-      template.displayList.goToFrame(0);
       template.addEventListener('display-list-instantiate', function(e) {
         var displayList = e.detail.displayList;
         var button = e.detail.displayObject;
+        button.displayList = new DisplayList(button);
+        button.displayList.withFrame(function(frame) {
+          for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
+            doUpdate(frame, def.contentUpdates[i_update]);
+          }
+        });
+        button.displayList.goToFrame(0);
         displayList.container.addEventListener('clean', this.onclean.bind(button));
       });
-      templates[button.id] = template;
+      templates[def.id] = template;
     };
     client.open('//cors.archive.org/cors/' + item + '/' + path);
   }
