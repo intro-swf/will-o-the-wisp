@@ -309,6 +309,71 @@ define(function() {
       delete this.worker;
     },
     
+    readframe: function(message) {
+      var frame = new DecodedFrame;
+      var i_update = 1;
+      if (typeof message[i_update] === 'string') {
+        frame.label = message[i_update++];
+      }
+      if (typeof message[i_update] === 'number') {
+        frame.count = message[i_update++];
+      }
+      while (i_update < message.length) {
+        var part = message[i_update++];
+        switch (part[0]) {
+          case 'i':
+            if (typeof part[1] === 'number') {
+              var insertion = new InsertUpdate;
+              insertion.order = part[1];
+              insertion.url = part[2];
+              for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
+                insertion.addModifier.apply(insertion, part[i_modifier]);
+              }
+              frame.updates.push(insertion);
+            }
+            break;
+          case 'm':
+            if (typeof part[1] === 'number') {
+              var modification = new ModifyUpdate;
+              modification.order = part[1];
+              for (var i_modifier = 2; i_modifier < part.length; i_modifier++) {
+                modification.addModifier.apply(modification, part[i_modifier]);
+              }
+              frame.updates.push(modification);
+            }
+            break;
+          case 'r':
+            if (typeof part[1] === 'number') {
+              var replacement = new ReplaceUpdate;
+              replacement.order = part[1];
+              replacement.url = part[2];
+              for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
+                replacement.addModifier.apply(replacement, part[i_modifier]);
+              }
+              frame.updates.push(replacement);
+            }
+            break;
+          case 'd':
+            if (typeof part[1] === 'number') {
+              var deletion = new DeleteUpdate;
+              deletion.order = part[1];
+              frame.updates.push(deletion);
+            }
+            break;
+          case 'do':
+            break;
+          case 'play':
+          case 'play-exclusive':
+          case 'stop':
+            break;
+          case 'strm':
+            frame.audioStream = message.slice(1);
+            break;
+        }
+      }
+      return frame;
+    },
+    
     // internal methods for client/worker communication
     gotmessage: function(e) {
       // console.log(e.data);
@@ -354,6 +419,9 @@ define(function() {
           case 'sprite':
             var sprite = new Sprite;
             sprite.id = message[1];
+            for (var i_part = 2; i_part < message.length; i_part++) {
+              sprite.frames.push(this.readframe(message[i_part]));
+            }
             this.onsprite(sprite);
             break;
           case 'btn':
@@ -376,68 +444,7 @@ define(function() {
             this.onbutton(button);
             break;
           case 'f':
-            var frame = new DecodedFrame;
-            var i_update = 1;
-            if (typeof message[i_update] === 'string') {
-              frame.label = message[i_update++];
-            }
-            if (typeof message[i_update] === 'number') {
-              frame.count = message[i_update++];
-            }
-            while (i_update < message.length) {
-              var part = message[i_update++];
-              switch (part[0]) {
-                case 'i':
-                  if (typeof part[1] === 'number') {
-                    var insertion = new InsertUpdate;
-                    insertion.order = part[1];
-                    insertion.url = part[2];
-                    for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
-                      insertion.addModifier.apply(insertion, part[i_modifier]);
-                    }
-                    frame.updates.push(insertion);
-                  }
-                  break;
-                case 'm':
-                  if (typeof part[1] === 'number') {
-                    var modification = new ModifyUpdate;
-                    modification.order = part[1];
-                    for (var i_modifier = 2; i_modifier < part.length; i_modifier++) {
-                      modification.addModifier.apply(modification, part[i_modifier]);
-                    }
-                    frame.updates.push(modification);
-                  }
-                  break;
-                case 'r':
-                  if (typeof part[1] === 'number') {
-                    var replacement = new ReplaceUpdate;
-                    replacement.order = part[1];
-                    replacement.url = part[2];
-                    for (var i_modifier = 3; i_modifier < part.length; i_modifier++) {
-                      replacement.addModifier.apply(replacement, part[i_modifier]);
-                    }
-                    frame.updates.push(replacement);
-                  }
-                  break;
-                case 'd':
-                  if (typeof part[1] === 'number') {
-                    var deletion = new DeleteUpdate;
-                    deletion.order = part[1];
-                    frame.updates.push(deletion);
-                  }
-                  break;
-                case 'do':
-                  break;
-                case 'play':
-                case 'play-exclusive':
-                case 'stop':
-                  break;
-                case 'strm':
-                  frame.audioStream = message.slice(1);
-                  break;
-              }
-            }
-            this.onframe(frame);
+            this.onframe(this.readframe(message));
             break;
         }
       }
