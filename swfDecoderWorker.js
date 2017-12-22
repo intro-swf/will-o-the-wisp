@@ -370,12 +370,19 @@ function(
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
-          var shapeSVG = shape.makeSVG('shape'+id);
+          var shapeSVG = new MakeshiftSVG('svg', {
+            viewBox: bounds.toString(),
+            width: bounds.width,
+            height: bounds.height,
+            id: '_'+id,
+          });
+          shapeSVG.children = shapeSVG.children || [];
+          shapeSVG.children.push(shape.makeSVG('shape'+id));
           if (shape.hasLines) {
             shapeSVG.attr('class', 'has-lines');
           }
           nextUpdates.push(['def', shapeSVG.toString()]);
-          displayObjects[id] = '#shape'+id;
+          displayObjects[id] = '#_'+id;
           break;
         case TAG_DEFINE_FONT:
           var id = data.readUint16LE();
