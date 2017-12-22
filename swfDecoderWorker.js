@@ -518,7 +518,13 @@ function(
           if (glyphBits > 32 || advanceBits > 32) {
             throw new Error('glyph/advance data out of 32-bit range');
           }
-          var textSVG = new MakeshiftXML('text', {id:'text'+id});
+          var containerSVG = new MakeshiftSVG('svg', {
+            viewBox: bounds.toString(),
+            width: bounds.width,
+            height: bounds.height,
+            id: '_'+id,
+          });
+          var textSVG = containerSVG.open('text', {id:'text'+id});
           var NO_ALPHA = (typeCode < TAG_DEFINE_TEXT_2);
           var b;
           var attr = {'xml:space':'preserve', fill:'#000', y:baseY};
@@ -568,7 +574,7 @@ function(
             attr.x = xList.join(' ');
             textSVG.open('tspan', Object.assign({}, attr)).text(chars.join(''));
           }
-          nextUpdates.push(['def', textSVG.toString()]);
+          nextUpdates.push(['def', containerSVG.toString()]);
           displayObjects[id] = '#text' + id;
           break;
         case TAG_DEFINE_BUTTON:
