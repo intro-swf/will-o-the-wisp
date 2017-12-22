@@ -104,11 +104,12 @@ require([
         if (movieReshapeId === null) {
           movieReshapeId = requestAnimationFrame(function() {
             movieReshapeId = null;
+            var height = window.innerHeight - scrubber.offsetHeight;
             var xRatio = window.innerWidth/twipWidth;
-            var yRatio = window.innerHeight/twipHeight;
+            var yRatio = height/twipHeight;
             var ratio = Math.min(xRatio, yRatio);
-            var x = (window.innerWidth - twipWidth*ratio)/2;
-            var y = (window.innerHeight - twipHeight*ratio)/2;
+            var x = Math.round((window.innerWidth - twipWidth*ratio)/2);
+            var y = Math.round((height - twipHeight*ratio)/2);
             movie.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + ratio + ')';
           });
         }
