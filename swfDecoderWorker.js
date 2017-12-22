@@ -210,7 +210,15 @@ function(
               pal8[i*4 + 3] = i;
             }
             var maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:pal32, bpp:8}));
-            var maskSVG = new MakeshiftXML('mask', {id:maskID, maskUnits:'userSpaceOnUse', width:info.width, height:info.height});
+            var maskSVG = new MakeshiftXML('mask', {
+              id: maskID,
+              maskUnits: 'userSpaceOnUse',
+              maskContentUnits: 'userSpaceOnUse',
+              x: 0,
+              y: 0,
+              width: info.width,
+              height: info.height,
+            });
             maskSVG.empty('image', {href:maskURL, width:info.width, height:info.height});
             nextUpdates.push(['def', maskSVG.toString()]);
           }
