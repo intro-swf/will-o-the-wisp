@@ -370,7 +370,7 @@ function(
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
-          var shapeSVG = new MakeshiftSVG('svg', {
+          var shapeSVG = new MakeshiftXML('svg', {
             viewBox: bounds.toString(),
             width: bounds.width,
             height: bounds.height,
@@ -518,7 +518,7 @@ function(
           if (glyphBits > 32 || advanceBits > 32) {
             throw new Error('glyph/advance data out of 32-bit range');
           }
-          var containerSVG = new MakeshiftSVG('svg', {
+          var containerSVG = new MakeshiftXML('svg', {
             viewBox: bounds.toString(),
             width: bounds.width,
             height: bounds.height,
