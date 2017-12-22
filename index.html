@@ -9,20 +9,9 @@
         background: #000;
         overflow: hidden;
       }
-      svg#movie-container {
+      #movie {
         position: fixed;
-        /*
-        outline: 1px solid #444;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        */
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: calc(100% - 20px);
         pointer-events: none;
-        text-rendering: geometricPrecision;
       }
       #scrubber {
         position: fixed;
@@ -55,13 +44,22 @@
       .button > .hit-test {
         pointer-events: painted;
       }
+      #defs-container {
+        position: fixed;
+        width: 1px;
+        height: 1px;
+        left: -1px;
+        top: 0;
+      }
     </style>
   </head>
   <body>
-    <svg id='movie-container'>
-      <svg id='movie'>
-      </svg>
+    <svg id='defs-container'>
+      <defs id='defs'>
+      </defs>
     </svg>
+    <div id='movie'>
+    </div>
     <input id='scrubber' type='range' min='0' max='0' value='0'>
   </body>
 </html>
