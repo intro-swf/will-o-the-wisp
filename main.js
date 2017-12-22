@@ -82,10 +82,8 @@ require([
       client.close();
     }
     var movie = document.getElementById('movie');
-    movie.container = document.getElementById('movie-container');
-    movie.appendChild(movie.defs = createSVGElement('defs'));
-    movie.appendChild(movie.stage = createSVGElement('g'));
-    var displayList = movie.stage.displayList = new DisplayList(movie.stage);
+    movie.defs = document.getElementById('defs');
+    var displayList = movie.displayList = new DisplayList(movie);
     var scrubber = document.getElementById('scrubber');
     client = new SWFDecoderClient;
     function drawFrame(n) {
@@ -98,10 +96,25 @@ require([
     }
     client.onframeset = function onframeset(frameset) {
       var parts = frameset.bounds.split(/ /g);
-      movie.setAttribute('viewBox', frameset.bounds);
-      movie.container.setAttribute('viewBox', frameset.bounds);
-      movie.setAttribute('width', parts[2] - parts[0]);
-      movie.setAttribute('height', parts[3] - parts[1]);
+      const twipWidth = parts[2] - parts[0], twipHeight = parts[3] - parts[1];
+      movie.style.width = twipWidth + 'px';
+      movie.style.height = twipHeight + 'px';
+      var movieReshapeId = null;
+      function reshapeMovie() {
+        if (movieReshapeId === null) {
+          movieReshapeId = requestAnimationFrame(function() {
+            movieReshapeId = null;
+            var xRatio = window.innerWidth/twipWidth;
+            var yRatio = window.innerHeight/twipHeight;
+            var ratio = Math.min(xRatio, yRatio);
+            var x = (window.innerWidth - twipWidth*ratio)/2;
+            var y = (window.innerHeight - twipHeight*ratio)/2;
+            movie.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + ratio + ')';
+          });
+        }
+      }
+      window.addEventListener('resize', reshapeMovie);
+      reshapeMovie();
       scrubber.max = frameset.count-1;
       scrubber.onchange = function(e) {
         var frame = +this.value;
