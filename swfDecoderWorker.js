@@ -203,12 +203,13 @@ function(
             for (var i = 0; i < info.height; i++) {
               rows[i] = uncompressed.subarray(info.width*i, info.width*(i+1));
             }
-            var palette = new Uint8Array(256 * 4);
+            var pal32 = new Uint32Array(256);
+            var pal8 = new Uint8Array(pal32.buffer);
             for (var i = 0; i < 256; i++) {
-              palette[i*4 + 3] = i;
+              pal32[i] = 0xffffffff;
+              pal8[i*4 + 3] = i;
             }
-            palette = new Uint32Array(palette.buffer, palette.byteOffset, 256);
-            var maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:palette, bpp:8}));
+            var maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:pal32, bpp:8}));
             var maskSVG = new MakeshiftXML('mask', {id:maskID, maskUnits:'userSpaceOnUse', width:info.width, height:info.height});
             maskSVG.empty('image', {href:maskURL, width:info.width, height:info.height});
             nextUpdates.push(['def', maskSVG.toString()]);
