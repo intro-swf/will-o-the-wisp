@@ -525,9 +525,9 @@ function(
             viewBox: bounds.toString(),
             width: bounds.width,
             height: bounds.height,
-            id: '_'+id,
+            id: 'text'+id,
           });
-          var textSVG = containerSVG.open('text', {id:'text'+id});
+          var textSVG = containerSVG.open('text');
           var NO_ALPHA = (typeCode < TAG_DEFINE_TEXT_2);
           var b;
           var attr = {'xml:space':'preserve', fill:'#000', y:baseY};
