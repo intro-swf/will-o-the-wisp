@@ -1428,7 +1428,7 @@ function(
           && this.right === r.right && this.bottom === r.bottom;
     },
     toString: function() {
-      return [this.left, this.top, this.right, this.bottom].join(' ');
+      return [this.left, this.top, this.width, this.height].join(' ');
     },
   };
   
