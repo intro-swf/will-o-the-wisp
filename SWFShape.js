@@ -295,8 +295,73 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       }
       return style;
     },
+    makeSVGStyleDefs: function(baseID) {
+      var defs = [];
+      for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
+        var layer = this.layers[i_layer];
+        for (var i_fill = 1; i_fill < layer.fills.length; i_fill++) {
+          var fillStyle = layer.fills[i_fill].style;
+          switch (fillStyle.type) {
+            case 'gradient':
+              var id = [
+                'gradient' + baseID,
+                (this.layers.length === 1 ? '' : 'L' + i_layer),
+                (layer.fills.length === 2 ? '' : 'F' + i_fill),
+              ].join('');
+              var gradAttr = {
+                id: id,
+                gradientUnits: 'userSpaceOnUse',
+                gradientTransform: fillStyle.matrix.toString(),
+              };
+              if (fillStyle.mode === 'radial') {
+                gradAttr.r = 16384;
+                gradAttr.cx = 0;
+                gradAttr.cy = 0;
+              }
+              else {
+                gradAttr.x1 = -16384;
+                gradAttr.x2 = 16384;
+              }
+              var grad = new MakeshiftXML(fillStyle.mode + 'Gradient', gradAttr);
+              for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
+                var stop = fillStyle.stops[i_stop];
+                var stopAttr = {
+                  offset: stop.ratio,
+                  'stop-color': stop.color.solidColor,
+                };
+                if (stop.color.opacity !== 1) {
+                  stopAttr['stop-opacity'] = stop.color.opacity;
+                }
+                grad.empty('stop', stopAttr);
+              }
+              defs.push(grad);
+              break;
+            case 'bitmap':
+              if (fillStyle.bitmapID !== 0xffff) {
+                var id = [
+                  'pattern' + baseID,
+                  (this.layers.length === 1 ? '' : 'L' + i_layer),
+                  (layer.fills.length === 2 ? '' : 'F' + i_fill),
+                ].join('');
+                var bitmap = this.bitmaps[fillStyle.bitmapID];
+                var patternAttr = {id:id, width:bitmap.width, height:bitmap.height, patternUnits:'userSpaceOnUse'};
+                if (!fillStyle.matrix.isIdentity) {
+                  patternAttr.patternTransform = fillStyle.matrix.toString();
+                }
+                var pattern = new MakeshiftXML('pattern', patternAttr);
+                var useAttr = {href:'#'+bitmap.id};
+                if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
+                pattern.empty('use', useAttr);
+                defs.push(pattern);
+              }
+              break;
+          }
+        }
+      }
+      return defs;
+    },
     makeSVG: function(baseID) {
-      var xml = new MakeshiftXML('g', {id:baseID});
+      var xml = new MakeshiftXML('g', {id:'shape'+baseID});
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
@@ -339,47 +404,20 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               }
               break;
             case 'gradient':
-              var id = 'gradient' + baseID + '_' + i_layer + '_' + i_fill;
-              var gradAttr = {
-                id: id,
-                gradientUnits: 'userSpaceOnUse',
-                gradientTransform: fillStyle.matrix.toString(),
-              };
-              if (fillStyle.mode === 'radial') {
-                gradAttr.r = 16384;
-                gradAttr.cx = 0;
-                gradAttr.cy = 0;
-              }
-              else {
-                gradAttr.x1 = -16384;
-                gradAttr.x2 = 16384;
-              }
-              var grad = xml.open(fillStyle.mode + 'Gradient', gradAttr);
-              for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
-                var stop = fillStyle.stops[i_stop];
-                var stopAttr = {
-                  offset: stop.ratio,
-                  'stop-color': stop.color.solidColor,
-                };
-                if (stop.color.opacity !== 1) {
-                  stopAttr['stop-opacity'] = stop.color.opacity;
-                }
-                grad.empty('stop', stopAttr);
-              }
+              var id = [
+                'gradient' + baseID,
+                (this.layers.length === 1 ? '' : 'L' + i_layer),
+                (layer.fills.length === 2 ? '' : 'F' + i_fill),
+              ].join('');
               attr.fill = 'url(#'+id+')';
               break;
             case 'bitmap':
               if (fillStyle.bitmapID !== 0xffff) {
-                var id = 'pattern' + baseID + '_' + i_layer + '_' + i_fill;
-                var bitmap = this.bitmaps[fillStyle.bitmapID];
-                var patternAttr = {id:id, width:bitmap.width, height:bitmap.height, patternUnits:'userSpaceOnUse'};
-                if (!fillStyle.matrix.isIdentity) {
-                  patternAttr.patternTransform = fillStyle.matrix.toString();
-                }
-                var pattern = xml.open('pattern', patternAttr);
-                var useAttr = {href:'#'+bitmap.id};
-                if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
-                pattern.empty('use', useAttr);
+                var id = [
+                  'pattern' + baseID,
+                  (this.layers.length === 1 ? '' : 'L' + i_layer),
+                  (layer.fills.length === 2 ? '' : 'F' + i_fill),
+                ].join('');
                 attr.fill = 'url(#'+id+')';
               }
               break;
