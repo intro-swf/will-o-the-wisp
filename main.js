@@ -151,10 +151,10 @@ require([
         case 'replace':
           var displayObject;
           if (update.url in templates) {
-            displayObject = frame.setDisplayObjectAt(update.order, templates[update.url]);
+            displayObject = frame.setDisplayObjectAt(update.depth, templates[update.url]);
           }
           else {
-            displayObject = frame.setDisplayObjectAt(update.order, slotTemplate);
+            displayObject = frame.setDisplayObjectAt(update.depth, slotTemplate);
             frame.set(displayObject, 'href', update.url);
           }
           if ('transform' in update.settings) {
@@ -172,7 +172,7 @@ require([
              || ct[6] !== 1 || ct[9] !== 0
              || ct[12] !== 1 || ct[14] !== 0
              || ct[19] !== 0) {
-              var cxform = frame.displayList.getDisplayObject(update.order, cxformTemplate);
+              var cxform = frame.displayList.getDisplayObject(update.depth, cxformTemplate);
               frame.set(cxform, 'mulR', ct[0]);
               frame.set(cxform, 'addR', ct[4]);
               frame.set(cxform, 'mulG', ct[6]);
@@ -193,7 +193,7 @@ require([
           }
           break;
         case 'modify':
-          var displayObject = frame.getDisplayObjectAt(update.order);
+          var displayObject = frame.getDisplayObjectAt(update.depth);
           if ('transform' in update.settings) {
             frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
           }
@@ -203,7 +203,7 @@ require([
              || ct[6] !== 1 || ct[9] !== 0
              || ct[12] !== 1 || ct[14] !== 0
              || ct[19] !== 0) {
-              var cxform = frame.displayList.getDisplayObject(update.order, cxformTemplate);
+              var cxform = frame.displayList.getDisplayObject(update.depth, cxformTemplate);
               frame.set(cxform, 'mulR', ct[0]);
               frame.set(cxform, 'addR', ct[4]);
               frame.set(cxform, 'mulG', ct[6]);
@@ -223,7 +223,7 @@ require([
           }
           break;
         case 'delete':
-          frame.setDisplayObjectAt(update.order, null);
+          frame.setDisplayObjectAt(update.depth, null);
           break;
       }
     }
