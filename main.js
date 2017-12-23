@@ -253,6 +253,7 @@ require([
     client.onbutton = function(def) {
       var template = document.createElement('DIV');
       template.idBase = def.id.replace(/^#/, '') + '_';
+      template.style.position = 'absolute';
       template.setAttribute('class', 'button');
       template.setAttribute('tabindex', '0');
       template.style.display = 'none';
