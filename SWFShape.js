@@ -742,7 +742,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
         var i_edge = segment[i];
         var edge, dx, dy;
         if (i_edge < 0) {
-          edge = edges[~i_edge]];
+          edge = edges[~i_edge];
           changes.push({
             dx: edge.startPoint.x - edge.endPoint.x,
             dy: edge.startPoint.y - edge.endPoint.y,
