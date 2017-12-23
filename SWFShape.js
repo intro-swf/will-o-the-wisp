@@ -406,7 +406,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           }
           var rect = fill.toRect();
           if (rect) {
-            if (fillStyle.type === 'bitmap' && fillStyle.b === 0 && fillStyle.c === 0) {
+            if (fillStyle.type === 'bitmap' && fillStyle.matrix.b === 0 && fillStyle.matrix.c === 0) {
               var bitmap = this.bitmaps[fillStyle.bitmapID];
               if (bitmap.width * fillStyle.matrix.a === rect.width && bitmap.height * fillStyle.matrix.d === rect.height) {
                 var useAttr = {href:'#'+bitmap.id, transform:fillStyle.matrix.toString()};
