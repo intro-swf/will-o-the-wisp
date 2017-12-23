@@ -274,7 +274,7 @@ require([
       templates[def.id] = template;
     };
     client.onsprite = function(def) {
-      var template = createSVGElement('g');
+      var template = document.createElement('DIV');
       template.idBase = def.id.replace(/^#/, '') + '_';
       template.setAttribute('class', 'sprite');
       template.style.display = 'none';
