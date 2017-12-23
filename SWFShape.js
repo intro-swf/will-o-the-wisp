@@ -390,6 +390,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               }
             }
           }
+          if (pathData.length === 0) continue;
           var attr = {d:pathData.join('')};
           switch (fillStyle.type) {
             case 'solid':
