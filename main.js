@@ -251,7 +251,7 @@ require([
       }
     };
     client.onbutton = function(def) {
-      var template = createSVGElement('g');
+      var template = document.createElement('DIV');
       template.idBase = def.id.replace(/^#/, '') + '_';
       template.setAttribute('class', 'button');
       template.setAttribute('tabindex', '0');
