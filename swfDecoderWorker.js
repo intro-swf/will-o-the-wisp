@@ -1424,7 +1424,25 @@ function(
     top: 0,
     bottom: 0,
     get width() { return this.right - this.left; },
+    set width(n) {
+      if (n < 0) {
+        this.right = this.left;
+        this.left -= n;
+      }
+      else {
+        this.right = this.left + n;
+      }
+    },
     get height() { return this.bottom - this.top; },
+    set height(n) {
+      if (n < 0) {
+        this.bottom = this.top;
+        this.top -= n;
+      }
+      else {
+        this.bottom = this.top + n;
+      }
+    },
     isEqualTo: function(r) {
       if (this === r) return true;
       return this.left === r.left && this.top === r.top
