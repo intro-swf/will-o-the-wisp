@@ -851,7 +851,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
     set width(n) {
       if (n < 0) {
         this.right = this.left;
-        this.left -= n;
+        this.left += n;
       }
       else {
         this.right = this.left + n;
@@ -861,7 +861,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
     set height(n) {
       if (n < 0) {
         this.bottom = this.top;
-        this.top -= n;
+        this.top += n;
       }
       else {
         this.bottom = this.top + n;
