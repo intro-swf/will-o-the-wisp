@@ -367,31 +367,9 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
         var edges = layer.edges;
         for (var i_fill = 1; i_fill < layer.fills.length; i_fill++) {
           var fill = layer.fills[i_fill];
+          if (fill.segments.length === 0) continue;
           var fillStyle = fill.style;
-          var patches = fill.segments;
-          var pathData = [];
-          for (var i_patch = 0; i_patch < patches.length; i_patch++) {
-            var patch = patches[i_patch];
-            if (patch[0] < 0) {
-              pathData.push(edges[~patch[0]].pathStartLeft);
-            }
-            else {
-              pathData.push(edges[patch[0]].pathStartRight);
-            }
-            for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
-              var i_edge = patch[ii_edge];
-              if (i_edge < 0) {
-                var edge = edges[~i_edge];
-                pathData.push(edge.pathStepLeft);
-              }
-              else {
-                var edge = edges[i_edge];
-                pathData.push(edge.pathStepRight);
-              }
-            }
-          }
-          if (pathData.length === 0) continue;
-          var attr = {d:pathData.join('')};
+          var attr = {};
           switch (fillStyle.type) {
             case 'solid':
               if (typeof fillStyle.fill === 'string') {
@@ -426,6 +404,38 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               console.warn('NYI: fill style ' + fillStyle.type);
               break;
           }
+          var rect = fill.toRect();
+          if (rect) {
+            attr.x = rect.left;
+            attr.y = rect.top;
+            attr.width = rect.width;
+            attr.height = rect.height;
+            xml.empty('rect', attr);
+            continue;
+          }
+          var patches = fill.segments;
+          var pathData = [];
+          for (var i_patch = 0; i_patch < patches.length; i_patch++) {
+            var patch = patches[i_patch];
+            if (patch[0] < 0) {
+              pathData.push(edges[~patch[0]].pathStartLeft);
+            }
+            else {
+              pathData.push(edges[patch[0]].pathStartRight);
+            }
+            for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+              var i_edge = patch[ii_edge];
+              if (i_edge < 0) {
+                var edge = edges[~i_edge];
+                pathData.push(edge.pathStepLeft);
+              }
+              else {
+                var edge = edges[i_edge];
+                pathData.push(edge.pathStepRight);
+              }
+            }
+          }
+          attr.d = pathData.join('');
           xml.empty('path', attr);
         }
         for (var i_line = 1; i_line < layer.lines.length; i_line++) {
@@ -719,6 +729,66 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
     this.i_edges = [];
   }
   Patch.prototype = {
+    toRect: function() {
+      if (this.segments.length !== 1) return null;
+      const segment = this.segments[0];
+      if (segment.length !== 4) return null;
+      const edges = this.shape.edges;
+      const startPoint = segment[0] < 0
+        ? edges[~segment[0]].endPoint
+        : edges[segment[0]].startPoint;
+      var changes = [];
+      for (var i = 0; i < 4; i++) {
+        var i_edge = segment[i];
+        var edge, dx, dy;
+        if (i_edge < 0) {
+          edge = segment[~i_edge];
+          changes.push({
+            dx: edge.startPoint.x - edge.endPoint.x,
+            dy: edge.startPoint.y - edge.endPoint.y,
+          });
+        }
+        else {
+          edge = segment[i_edge];
+          changes.push({
+            dx: edge.endPoint.x - edge.startPoint.x,
+            dy: edge.endPoint.y - edge.startPoint.y,
+          });
+        }
+        if ('controlPoint' in edge) return null;
+      }
+      if (changes[0].dy === 0) {
+        if (changes[0].dx === 0) return null;
+        if (changes[1].dx !== 0) return null;
+        if (changes[2].dx !== -changes[0].dx) return null;
+        if (changes[3].dx !== 0) return null;
+        if (changes[1].dy === 0) return null;
+        if (changes[2].dy !== 0) return null;
+        if (changes[3].dy !== -changes[1].dy) return null;
+        var r = new SWFRect;
+        r.left = startPoint.x;
+        r.top = startPoint.y;
+        r.width = changes[0].dx;
+        r.height = changes[1].dy;
+        return r;
+      }
+      else if (changes[0].dx === 0) {
+        if (changes[0].dy === 0) return null;
+        if (changes[1].dy !== 0) return null;
+        if (changes[2].dy !== -changes[0].dx) return null;
+        if (changes[3].dy !== 0) return null;
+        if (changes[1].dx === 0) return null;
+        if (changes[2].dx !== 0) return null;
+        if (changes[3].dx !== -changes[1].dy) return null;
+        var r = new SWFRect;
+        r.left = startPoint.x;
+        r.top = startPoint.y;
+        r.width = changes[1].dx;
+        r.height = changes[0].dy;
+        return r;
+      }
+      else return null;
+    },
     addEdgeByIndex: function(i_edge, invert) {
       if (invert) i_edge = ~i_edge;
       this.i_edges.push(i_edge);
