@@ -135,6 +135,9 @@ require([
           this.style.display = 'none';
         };
         def.style.display = 'none';
+        def.style.position = 'absolute';
+        def.style.left = def.viewBox.baseVal.x + 'px';
+        def.style.top = def.viewBox.baseVal.x + 'px';
         def.addEventListener('display-list-instantiate', function(e) {
           var displayList = e.detail.displayList;
           displayList.container.addEventListener('clean', this.onclean.bind(e.detail.displayObject));
