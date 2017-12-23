@@ -775,11 +775,11 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       else if (changes[0].dx === 0) {
         if (changes[0].dy === 0) return null;
         if (changes[1].dy !== 0) return null;
-        if (changes[2].dy !== -changes[0].dx) return null;
+        if (changes[2].dy !== -changes[0].dy) return null;
         if (changes[3].dy !== 0) return null;
         if (changes[1].dx === 0) return null;
         if (changes[2].dx !== 0) return null;
-        if (changes[3].dx !== -changes[1].dy) return null;
+        if (changes[3].dx !== -changes[1].dx) return null;
         var r = new SWFRect;
         r.left = startPoint.x;
         r.top = startPoint.y;
