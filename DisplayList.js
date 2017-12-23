@@ -170,6 +170,11 @@ define(['arrayExtensions'], function() {
         }
       }
       if (key in displayObject.style) {
+        if (typeof value === 'object') {
+          if (value instanceof SVGMatrix) {
+            value = 'matrix(' + value.a + ',' + value.b + ',' + value.c + ',' + value.d + ',' + value.e + ',' + value.f + ')';
+          }
+        }
         return SET.bind(displayObject.style, key, value);
       }
       return SET.bind(displayObject, key, value);
