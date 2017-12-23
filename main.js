@@ -196,6 +196,12 @@ require([
           }
           break;
         case 'modify':
+          if (update.depth === -1) {
+            if ('background' in update.settings) {
+              frame.set(movie, 'backgroundColor', update.settings.background);
+            }
+            break;
+          }
           var displayObject = frame.getDisplayObjectAt(update.depth);
           if ('transform' in update.settings) {
             frame.set(displayObject, 'transform', getTransformMatrix(update.settings.transform));
