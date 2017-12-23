@@ -130,7 +130,20 @@ require([
     };
     var templates = {};
     client.ondef = function(def) {
-      movie.defs.appendChild(def);
+      if (def.nodeName === 'svg') {
+        def.onclean = function() {
+          this.style.display = 'none';
+        };
+        def.style.display = 'none';
+        def.addEventListener('display-list-instantiate', function(e) {
+          var displayList = e.detail.displayList;
+          displayList.container.addEventListener('clean', this.onclean.bind(e.detail.displayObject));
+        });
+        templates['#' + def.id] = def;
+      }
+      else {
+        movie.defs.appendChild(def);
+      }
     };
     function doUpdate(frame, update) {
       switch (update.type) {
