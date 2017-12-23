@@ -82,6 +82,7 @@ require([
       client.close();
     }
     var movie = document.getElementById('movie');
+    movie.depth = -1;
     movie.defs = document.getElementById('defs');
     var displayList = movie.displayList = new DisplayList(movie);
     var scrubber = document.getElementById('scrubber');
