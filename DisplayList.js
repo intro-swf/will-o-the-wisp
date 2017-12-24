@@ -165,8 +165,8 @@ define(['arrayExtensions'], function() {
           return SET.bind(displayObject[key], 'baseVal', value);
         }
         if (displayObject[key] instanceof SVGAnimatedTransformList) {
-          var transformList = displayObject[key].baseVal;
-          return transformList.initialize.bind(transformList, transformList.createSVGTransformFromMatrix(value));
+          value = 'matrix(' + value.a + ',' + value.b + ',' + value.c + ',' + value.d + ',' + value.e + ',' + value.f + ')';
+          return SET.bind(displayObject.style, 'transform', value);
         }
       }
       if (key in displayObject.style) {
