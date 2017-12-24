@@ -140,7 +140,7 @@ require([
         def.style.position = 'absolute';
         def.style.left = def.viewBox.baseVal.x + 'px';
         def.style.top = def.viewBox.baseVal.y + 'px';
-        def.style.transformOrigin = def.viewBox.baseVal.x + 'px ' + def.viewBox.baseVal.y + 'px';
+        def.style.transformOrigin = (-def.viewBox.baseVal.x) + 'px ' + (-def.viewBox.baseVal.y) + 'px';
         def.addEventListener('display-list-instantiate', function(e) {
           var displayList = e.detail.displayList;
           displayList.container.addEventListener('clean', this.onclean.bind(e.detail.displayObject));
