@@ -383,9 +383,6 @@ function(
             width: bounds.width,
             height: bounds.height,
           });
-          if (shape.hasLines) {
-            shapeSVG.attr('class', 'has-lines');
-          }
           nextUpdates.push(['def', shapeSVG.toString()]);
           displayObjects[id] = '#shape'+id;
           break;
