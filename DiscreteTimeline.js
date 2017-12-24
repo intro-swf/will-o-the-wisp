@@ -6,7 +6,7 @@ define(['arrayExtensions'], function() {
     return a - b;
   };
 
-  function FrameTimeline(selfConfig) {
+  function DiscreteTimeline(selfConfig) {
     this.frames = [];
     if (selfConfig) {
       this.frames[-1] = new TimelineFrame(this, Object.freeze([-1]), Object.freeze({'-1':selfConfig}));
@@ -15,7 +15,7 @@ define(['arrayExtensions'], function() {
       this.frames[-1] = new TimelineFrame(this, Object.freeze([]), Object.freeze({}));
     }
   }
-  FrameTimeline.prototype = {
+  DiscreteTimeline.prototype = {
     writeHead: null,
     allocateFrame: function() {
       if (this.writeHead) {
@@ -100,8 +100,8 @@ define(['arrayExtensions'], function() {
     },
   };
   
-  FrameTimeline.TimelineFrame = TimelineFrame;
+  DiscreteTimeline.Frame = TimelineFrame;
 
-  return FrameTimeline;
+  return DiscreteTimeline;
   
 });
