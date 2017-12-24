@@ -83,6 +83,7 @@ require([
     }
     var movie = document.getElementById('movie');
     movie.depth = -1;
+    document.body.depth = -1;
     movie.defs = document.getElementById('defs');
     var displayList = movie.displayList = new DisplayList(movie);
     var scrubber = document.getElementById('scrubber');
@@ -199,7 +200,7 @@ require([
         case 'modify':
           if (update.depth === -1) {
             if ('background' in update.settings) {
-              frame.set(movie, 'backgroundColor', update.settings.background);
+              frame.set(document.body, 'backgroundColor', update.settings.background);
             }
             break;
           }
