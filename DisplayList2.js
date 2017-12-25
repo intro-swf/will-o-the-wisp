@@ -22,9 +22,9 @@ define(['arrayExtensions'], function() {
     else container.appendChild(newEl);
   }
 
-  function DisplayList(root, displayObjectTemplates) {
+  function DisplayList(root) {
     this.rootElement = root;
-    this.displayObjectTemplates = displayObjectTemplates;
+    this.displayObjectTemplates = {};
     this.displayObjects = [];
   }
   DisplayList.prototype = {
