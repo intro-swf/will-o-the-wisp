@@ -193,7 +193,92 @@ define(['arrayExtensions'], function() {
       }
     },
   };
+  
+  function Timeline(selfState) {
+    this.frames = [];
+    if (selfState) {
+      this.frames[-1] = new Frame(this, Object.freeze({'-1':selfState}));
+    }
+    else {
+      this.frames[-1] = new Frame(this, Object.freeze({}));
+    }
+  }
+  Timeline.prototype = {
+    writeHead: null,
+    allocateFrame: function() {
+      if (this.writeHead) {
+        throw new Error('cannot allocate frame until previous frame is committed or discarded');
+      }
+      var lastFrame = this.frames[this.frames.length-1];
+      var frame = new Frame(this, lastFrame.states);
+      this.writeHead = frame;
+      return frame;
+    },
+    duplicateFrame: function(count) {
+      if (isNaN(count)) count = 1;
+      else if (!isFinite(count) || count < 0) {
+        throw new Error('count must be a finite non-negative number');
+      }
+      else if (count === 0) return;
+      if (this.writeHead) {
+        throw new Error('cannot allocate frame until previous frame is committed or discarded');
+      }
+      var copyFrame = this.frames[this.frames.length-1];
+      this.frames.length += count;
+      this.frames.fill(copyFrame, -count);
+    },
+  };
 
+  function Frame(timeline, states) {
+    this.timeline = timeline;
+    this.states = states;
+  }
+  Frame.prototype = {
+    get writeStates() {
+      var states = this.states = Object.assign(Object.create(null), this.states);
+      Object.defineProperty(this, 'writeStates', {
+        value: states,
+      });
+      return states;
+    },
+    setStateAt: function(depth, state, isPatch) {
+      if (!state) {
+        delete this.writeStates[depth];
+      }
+      else {
+        if (isPatch) {
+          state = Object.freeze(Object.assign(Object.create(null), this.states[depth], state));
+        }
+        else if (!Object.isFrozen(state)) {
+          state = Object.freeze(Object.assign(Object.create(null), state));
+        }
+        this.writeStates[depth] = state;
+      }
+    },
+    commit: function() {
+      if (this.timeline.writeHead !== this) {
+        throw new Error('cannot commit: frame is not in write mode');
+      }
+      if (Object.isFrozen(this.states)) {
+        this.discard();
+        this.timeline.duplicateFrame();
+      }
+      else {
+        Object.freeze(this.states);
+        this.timeline.frames.push(this);
+        this.timeline.writeHead = null;
+      }
+    },
+    discard: function() {
+      if (this.timeline.writeHead !== this) {
+        throw new Error('cannot commit: frame is not in write mode');
+      }
+      this.timeline.writeHead = null;
+    },
+  };
+  
+  DisplayList.Frame = Frame;
+  
   return DisplayList;
   
 });
