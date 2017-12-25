@@ -17,10 +17,6 @@ require([
   
   'use strict';
   
-  function createSVGElement(name) {
-    return document.createElementNS('http://www.w3.org/2000/svg', name);
-  }
-  
   var slotTemplate = document.createElementNS('http://www.w3.org/2000/svg', 'use');
   slotTemplate.idBase = 'slot';
   slotTemplate.style.display = 'none';
