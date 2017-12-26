@@ -622,7 +622,7 @@ function(
               var colorTransform = membersData.readSWFColorTransform();
               var insertion = ['i', depth, displayObjects[characterID]];
               if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
-              if (!colorTransform.isIdentity) insertion.push(['colorTransform', colorTransform.toString()]);
+              if (!colorTransform.isIdentity) insertion.push(['colorMatrix', colorTransform.toString()]);
               var classes = [];
               if (flags & 1) classes.push('up');
               if (flags & 2) classes.push('over');
@@ -688,7 +688,7 @@ function(
               nextFrame.updates.pop();
               insertion.splice(0, 3, 'm', depth);
               if (!colorTransform || colorTransform.isIdentity) {
-                insertion.push(["colorMatrix", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"]);
+                insertion.push(["colorMatrix", null]);
               }
               nextFrame.updates[i] = insertion;
               break;
@@ -707,7 +707,13 @@ function(
             update.push(['transform', data.readSWFMatrix().toString()]);
           }
           if (flags & 8) {
-            update.push(['colorTransform', data.readSWFColorTransform().toString()]);
+            var colorTransform = data.readSWFColorTransform();
+            if (colorTransform.isIdentity) {
+              update.push(['colorMatrix', null]);
+            }
+            else {
+              update.push(['colorMatrix', colorTransform.toString()]);
+            }
           }
           if (flags & 0x10) {
             var v = data.readUint16LE();
