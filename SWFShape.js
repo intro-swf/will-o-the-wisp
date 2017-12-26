@@ -876,6 +876,14 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
     toString: function() {
       return [this.left, this.top, this.width, this.height].join(' ');
     },
+    union: function(otherRect) {
+      var inflated = new SWFRect;
+      inflated.left = Math.min(this.left, otherRect.left);
+      inflated.top = Math.min(this.top, otherRect.top);
+      inflated.right = Math.max(this.right, otherRect.right);
+      inflated.bottom = Math.max(this.bottom, otherRect.bottom);
+      return inflated;
+    },
   };
   
   SWFShape.Rect = SWFRect;
