@@ -612,11 +612,12 @@ function(
           var membersLength = data.readUint16LE();
           if (membersLength !== 0) {
             var membersData = data.readSubarray(membersLength - 2);
+            var memberNumber = 0;
             for (;;) {
               var flags = membersData.readUint8();
               if (flags === 0) break;
               var characterID = membersData.readUint16LE();
-              var depth = membersData.readUint16LE();
+              var depth = membersData.readUint16LE() + memberNumber/65536;
               var matrix = membersData.readSWFMatrix();
               var colorTransform = membersData.readSWFColorTransform();
               var insertion = ['i', depth + characterID/65536, displayObjects[characterID]];
@@ -629,6 +630,7 @@ function(
               if (flags & 8) classes.push('hit-test');
               insertion.push(['class', classes.join(' ')]);
               def.push(insertion);
+              memberNumber++;
             }
           }
           for (;;) {
