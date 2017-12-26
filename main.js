@@ -148,7 +148,7 @@ require([
       case 'replace':
       case 'modify':
         var state = update.settings;
-        if (update.type !== 'modify') state = Object.assign({template:update.url}, state);
+        if (update.type !== 'modify') state = Object.assign({template:update.url.replace(/^#/, '')}, state);
         frame.setStateAt(update.depth, state, update.type !== 'insert');
         break;
       case 'delete':
@@ -183,7 +183,7 @@ require([
       button.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
         var update = def.contentUpdates[i_update];
-        button.displayList.setStateAt(update.depth, Object.assign({template:update.url}, update.settings));
+        button.displayList.setStateAt(update.depth, Object.assign({template:update.url.replace(/^#/, '')}, update.settings));
       }
     });
     movie.displayList.displayObjectTemplates[def.id] = template;
