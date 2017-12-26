@@ -107,6 +107,9 @@ require([
     else {
       this.style.transform = this.state.transform;
     }
+    if ('class' in this.state) {
+      this.setAttribute('class', this.state['class']);
+    }
     this.style.opacity = this.state.opacity;
     if (this.colorTransform) {
       if (this.state.colorMatrix) {
