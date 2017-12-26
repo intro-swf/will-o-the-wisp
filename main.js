@@ -140,7 +140,7 @@ require([
   }
   client.ondef = function(def) {
     if (def.nodeName === 'svg') {
-      movie.displayList.templates[def.getAttribute('id')] = def;
+      movie.displayList.displayObjectTemplates[def.getAttribute('id')] = def;
       def.removeAttribute('id');
       def.addEventListener('display-object-init', onDisplayObjectInit);
     }
@@ -186,12 +186,13 @@ require([
       var displayList = e.detail.displayList;
       var button = e.detail.displayObject;
       button.displayList = new DisplayList(button.firstChild);
+      button.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
         var update = def.contentUpdates[i_update];
         button.displayList.setStateAt(update.depth, Object.assign({template:update.url}, update.settings));
       }
     });
-    movie.displayList.templates[def.id] = template;
+    movie.displayList.displayObjectTemplates[def.id] = template;
   };
   client.onsprite = function(def) {
     var template = document.createElement('DIV');
@@ -202,6 +203,7 @@ require([
       var displayList = e.detail.displayList;
       var sprite = e.detail.displayObject;
       sprite.displayList = new DisplayList(sprite.firstChild);
+      sprite.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       sprite.timeline = new DisplayList.Timeline();
       for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
         var frameDef = def.frames[i_frame];
@@ -213,7 +215,7 @@ require([
       }
       sprite.displayList.setAllStates(sprite.timeline.frames[0].states);
     });
-    movie.displayList.templates[def.id] = template;
+    movie.displayList.displayObjectTemplates[def.id] = template;
   };
   client.open('//cors.archive.org/cors/' + item + '/' + path);
   
