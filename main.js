@@ -169,7 +169,7 @@ require([
     }
     frame.commit();
     if (def.count > 1) {
-      movie.displayList.duplicateFrame(def.count - 1);
+      movie.timeline.duplicateFrame(def.count - 1);
     }
     //if (movie.framePos === -1) {
     //  movie.scrubber.value = 0;
