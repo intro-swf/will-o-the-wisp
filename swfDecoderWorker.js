@@ -620,7 +620,7 @@ function(
               var depth = membersData.readUint16LE() + memberNumber/65536;
               var matrix = membersData.readSWFMatrix();
               var colorTransform = membersData.readSWFColorTransform();
-              var insertion = ['i', depth + characterID/65536, displayObjects[characterID]];
+              var insertion = ['i', depth, displayObjects[characterID]];
               if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
               if (!colorTransform.isIdentity) insertion.push(['colorTransform', colorTransform.toString()]);
               var classes = [];
