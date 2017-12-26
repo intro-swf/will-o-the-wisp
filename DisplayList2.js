@@ -121,6 +121,7 @@ define(['arrayExtensions'], function() {
         if (isNaN(depth)) depth = Infinity;
         if (depth < displayObject.depth) {
           this.setStateAt(depth, states[depth], ~i_obj);
+          i_obj++;
           i_depth++;
         }
         else if (depth > displayObject.depth) {
