@@ -373,6 +373,7 @@ function(
             var bounds1 = bounds;
             var bounds2 = data.readSWFRect();
             bounds = bounds1.union(bounds2);
+            var targetEdgesOffset = data.readUint32LE();
           }
           shape.hasStyles = true;
           shape.bitmaps = bitmaps;
