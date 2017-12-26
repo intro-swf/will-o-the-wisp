@@ -110,7 +110,7 @@ require([
     this.style.opacity = this.state.opacity;
     if (this.colorTransform) {
       if (this.state.colorMatrix) {
-        this.colorTransform.colorMatrix = this.state.colorMatrix;
+        this.colorTransform.matrixValues = this.state.colorMatrix;
       }
       else {
         this.colorTransform.parentNode.removeChild(this.colorTransform);
@@ -120,7 +120,7 @@ require([
     }
     else if (this.state.colorMatrix) {
       this.colorTransform = makeColorTransform();
-      this.colorTransform.colorMatrix = this.state.colorMatrix;
+      this.colorTransform.matrixValues = this.state.colorMatrix;
       this.style.filter = 'url(#' + this.colorTransform.getAttribute('id') + ')';
     }
   }
