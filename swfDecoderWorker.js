@@ -1017,7 +1017,7 @@ function(
           displayObjects[id] = '#sprite' + id;
           break;
         default:
-          //console.log('unhandled tag: ' + typeCode, data);
+          console.log('unhandled tag: ' + typeCode, data);
           break;
       }
       return readChunkHeader();
