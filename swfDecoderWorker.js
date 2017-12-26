@@ -587,6 +587,92 @@ function(
           nextUpdates.push(['def', containerSVG.toString()]);
           displayObjects[id] = '#text' + id;
           break;
+        case TAG_DEFINE_EDIT_TEXT:
+          var id = data.readUint16LE();
+          var bounds = data.readSWFRect();
+          var containerSVG = new MakeshiftXML('svg', {
+            viewBox: bounds.toString(),
+            width: bounds.width,
+            height: bounds.height,
+            id: 'edit'+id,
+          });
+          var foreignObject = containerSVG.open('foreignObject', {
+            x: bounds.left,
+            y: bounds.right,
+            width: bounds.width,
+            height: bounds.height,
+          });
+          var flags1 = data.readUint8();
+          var flags2 = data.readUint8();
+          var editText;
+          var classList = ['edit-text'];
+          var styles = [];
+          if (flags2 & 2) {
+            editText = foreignObject.open('div', {xmlns:'http://www.w3.org/1999/xhtml'});
+            if (!(flags1 & 8)) editText.attr('contenteditable', 'true');
+          }
+          else {
+            editText = foreignObject.open('textarea', {xmlns:'http://www.w3.org/1999/xhtml'});
+            if (flags1 & 8) editText.attr('readonly', 'true');
+          }
+          if (flags1 & 0x10) classList.push('password-edit');
+          if (flags1 & 0x20) classList.push('multiline-edit');
+          if (flags1 & 0x40) classList.push('wordwrap-edit');
+          var useGlyphFont = !!(flags2 & 1);
+          if (flags2 & 8) classList.push('border-edit');
+          if (flags2 & 0x10) classList.push('unselectable-edit');
+          if (flags2 & 0x40) classList.push('autoresize-edit');
+          if (flags1 & 1) {
+            var font = fonts[data.readUint16LE()];
+            if (!font.definedFamily) {
+              font.file = buildFont(font);
+              nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
+              font.definedFamily = 'font'+id;
+            }
+            styles.push('font-family: "' + font.definedFamily + '"');
+            styles.push('font-size: ' + data.readUint16LE() + 'px');
+          }
+          if (flags1 & 4) {
+            styles.push('color: ' + data.readSWFColor().toString());
+          }
+          if (flags1 & 2) {
+            if (flags2 & 2) {
+              editText.attr('data-maxlength', data.readUint16LE());
+            }
+            else {
+              editText.attr('maxlength', data.readUint16LE());
+            }
+          }
+          if (flags2 & 0x20) {
+            switch (data.readUint8()) {
+              case 0: styles.push('text-align: left'); break;
+              case 1: styles.push('text-align: right'); break;
+              case 2: styles.push('text-align: center'); break;
+              case 3: styles.push('text-align: justify'); break;
+              default: throw new Error('unknown align');
+            }
+            styles.push('margin-left: ' + data.readUint16LE() + 'px');
+            styles.push('margin-right: ' + data.readUint16LE() + 'px');
+            styles.push('text-indent: ' + data.readUint16LE() + 'px');
+            styles.push('line-height: calc(100% + ' + data.readUint16LE() + 'px)');
+          }
+          var valueVarName = data.readByteString('\0');
+          if (valueVarName) {
+            editText.attr('data-var', valueVarName);
+          }
+          if (flags1 & 0x80) {
+            editText.text(data.readByteString('\0'));
+          }
+          data.warnIfMore();
+          if (classList.length !== 0) {
+            editText.attr('class', classList.join(' '));
+          }
+          if (styles.length !== 0) {
+            editText.attr('style', styles.join('; '));
+          }
+          nextUpdates.push(['def', containerSVG.toString()]);
+          displayObjects[id] = '#edit' + id;
+          break;
         case TAG_DEFINE_BUTTON:
           var id = data.readUint16LE();
           var def = ['btn', 'button' + id];
