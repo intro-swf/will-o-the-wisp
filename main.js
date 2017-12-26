@@ -102,7 +102,7 @@ require([
   };
   function onDisplayObjectState(e) {
     if ('viewBox' in this) {
-      this.style.transform = this.state.transform + ' translate(' + this.viewBox.baseVal.x + 'px, ' + this.viewBox.baseVal.y + 'px)';
+      this.style.transform = 'translate(' + this.viewBox.baseVal.x + 'px, ' + this.viewBox.baseVal.y + 'px) ' + this.state.transform;
     }
     else {
       this.style.transform = this.state.transform;
