@@ -109,7 +109,7 @@ define(['arrayExtensions'], function() {
       var i_obj = 0, i_depth = 0;
       while (i_depth < depths.length && depths[i_depth] < 0) {
         var depth = depths[i_depth++];
-        this.setStateAt(depth, states[depth], -1);
+        this.setStateAt(depth, states[depth]);
       }
       while (i_obj < this.displayObjects.length) {
         var displayObject = this.displayObjects[i_obj];
