@@ -136,7 +136,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
         count = bytes.readUint16LE();
       }
       var fillStyles = new Array(count+1);
-      fillStyles[0] = this.isMorphShape ? [{type:'solid', fill:'none'}, {type:'solid', fill:'none'}] : {type:'solid', fill:'none'};
+      fillStyles[0] = {type:'solid', fill:'none'};
       for (var i = 1; i < fillStyles.length; i++) {
         fillStyles[i] = this.readFillStyleFrom(bytes);
       }
@@ -234,14 +234,13 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       var lineStyles = new Array(1 + count);
       lineStyles[0] = {stroke:'none', strokeWidth:0};
       if (this.isMorphShape) {
-        lineStyles[0] = [lineStyles[0], lineStyles[0]];
+        if (this.hasExtendedLineStyle) throw new Error('NYI: morph with extended line style');
         for (var i = 1; i < lineStyles.length; i++) {
-          var a = {}, b = {};
-          a.width = bytes.readUint16LE();
-          b.width = bytes.readUint16LE();
-          a.color = bytes.readSWFColor(this.hasNoAlpha);
-          b.color = bytes.readSWFColor(this.hasNoAlpha);
-          lineStyles[i] = [a, b];
+          var obj = {width: bytes.readUint16LE()};
+          obj.morphTo = {width: bytes.readUint16LE()};
+          obj.color = bytes.readSWFColor(this.hasNoAlpha);
+          obj.morphTo.color = bytes.readSWFColor(this.hasNoAlpha);
+          lineStyles[i] = obj;
         }
       }
       else for (var i = 1; i < lineStyles.length; i++) {
