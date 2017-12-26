@@ -102,7 +102,7 @@ require([
   };
   function onDisplayObjectState(e) {
     if ('viewBox' in this) {
-      this.style.transform = 'translate(' + this.viewBox.baseVal.x + 'px, ' + this.viewBox.baseVal.y + 'px) ' + this.state.transform;
+      this.style.transform = this.state.transform + ' translate(' + this.viewBox.baseVal.x + 'px, ' + this.viewBox.baseVal.y + 'px)';
     }
     else {
       this.style.transform = this.state.transform;
@@ -145,6 +145,7 @@ require([
       movie.displayList.displayObjectTemplates[def.getAttribute('id')] = def;
       def.removeAttribute('id');
       def.style.position = 'absolute';
+      def.style.transformOrigin = 'top left';
       def.addEventListener('display-object-init', onDisplayObjectInit);
     }
     else {
