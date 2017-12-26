@@ -104,7 +104,7 @@ define(['arrayExtensions'], function() {
       }
     },
     setAllStates: function(states) {
-      var depths = Object.keys(states).map(parseInt);
+      var depths = Object.keys(states).map(parseNumber);
       depths.sort(COMPARE_NUM);
       var i_obj = 0, i_depth = 0;
       while (i_obj < this.displayObjects.length) {
