@@ -194,23 +194,23 @@ define(['arrayExtensions'], function() {
     },
   };
   
-  function Timeline(selfState) {
+  function DisplayListTimeline(selfState) {
     this.frames = [];
     if (selfState) {
-      this.frames[-1] = new Frame(this, Object.freeze({'-1':selfState}));
+      this.frames[-1] = new DisplayFrame(this, Object.freeze({'-1':selfState}));
     }
     else {
-      this.frames[-1] = new Frame(this, Object.freeze({}));
+      this.frames[-1] = new DisplayFrame(this, Object.freeze({}));
     }
   }
-  Timeline.prototype = {
+  DisplayListTimeline.prototype = {
     writeHead: null,
     allocateFrame: function() {
       if (this.writeHead) {
         throw new Error('cannot allocate frame until previous frame is committed or discarded');
       }
       var lastFrame = this.frames[this.frames.length-1];
-      var frame = new Frame(this, lastFrame.states);
+      var frame = new DisplayFrame(this, lastFrame.states);
       this.writeHead = frame;
       return frame;
     },
@@ -229,11 +229,11 @@ define(['arrayExtensions'], function() {
     },
   };
 
-  function Frame(timeline, states) {
+  function DisplayListFrame(timeline, states) {
     this.timeline = timeline;
     this.states = states;
   }
-  Frame.prototype = {
+  DisplayListFrame.prototype = {
     get writeStates() {
       var states = this.states = Object.assign(Object.create(null), this.states);
       Object.defineProperty(this, 'writeStates', {
@@ -277,7 +277,9 @@ define(['arrayExtensions'], function() {
     },
   };
   
-  DisplayList.Frame = Frame;
+  DisplayList.Group = DisplayListGroup;
+  DisplayList.Timeline = DisplayListTimeline;
+  DisplayList.Frame = DisplayListFrame;
   
   return DisplayList;
   
