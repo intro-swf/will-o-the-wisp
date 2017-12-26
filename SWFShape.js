@@ -236,10 +236,12 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       if (this.isMorphShape) {
         if (this.hasExtendedLineStyle) throw new Error('NYI: morph with extended line style');
         for (var i = 1; i < lineStyles.length; i++) {
-          var obj = {width: bytes.readUint16LE()};
-          obj.morphTo = {width: bytes.readUint16LE()};
-          obj.color = bytes.readSWFColor(this.hasNoAlpha);
-          obj.morphTo.color = bytes.readSWFColor(this.hasNoAlpha);
+          var obj = {joinStyle:'round', startCapStyle:'round', endCapStyle:'round'};
+          obj.morphTo = {joinStyle:'round', startCapStyle:'round', endCapStyle:'round'};
+          obj.strokeWidth = bytes.readUint16LE();
+          obj.morphTo.strokeWidth = bytes.readUint16LE();
+          obj.stroke = bytes.readSWFColor(this.hasNoAlpha);
+          obj.morphTo.stroke = bytes.readSWFColor(this.hasNoAlpha);
           lineStyles[i] = obj;
         }
       }
