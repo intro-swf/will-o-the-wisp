@@ -125,7 +125,7 @@ define(['arrayExtensions'], function() {
         }
       }
       while (i_depth < depths.length) {
-        var depth = depths[i_depth];
+        var depth = depths[i_depth++];
         this.setStateAt(depth, states[depth], ~i_obj++);
       }
     },
