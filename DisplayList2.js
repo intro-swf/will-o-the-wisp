@@ -53,6 +53,10 @@ define(['arrayExtensions'], function() {
             throw new Error('template not found: ' + state.template);
           }
           displayObject = template.cloneNode(true);
+          displayObject.depth = depth;
+          if (displayObject.hasAttribute('id')) {
+            displayObject.removeAttribute('id');
+          }
           template.dispatchEvent(new CustomEvent('display-object-init', {
             detail: {
               displayList: this,
