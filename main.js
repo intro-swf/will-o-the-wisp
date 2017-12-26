@@ -163,7 +163,7 @@ require([
     }
   }
   client.onframe = function onframe(def) {
-    var frame = movie.displayList.allocateFrame();
+    var frame = movie.timeline.allocateFrame();
     for (var i_update = 0; i_update < def.updates.length; i_update++) {
       doUpdate(frame, def.updates[i_update]);
     }
