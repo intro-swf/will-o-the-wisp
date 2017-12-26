@@ -141,6 +141,7 @@ require([
     if (def.nodeName === 'svg') {
       movie.displayList.displayObjectTemplates[def.getAttribute('id')] = def;
       def.removeAttribute('id');
+      def.style.position = 'absolute';
       def.addEventListener('display-object-init', onDisplayObjectInit);
     }
     else {
