@@ -115,6 +115,20 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
         patches.close();
       } while (!finished);
       bytes.flushBits();
+      if (this.isMorphShape) {
+        var targetShape = new SWFShape;
+        targetShape.readFrom(bytes);
+        var targetEdges = Array.prototype.concat.apply([], targetShape.layers.map(function(layer) {
+          return layer.edges;
+        }));
+        for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
+          var layer = this.layers[i_layer];
+          if (layer.edges.length > targetEdges.length) {
+            throw new Error('morph shape: not enough edges');
+          }
+          layer.edges.morphTo = targetEdges.splice(0, layer.edges.length);
+        }
+      }
     },
     readFillStylesFrom: function(bytes) {
       var count = bytes.readUint8();
@@ -132,53 +146,41 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       var fillStyle = bytes.readUint8();
       switch (fillStyle) {
         case 0x00:
+          var obj = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
           if (this.isMorphShape) {
-            var a = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
-            var b = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
-            return [a, b];
+            obj.morphTo = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
           }
-          return {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
+          return obj;
         case 0x10:
         case 0x12:
         case 0x13:
           var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
           var hasFocalPoint = (fillStyle === 0x13);
+          var obj = {type:'gradient', mode:mode, stops:[], matrix:bytes.readSWFMatrix()};
           if (this.isMorphShape) {
-            var a = {type:'gradient', mode:mode, stops:[]};
-            var b = {type:'gradient', mode:mode, stops:[]};
-            a.matrix = bytes.readSWFMatrix();
-            b.matrix = bytes.readSWFMatrix();
+            obj.morphTo = {type:'gradient', mode:mode, stops:[], matrix:bytes.readSWFMatrix()};
             var stops = this.readGradientStopsFrom(bytes);
-            a.spreadMode = b.spreadMode = stops.spreadMode;
-            a.interpolationMode = b.interpolationMode = stops.interpolationMode;
-            if (hasFocalPoint) {
-              a.focalPoint = b.focalPoint = bytes.readInt16LE() / 0x100;
-            }
+            obj.spreadMode = obj.morphTo.spreadMode = stops.spreadMode;
+            obj.interpolationMode = obj.morphTo.interpolationMode = stops.interpolationMode;
             while (stops.length > 0) {
-              a.stops.push(stops.shift());
-              b.stops.push(stops.shift());
+              obj.stops.push(stops.shift());
+              obj.morphTo.stops.push(stops.shift());
             }
-            return [a, b];
+            if (hasFocalPoint) {
+              obj.focalPoint = obj.morphTo.focalPoint = bytes.readInt16LE() / 0x100;
+            }
           }
           else {
-            var matrix = bytes.readSWFMatrix();
             var stops = this.readGradientStopsFrom(bytes);
-            var style = {
-              type: 'gradient',
-              mode: mode,
-              matrix: matrix,
-              stops: stops,
-              spreadMode: stops.spreadMode,
-              interpolationMode: stops.interpolationMode,
-            };
+            obj.spreadMode = stops.spreadMode;
+            obj.interpolationMode = stops.interpolationMode;
             delete stops.spreadMode;
             delete stops.interpolationMode;
             if (hasFocalPoint) {
-              style.focalPoint = bytes.readInt16LE() / 0x100;
+              obj.focalPoint = bytes.readInt16LE() / 0x100;
             }
-            return style;
           }
-          break;
+          return obj;
         case 0x40:
         case 0x41:
         case 0x42:
@@ -186,25 +188,15 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var bitmapID = bytes.readUint16LE();
           var mode = (fillStyle & 1) ? 'clipped' : 'tiled';
           var hardEdges = !!(fillStyle & 2);
+          var obj = {
+            type: 'bitmap',
+            mode: mode,
+            matrix: bytes.readSWFMatrix(),
+            bitmapID: bitmapID,
+            hardEdges: hardEdges,
+          };
           if (this.isMorphShape) {
-            var a = {
-              type: 'bitmap',
-              mode: mode,
-              matrix: bytes.readSWFMatrix(),
-              bitmapID: bitmapID,
-              hardEdges: hardEdges,
-            };
-            var b = {
-              type: 'bitmap',
-              mode: mode,
-              matrix: bytes.readSWFMatrix(),
-              bitmapID: bitmapID,
-              hardEdges: hardEdges,
-            };
-            return [a, b];
-          }
-          else {
-            return {
+            obj.morphTo = {
               type: 'bitmap',
               mode: mode,
               matrix: bytes.readSWFMatrix(),
@@ -212,7 +204,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               hardEdges: hardEdges,
             };
           }
-          break;
+          return obj;
         default:
           throw new Error('unknown fill mode');
       }
