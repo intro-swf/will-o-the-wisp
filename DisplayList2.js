@@ -53,7 +53,7 @@ define(['arrayExtensions'], function() {
             throw new Error('template not found: ' + state.template);
           }
           displayObject = template.cloneNode(true);
-          template.dispatchEvent(new Event('display-object-init', {
+          template.dispatchEvent(new CustomEvent('display-object-init', {
             detail: {
               displayList: this,
               displayObject: displayObject,
