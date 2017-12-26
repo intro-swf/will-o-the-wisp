@@ -193,7 +193,13 @@ require([
       button.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
         var update = def.contentUpdates[i_update];
-        button.displayList.setStateAt(update.depth, Object.assign({template:update.url.replace(/^#/, '')}, update.settings));
+        button.displayList.setStateAt(update.depth,
+          Object.assign({
+              template: update.url.replace(/^#/, ''),
+              transform: 'translateZ(0)',
+            },
+          update.settings)
+        );
       }
     });
     movie.displayList.displayObjectTemplates[def.id] = template;
