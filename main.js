@@ -178,9 +178,10 @@ require([
   client.onbutton = function(def) {
     var template = document.createElement('DIV');
     template.style.position = 'absolute';
-    template.classList.add('button');
+    template.classList.add('button-container');
     template.setAttribute('tabindex', '0');
     template.appendChild(document.createElement('DIV'));
+    template.firstChild.classList.add('button');
     template.addEventListener('display-object-init', onDisplayObjectInit);
     template.addEventListener('display-object-init', function(e) {
       var displayList = e.detail.displayList;
@@ -196,8 +197,9 @@ require([
   };
   client.onsprite = function(def) {
     var template = document.createElement('DIV');
-    template.classList.add('sprite');
+    template.classList.add('sprite-container');
     template.appendChild(document.createElement('DIV'));
+    template.firstChild.classList.add('sprite');
     template.addEventListener('display-object-init', onDisplayObjectInit);
     template.addEventListener('display-list-init', function(e) {
       var displayList = e.detail.displayList;
