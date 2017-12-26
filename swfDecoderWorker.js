@@ -1432,7 +1432,7 @@ function(
         if (this.e === 0 && this.f === 0) {
           if (scale) return scale;
         }
-        var translate = 'translate(' + this.e + ', ' + this.f + ')';
+        var translate = 'translate(' + this.e + 'px, ' + this.f + 'px)';
         return scale ? translate+' '+scale : translate;
       }
       return 'matrix(' + [
