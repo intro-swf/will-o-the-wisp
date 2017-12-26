@@ -22,7 +22,7 @@ require([
   movie.timeline = new DisplayList.Timeline({background:'#000'});
   movie.framePos = -1;
   movie.addEventListener('display-object-state', function() {
-    document.body.background = this.state.background;
+    document.body.style.background = this.state.background;
   });
   var client = new SWFDecoderClient;
   
