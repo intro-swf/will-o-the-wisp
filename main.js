@@ -49,12 +49,6 @@ require([
     return filter;
   }
   
-  function getTransformMatrix(transform) {
-    var tempEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    tempEl.setAttribute('transform', transform);
-    return tempEl.transform.baseVal.consolidate().matrix;
-  }
-  
   const specifier = location.search.match(/^\?\/?([^\/]+)\/(.+)$/);
   if (!specifier) {
     return;
