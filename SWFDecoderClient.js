@@ -468,6 +468,7 @@ define(function() {
   
   function InsertUpdate() {
     this.settings = Object.create(null);
+    this.settings.transform = 'translateZ(0)';
   }
   InsertUpdate.prototype = {
     type: 'insert',
