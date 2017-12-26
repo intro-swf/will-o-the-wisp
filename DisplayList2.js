@@ -197,10 +197,10 @@ define(['arrayExtensions'], function() {
   function DisplayListTimeline(selfState) {
     this.frames = [];
     if (selfState) {
-      this.frames[-1] = new DisplayFrame(this, Object.freeze({'-1':selfState}));
+      this.frames[-1] = new DisplayListFrame(this, Object.freeze({'-1':selfState}));
     }
     else {
-      this.frames[-1] = new DisplayFrame(this, Object.freeze({}));
+      this.frames[-1] = new DisplayListFrame(this, Object.freeze({}));
     }
   }
   DisplayListTimeline.prototype = {
@@ -210,7 +210,7 @@ define(['arrayExtensions'], function() {
         throw new Error('cannot allocate frame until previous frame is committed or discarded');
       }
       var lastFrame = this.frames[this.frames.length-1];
-      var frame = new DisplayFrame(this, lastFrame.states);
+      var frame = new DisplayListFrame(this, lastFrame.states);
       this.writeHead = frame;
       return frame;
     },
