@@ -91,7 +91,7 @@ define(['arrayExtensions'], function() {
               }
               else break;
             }
-            addPrevEl(container, prevEl, displayObject);
+            addPrevEl(container, insertBefore, displayObject);
             this.displayObjects.splice(i_obj, 0, displayObject);
           }
         }
