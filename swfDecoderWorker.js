@@ -581,7 +581,7 @@ function(
           break;
         case TAG_DEFINE_BUTTON:
           var id = data.readUint16LE();
-          var def = ['btn', '#button' + id];
+          var def = ['btn', 'button' + id];
           for (;;) {
             var flags = data.readUint8();
             if (flags === 0) break;
@@ -605,7 +605,7 @@ function(
           break;
         case TAG_DEFINE_BUTTON_2:
           var id = data.readUint16LE();
-          var def = ['btn', '#button' + id];
+          var def = ['btn', 'button' + id];
           if (data.readUint8() & 1) {
             def.push(['mode', 'menu']);
           }
@@ -858,7 +858,7 @@ function(
           var id = data.readUint16LE();
           var spriteFrameCount = data.readUint16LE();
           var spriteClipAtDepth = {};
-          var def = ['sprite', '#sprite'+id];
+          var def = ['sprite', 'sprite'+id];
           var nextSpriteFrame = new FrameInfo;
           var spriteData = data;
           spriteLoop: while (spriteData.offset < spriteData.length) {
