@@ -30,6 +30,7 @@ function(
       ,TAG_DEFINE_SHAPE_2 = 22
       ,TAG_DEFINE_SHAPE_3 = 32
       ,TAG_DEFINE_SHAPE_4 = 83
+      ,TAG_DEFINE_MORPH_SHAPE = 46
     ,TAG_PLACE_OBJECT = 4
       ,TAG_PLACE_OBJECT_2 = 26
     ,TAG_REMOVE_OBJECT = 5
@@ -65,7 +66,6 @@ function(
     ,TAG_DEFINE_EDIT_TEXT = 37
     ,TAG_DEFINE_SPRITE = 39
     ,TAG_FRAME_LABEL = 43
-    ,TAG_DEFINE_MORPH_SHAPE = 46
     ,TAG_FILE_ATTRIBUTES = 69
     ,TAG_DEFINE_SCALING_GRID = 78
     ,TAG_EXPORT = 56
@@ -364,9 +364,16 @@ function(
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
         case TAG_DEFINE_SHAPE_3:
+        case TAG_DEFINE_MORPH_SHAPE:
           var id = data.readUint16LE();
-          var bounds = data.readSWFRect();
           var shape = new SWFShape;
+          var bounds = data.readSWFRect();
+          if (typeCode === TAG_DEFINE_MORPH_SHAPE) {
+            shape.isMorphShape = true;
+            var bounds1 = bounds;
+            var bounds2 = data.readSWFRect();
+            bounds = bounds1.union(bounds2);
+          }
           shape.hasStyles = true;
           shape.bitmaps = bitmaps;
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
