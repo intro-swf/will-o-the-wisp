@@ -101,7 +101,12 @@ require([
     console.log('frameset', frameset);
   };
   function onDisplayObjectState(e) {
-    this.style.transform = this.state.transform;
+    if ('viewBox' in this) {
+      this.style.transform = 'translate(' + this.viewBox.baseVal.x + 'px, ' + this.viewBox.baseVal.y + 'px) ' + this.state.transform;
+    }
+    else {
+      this.style.transform = this.state.transform;
+    }
     this.style.opacity = this.state.opacity;
     if (this.colorTransform) {
       if (this.state.colorMatrix) {
