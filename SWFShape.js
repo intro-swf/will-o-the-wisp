@@ -127,6 +127,33 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             throw new Error('morph shape: not enough edges');
           }
           layer.edges.morphTo = targetEdges.splice(0, layer.edges.length);
+          for (var i_edge = 0; i_edge < layer.edges.length; i_edge++) {
+            var fromEdge = layer.edges[i_edge], toEdge = layer.edges.morphTo[i_edge];
+            if (fromEdge.controlPoint && !toEdge.controlPoint) {
+              toEdge.controlPoint = new Point(
+                (toEdge.startPoint.x + toEdge.endPoint.x)/2
+                ,(toEdge.startPoint.y + toEdge.endPoint.y)/2
+              );
+            }
+            else if (toEdge.controlPoint && !fromEdge.controlPoint) {
+              fromEdge.controlPoint = new Point(
+                (fromEdge.startPoint.x + fromEdge.endPoint.x)/2
+                ,(fromEdge.startPoint.y + fromEdge.endPoint.y)/2
+              );
+            }
+          }
+          for (var i_edge = 0; i_edge < layer.edges.length; i_edge++) {
+            var fromEdge = layer.edges[i_edge], toEdge = layer.edges.morphTo[i_edge];
+            if (!fromEdge.startPoint.isEqualTo(toEdge.startPoint)) break;
+            if (!fromEdge.endPoint.isEqualTo(toEdge.endPoint)) break;
+            if (fromEdge.controlPoint && !fromEdge.controlPoint.isEqualTo(toEdge.controlPoint)) break;
+          }
+          if (i_edge === layer.edges.length) {
+            delete layer.edges.morphTo;
+          }
+        }
+        if (targetEdges.length !== 0) {
+          throw new Error('morph shape: too many edges');
         }
       }
     },
@@ -432,7 +459,35 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             }
           }
           attr.d = pathData.join('');
-          xml.empty('path', attr);
+          var pathEl = xml.open('path', attr);
+          if (edges.morphTo) {
+            var morphEdges = edges.morphTo;
+            var morphPathData = [];
+            for (var i_patch = 0; i_patch < patches.length; i_patch++) {
+              var patch = patches[i_patch];
+              if (patch[0] < 0) {
+                morphPathData.push(morphEdges[~patch[0]].pathStartLeft);
+              }
+              else {
+                morphPathData.push(morphEdges[patch[0]].pathStartRight);
+              }
+              for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+                var i_edge = patch[ii_edge];
+                if (i_edge < 0) {
+                  var edge = morphEdges[~i_edge];
+                  morphPathData.push(edge.pathStepLeft);
+                }
+                else {
+                  var edge = morphEdges[i_edge];
+                  morphPathData.push(edge.pathStepRight);
+                }
+              }
+            }
+            morphPathData = morphPathData.join('');
+            if (morphPathData !== attr.d) {
+              pathEl.empty('animate', {'attributeName':'d', 'to':morphPathData});
+            }
+          }
         }
         for (var i_line = 1; i_line < layer.lines.length; i_line++) {
           var line = layer.lines[i_line];
