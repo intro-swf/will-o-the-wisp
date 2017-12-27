@@ -71,6 +71,7 @@ require([
     const twipWidth = parts[2] - parts[0], twipHeight = parts[3] - parts[1];
     movie.style.width = twipWidth + 'px';
     movie.style.height = twipHeight + 'px';
+    movie.tickMs = 1000/frameset.rate;
     var movieReshapeId = null;
     function reshapeMovie() {
       if (movieReshapeId === null) {
@@ -166,6 +167,11 @@ require([
         break;
     }
   }
+  function checkTick(stamp) {
+    if (stamp < movie.nextTick) return;
+    movie.nextTick += movie.tickMs;
+    movie.dispatchEvent(new Event('tick'));
+  }
   client.onframe = function onframe(def) {
     var frame = movie.timeline.allocateFrame();
     for (var i_update = 0; i_update < def.updates.length; i_update++) {
@@ -174,13 +180,12 @@ require([
     frame.commit();
     if (movie.timeline.frames.length === 1) {
       movie.displayList.setAllStates(movie.timeline.frames[0].states);
+      movie.nextTick = performance.now() + movie.tickMs;
+      requestAnimationFrame(checkTick);
     }
     if (def.count > 1) {
       movie.timeline.duplicateFrame(def.count - 1);
     }
-    //if (movie.framePos === -1) {
-    //  movie.scrubber.value = 0;
-    //}
   };
   client.onbutton = function(def) {
     var template = document.createElement('DIV');
@@ -229,6 +234,11 @@ require([
         frame.commit();
       }
       sprite.displayList.setAllStates(sprite.timeline.frames[0].states);
+      var frame_i = 0;
+      movie.addEventListener('tick', function(e) {
+        frame_i = (frame_i + 1) % sprite.timeline.frames.length;
+        sprite.displayList.setAllStates(sprite.timeline.frames[i_frame].states);
+      });
     });
     movie.displayList.displayObjectTemplates[def.id] = template;
   };
