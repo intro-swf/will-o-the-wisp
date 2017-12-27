@@ -1522,6 +1522,12 @@ function(
   SWFMatrix.prototype = {
     a:1, b: 0, c:0, d:1, e:0, f:0,
     toString: function() {
+      return 'matrix(' + [
+        this.a, this.b,
+        this.c, this.d,
+        this.e, this.f].join(', ') + ')';
+    },
+    get cssString() {
       if (this.b === 0 && this.c === 0) {
         // no rotation/skew
         var scale;
@@ -1537,10 +1543,7 @@ function(
         var translate = 'translate(' + this.e + 'px, ' + this.f + 'px)';
         return scale ? translate+' '+scale : translate;
       }
-      return 'matrix(' + [
-        this.a, this.b,
-        this.c, this.d,
-        this.e, this.f].join(', ') + ')';
+      return this.toString();
     },
     get isIdentity() {
       return this.a === 1 && this.b === 0 && this.c === 0
