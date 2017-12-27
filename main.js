@@ -169,9 +169,10 @@ require([
   }
   function checkTick(stamp) {
     requestAnimationFrame(checkTick);
-    if (stamp < movie.nextTick) return;
-    movie.nextTick += movie.tickMs;
-    movie.dispatchEvent(new Event('tick'));
+    while (stamp >= movie.nextTick) {
+      movie.nextTick += movie.tickMs;
+      movie.dispatchEvent(new Event('tick'));
+    }
   }
   client.onframe = function onframe(def) {
     var frame = movie.timeline.allocateFrame();
