@@ -162,6 +162,8 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             var stops = this.readGradientStopsFrom(bytes);
             obj.spreadMode = obj.morphTo.spreadMode = stops.spreadMode;
             obj.interpolationMode = obj.morphTo.interpolationMode = stops.interpolationMode;
+            obj.stops = [];
+            obj.morphTo.stops = [];
             while (stops.length > 0) {
               obj.stops.push(stops.shift());
               obj.morphTo.stops.push(stops.shift());
@@ -171,7 +173,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             }
           }
           else {
-            var stops = this.readGradientStopsFrom(bytes);
+            var stops = obj.stops = this.readGradientStopsFrom(bytes);
             obj.spreadMode = stops.spreadMode;
             obj.interpolationMode = stops.interpolationMode;
             delete stops.spreadMode;
