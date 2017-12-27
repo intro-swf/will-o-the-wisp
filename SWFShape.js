@@ -520,13 +520,12 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var pathEl = xml.open('path', attr);
           if (morphEdges) {
             var morphPathData = [];
-            for (var i_patch = 0; i_patch < patches.length; i_patch++) {
-              var patch = patches[i_patch];
-              morphPathData.push(morphEdges[patch[0]].pathStartRight);
-              for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
-                var i_edge = patch[ii_edge];
-                var edge = morphEdges[i_edge];
-                morphPathData.push(edge.pathStepRight);
+            for (var i_segment = 0; i_segment < line.segments.length; i_segment++) {
+              var seg = line.segments[i_segment];
+              morphPathData.push(morphEdges[seg[0]].pathStartRight);
+              for (var ii_edge = 0; ii_edge < seg.length; ii_edge++) {
+                var i_edge = seg[ii_edge];
+                morphPathData.push(morphEdges[i_edge].pathStepRight);
               }
             }
             morphPathData = morphPathData.join('');
