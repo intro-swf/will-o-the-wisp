@@ -176,6 +176,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var obj = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
           if (this.isMorphShape) {
             obj.morphTo = {type:'solid', fill:bytes.readSWFColor(this.hasNoAlpha)};
+            if (obj.morphTo.fill === obj.fill) delete obj.morphTo;
           }
           return obj;
         case 0x10:
@@ -184,30 +185,13 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
           var hasFocalPoint = (fillStyle === 0x13);
           var obj = {type:'gradient', mode:mode, matrix:bytes.readSWFMatrix()};
-          if (this.isMorphShape) {
-            obj.morphTo = {type:'gradient', mode:mode, matrix:bytes.readSWFMatrix()};
-            var stops = this.readGradientStopsFrom(bytes);
-            obj.spreadMode = obj.morphTo.spreadMode = stops.spreadMode;
-            obj.interpolationMode = obj.morphTo.interpolationMode = stops.interpolationMode;
-            obj.stops = [];
-            obj.morphTo.stops = [];
-            while (stops.length > 0) {
-              obj.stops.push(stops.shift());
-              obj.morphTo.stops.push(stops.shift());
-            }
-            if (hasFocalPoint) {
-              obj.focalPoint = obj.morphTo.focalPoint = bytes.readInt16LE() / 0x100;
-            }
-          }
-          else {
-            var stops = obj.stops = this.readGradientStopsFrom(bytes);
-            obj.spreadMode = stops.spreadMode;
-            obj.interpolationMode = stops.interpolationMode;
-            delete stops.spreadMode;
-            delete stops.interpolationMode;
-            if (hasFocalPoint) {
-              obj.focalPoint = bytes.readInt16LE() / 0x100;
-            }
+          var stops = obj.stops = this.readGradientStopsFrom(bytes);
+          obj.spreadMode = stops.spreadMode;
+          obj.interpolationMode = stops.interpolationMode;
+          delete stops.spreadMode;
+          delete stops.interpolationMode;
+          if (hasFocalPoint) {
+            obj.focalPoint = bytes.readInt16LE() / 0x100;
           }
           return obj;
         case 0x40:
@@ -225,13 +209,10 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             hardEdges: hardEdges,
           };
           if (this.isMorphShape) {
-            obj.morphTo = {
-              type: 'bitmap',
-              mode: mode,
-              matrix: bytes.readSWFMatrix(),
-              bitmapID: bitmapID,
-              hardEdges: hardEdges,
-            };
+            var morphMatrix = bytes.readSWFMatrix();
+            if (!morphMatrix.isEqualTo(obj.matrix)) {
+              obj.matrix.morphTo = morphMatrix;
+            }
           }
           return obj;
         default:
@@ -250,6 +231,14 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       for (var i = 0; i < points.length; i++) {
         var stop = points[i] = {ratio: percentFromByte(bytes.readUint8())};
         stop.color = bytes.readSWFColor(this.hasNoAlpha);
+      }
+      if (this.isMorphShape) {
+        for (var i = 0; i < points.length; i++) {
+          points[i].morphTo = points.splice(i+1, 1)[0];
+          if (points[i].morphTo.ratio === points[i].ratio && points[i].morphTo.color === points[i].color) {
+            delete points[i].morphTo;
+          }
+        }
       }
       points.spreadMode = ['pad', 'reflect', 'repeat'][flags >>> 6];
       points.interpolationMode = ['normal', 'linear'][(flags >>> 4) & 3];
@@ -271,6 +260,9 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           obj.morphTo.strokeWidth = bytes.readUint16LE();
           obj.stroke = bytes.readSWFColor(this.hasNoAlpha);
           obj.morphTo.stroke = bytes.readSWFColor(this.hasNoAlpha);
+          if (obj.morphTo.strokeWidth === obj.strokeWidth && obj.morphTo.stroke === obj.stroke) {
+            delete obj.morphTo;
+          }
           lineStyles[i] = obj;
         }
       }
@@ -346,7 +338,18 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
                 if (stop.color.opacity !== 1) {
                   stopAttr['stop-opacity'] = stop.color.opacity;
                 }
-                grad.empty('stop', stopAttr);
+                var stopEl = grad.open('stop', stopAttr);
+                if (stop.morphTo) {
+                  if (stop.morphTo.ratio !== stop.ratio) {
+                    stopEl.empty('animate', {attributeName:'offset', to:stop.morphTo.ratio});
+                  }
+                  if (stop.morphTo.color.solidColor !== stop.color.solidColor) {
+                    stopEl.empty('animate', {attributeName:'stop-color', to:stop.morphTo.color.solidColor});
+                  }
+                  if (stop.morphTo.color.opacity !== stop.color.opacity) {
+                    stopEl.empty('animate', {attributeName:'stop-opacity', to:stop.morphTo.color.opacity});
+                  }
+                }
               }
               defs.push(grad);
               break;
@@ -363,6 +366,9 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
                   patternAttr.patternTransform = fillStyle.matrix.toString();
                 }
                 var pattern = new MakeshiftXML('pattern', patternAttr);
+                if (fillStyle.matrix.morphTo) {
+                  pattern.empty('animate', {'attributeName':'patternTransform', to:fillStyle.matrix.morphTo.toString()});
+                }
                 var useAttr = {href:'#'+bitmap.id};
                 if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
                 pattern.empty('use', useAttr);
@@ -384,6 +390,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var fill = layer.fills[i_fill];
           if (fill.segments.length === 0) continue;
           var fillStyle = fill.style;
+          var morphElements = this.isMorphShape ? [] : null;
           var attr = {};
           switch (fillStyle.type) {
             case 'solid':
@@ -393,7 +400,15 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               else {
                 attr.fill = fillStyle.fill.solidColor;
                 if (fillStyle.fill.opacity !== 1) {
-                  attr['opacity'] = fillStyle.fill.opacity;
+                  attr.opacity = fillStyle.fill.opacity;
+                }
+                if (fillStyle.morphTo) {
+                  if (fillStyle.morphTo.fill.solidColor !== fillStyle.fill.solidColor) {
+                    morphElements.push(new MakeshiftXML('animate', {attributeName:'fill', to:fillStyle.morphTo.fill.solidColor}));
+                  }
+                  if (fillStyle.morphTo.fill.opacity !== fillStyle.fill.opacity) {
+                    morphElements.push(new MakeshiftXML('animate', {attributeName:'opacity', to:fillStyle.morphTo.fill.opacity}));
+                  }
                 }
               }
               break;
@@ -419,23 +434,25 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               console.warn('NYI: fill style ' + fillStyle.type);
               break;
           }
-          var rect = fill.toRect();
-          if (rect) {
-            if (fillStyle.type === 'bitmap' && fillStyle.matrix.b === 0 && fillStyle.matrix.c === 0) {
-              var bitmap = this.bitmaps[fillStyle.bitmapID];
-              if (bitmap.width * fillStyle.matrix.a === rect.width && bitmap.height * fillStyle.matrix.d === rect.height) {
-                var useAttr = {href:'#'+bitmap.id, transform:fillStyle.matrix.toString()};
-                if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
-                xml.empty('use', useAttr);
-                continue;
+          if (!this.isMorphShape) {
+            var rect = fill.toRect();
+            if (rect) {
+              if (fillStyle.type === 'bitmap' && fillStyle.matrix.b === 0 && fillStyle.matrix.c === 0) {
+                var bitmap = this.bitmaps[fillStyle.bitmapID];
+                if (bitmap.width * fillStyle.matrix.a === rect.width && bitmap.height * fillStyle.matrix.d === rect.height) {
+                  var useAttr = {href:'#'+bitmap.id, transform:fillStyle.matrix.toString()};
+                  if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
+                  xml.empty('use', useAttr);
+                  continue;
+                }
               }
+              attr.x = rect.left;
+              attr.y = rect.top;
+              attr.width = rect.width;
+              attr.height = rect.height;
+              xml.empty('rect', attr);
+              continue;
             }
-            attr.x = rect.left;
-            attr.y = rect.top;
-            attr.width = rect.width;
-            attr.height = rect.height;
-            xml.empty('rect', attr);
-            continue;
           }
           var patches = fill.segments;
           var pathData = [];
@@ -461,6 +478,9 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           }
           attr.d = pathData.join('');
           var pathEl = xml.open('path', attr);
+          if (morphElements) {
+            pathEl.children = morphElements;
+          }
           if (morphEdges) {
             var morphPathData = [];
             for (var i_patch = 0; i_patch < patches.length; i_patch++) {
@@ -518,6 +538,18 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             attr['stroke-miterlimit'] = line.style.miterLimitFactor;
           }
           var pathEl = xml.open('path', attr);
+          if (line.style.morphTo) {
+            var morphStyle = line.style.morphTo;
+            if (morphStyle.stroke.solidColor !== line.style.stroke.solidColor) {
+              pathEl.empty('animate', {attributeName:'stroke', to:morphStyle.stroke.solidColor});
+            }
+            if (morphStyle.stroke.opacity !== line.style.stroke.opacity) {
+              pathEl.empty('animate', {attributeName:'stroke-opacity', to:morphStyle.stroke.opacity});
+            }
+            if (morphStyle.strokeWidth !== line.style.strokeWidth) {
+              pathEl.empty('animate', {attributeName:'stroke-width', to:morphStyle.strokeWidth});
+            }
+          }
           if (morphEdges) {
             var morphPathData = [];
             for (var i_segment = 0; i_segment < line.segments.length; i_segment++) {
