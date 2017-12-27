@@ -216,6 +216,7 @@ require([
   };
   client.onsprite = function(def) {
     var template = document.createElement('DIV');
+    template.style.position = 'absolute';
     template.classList.add('sprite-container');
     template.appendChild(document.createElement('DIV'));
     template.firstChild.classList.add('sprite');
