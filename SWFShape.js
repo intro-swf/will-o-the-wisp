@@ -379,6 +379,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
+        var morphEdges = edges.morphTo;
         for (var i_fill = 1; i_fill < layer.fills.length; i_fill++) {
           var fill = layer.fills[i_fill];
           if (fill.segments.length === 0) continue;
@@ -460,8 +461,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           }
           attr.d = pathData.join('');
           var pathEl = xml.open('path', attr);
-          if (edges.morphTo) {
-            var morphEdges = edges.morphTo;
+          if (morphEdges) {
             var morphPathData = [];
             for (var i_patch = 0; i_patch < patches.length; i_patch++) {
               var patch = patches[i_patch];
@@ -517,7 +517,23 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           if (line.style.joinStyle === 'miter') {
             attr['stroke-miterlimit'] = line.style.miterLimitFactor;
           }
-          xml.empty('path', attr);
+          var pathEl = xml.open('path', attr);
+          if (morphEdges) {
+            var morphPathData = [];
+            for (var i_patch = 0; i_patch < patches.length; i_patch++) {
+              var patch = patches[i_patch];
+              morphPathData.push(morphEdges[patch[0]].pathStartRight);
+              for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+                var i_edge = patch[ii_edge];
+                var edge = morphEdges[i_edge];
+                morphPathData.push(edge.pathStepRight);
+              }
+            }
+            morphPathData = morphPathData.join('');
+            if (morphPathData !== attr.d) {
+              pathEl.empty('animate', {'attributeName':'d', 'to':morphPathData});
+            }
+          }
         }
       }
       return xml;
