@@ -211,7 +211,7 @@ require([
     template.appendChild(document.createElement('DIV'));
     template.firstChild.classList.add('sprite');
     template.addEventListener('display-object-init', onDisplayObjectInit);
-    template.addEventListener('display-list-init', function(e) {
+    template.addEventListener('display-object-init', function(e) {
       var displayList = e.detail.displayList;
       var sprite = e.detail.displayObject;
       sprite.displayList = new DisplayList(sprite.firstChild);
