@@ -168,6 +168,7 @@ require([
     }
   }
   function checkTick(stamp) {
+    requestAnimationFrame(checkTick);
     if (stamp < movie.nextTick) return;
     movie.nextTick += movie.tickMs;
     movie.dispatchEvent(new Event('tick'));
