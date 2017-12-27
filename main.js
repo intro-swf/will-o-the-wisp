@@ -172,6 +172,9 @@ require([
       doUpdate(frame, def.updates[i_update]);
     }
     frame.commit();
+    if (movie.timeline.frames.length === 1) {
+      movie.displayList.setAllStates(movie.timeline.frames[0].states);
+    }
     if (def.count > 1) {
       movie.timeline.duplicateFrame(def.count - 1);
     }
