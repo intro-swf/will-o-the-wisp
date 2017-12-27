@@ -185,6 +185,12 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var mode = (fillStyle === 0x10) ? 'linear' : 'radial';
           var hasFocalPoint = (fillStyle === 0x13);
           var obj = {type:'gradient', mode:mode, matrix:bytes.readSWFMatrix()};
+          if (this.isMorphShape) {
+            var morphMatrix = bytes.readSWFMatrix();
+            if (!morphMatrix.isEqualTo(obj.matrix)) {
+              obj.matrix.morphTo = morphMatrix;
+            }
+          }
           var stops = obj.stops = this.readGradientStopsFrom(bytes);
           obj.spreadMode = stops.spreadMode;
           obj.interpolationMode = stops.interpolationMode;
@@ -329,6 +335,9 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
                 gradAttr.x2 = 16384;
               }
               var grad = new MakeshiftXML(fillStyle.mode + 'Gradient', gradAttr);
+              if (fillStyle.matrix.morphTo) {
+                grad.empty('animate', {attributeName:'gradientTransform', to:fillStyle.matrix.morphTo.toString()});
+              }
               for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
                 var stop = fillStyle.stops[i_stop];
                 var stopAttr = {
