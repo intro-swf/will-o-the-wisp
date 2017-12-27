@@ -236,10 +236,12 @@ require([
       }
       sprite.displayList.setAllStates(sprite.timeline.frames[0].states);
       var frame_i = 0;
-      movie.addEventListener('tick', function(e) {
+      function ontick(e) {
         frame_i = (frame_i + 1) % sprite.timeline.frames.length;
         sprite.displayList.setAllStates(sprite.timeline.frames[i_frame].states);
-      });
+      }
+      movie.addEventListener('tick', ontick);
+      sprite.addEventListener('display-object-delete', movie.removeEventListener.bind(movie, 'tick', ontick));
     });
     movie.displayList.displayObjectTemplates[def.id] = template;
   };
