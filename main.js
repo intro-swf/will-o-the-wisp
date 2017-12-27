@@ -241,7 +241,9 @@ require([
         sprite.displayList.setAllStates(sprite.timeline.frames[i_frame].states);
       }
       movie.addEventListener('tick', ontick);
-      sprite.addEventListener('display-object-delete', movie.removeEventListener.bind(movie, 'tick', ontick));
+      sprite.addEventListener('display-object-delete', function() {
+        movie.removeEventListener('tick', ontick);
+      });
     });
     movie.displayList.displayObjectTemplates[def.id] = template;
   };
