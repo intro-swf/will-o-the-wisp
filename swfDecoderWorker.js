@@ -716,7 +716,13 @@ function(
               var colorTransform = membersData.readSWFColorTransform();
               var insertion = ['i', depth, displayObjects[characterID]];
               if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
-              if (!colorTransform.isIdentity) insertion.push(['colorMatrix', colorTransform.toString()]);
+              insertion.push(['opacity', colorTransform.opacity]);
+              if (colorTransform.isOpacityOnly) {
+                insertion.push(['colorMatrix', null]);
+              }
+              else {
+                insertion.push(['colorMatrix', colorTransform.colorMatrixFullOpacity]);
+              }
               var classes = [];
               if (flags & 1) classes.push('up');
               if (flags & 2) classes.push('over');
@@ -775,15 +781,24 @@ function(
           var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
           var insertion = ['i', depth, displayObjects[characterID]];
           if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
-          if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
+          if (!colorTransform) {
+            insertion.push(["opacity", 1]);
+            insertion.push(["colorMatrix", null]);
+          }
+          else {
+            insertion.push(['opacity', colorTransform.opacity]);
+            if (colorTransform.isOpacityOnly) {
+              insertion.push(['colorMatrix', null]);
+            }
+            else {
+              insertion.push(['colorMatrix', colorTransform.colorMatrixFullOpacity]);
+            }
+          }
           nextFrame.updates.push(insertion);
           for (var i = nextFrame.updates.length-2; i >= 0; i--) {
             if (nextFrame.updates[i][0] === 'd' && nextFrame.updates[i][1] === depth) {
               nextFrame.updates.pop();
               insertion.splice(0, 3, 'm', depth);
-              if (!colorTransform || colorTransform.isIdentity) {
-                insertion.push(["colorMatrix", null]);
-              }
               nextFrame.updates[i] = insertion;
               break;
             }
@@ -802,11 +817,12 @@ function(
           }
           if (flags & 8) {
             var colorTransform = data.readSWFColorTransform();
-            if (colorTransform.isIdentity) {
+            update.push(['opacity', colorTransform.opacity]);
+            if (colorTransform.isOpacityOnly) {
               update.push(['colorMatrix', null]);
             }
             else {
-              update.push(['colorMatrix', colorTransform.toString()]);
+              update.push(['colorMatrix', colorTransform.colorMatrixFullOpacity]);
             }
           }
           if (flags & 0x10) {
@@ -980,15 +996,24 @@ function(
                 var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
                 var insertion = ['i', depth, displayObjects[characterID]];
                 if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
-                if (colorTransform && !colorTransform.isIdentity) insertion.push(["colorMatrix", colorTransform.toString()]);
+                if (!colorTransform) {
+                  insertion.push(["opacity", 1]);
+                  insertion.push(["colorMatrix", null]);
+                }
+                else {
+                  insertion.push(["opacity", colorTransform.opacity]);
+                  if (colorTransform.isOpacityOnly) {
+                    insertion.push(["colorMatrix", null]);
+                  }
+                  else {
+                    insertion.push(["colorMatrix", colorTransform.colorMatrixFullOpacity]);
+                  }
+                }
                 nextSpriteFrame.updates.push(insertion);
                 for (var i = nextSpriteFrame.updates.length-2; i >= 0; i--) {
                   if (nextSpriteFrame.updates[i][0] === 'd' && nextSpriteFrame.updates[i][1] === depth) {
                     nextSpriteFrame.updates.pop();
                     insertion.splice(0, 3, 'm', depth);
-                    if (!colorTransform || colorTransform.isIdentity) {
-                      insertion.push(["colorMatrix", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"]);
-                    }
                     nextSpriteFrame.updates[i] = insertion;
                     break;
                   }
@@ -1005,7 +1030,14 @@ function(
                   update.push(['transform', data.readSWFMatrix().toString()]);
                 }
                 if (flags & 8) {
-                  update.push(['colorTransform', data.readSWFColorTransform().toString()]);
+                  var colorTransform = data.readSWFColorTransform();
+                  update.push(['opacity', colorTransform.opacity]);
+                  if (colorTransform.isOpacityOnly) {
+                    update.push(['colorMatrix', null]);
+                  }
+                  else {
+                    update.push(['colorMatrix', colorTransform.colorMatrixFullOpacity]);
+                  }
                 }
                 if (flags & 0x10) {
                   var v = data.readUint16LE();
@@ -1638,6 +1670,22 @@ function(
           0, 0, this.mulB, 0, this.addB / 255,
           0, 0, 0, this.mulA, this.addA / 255,
         ].join(' ');
+    },
+    get colorMatrixFullOpacity() {
+      return [
+          this.mulR, 0, 0, 0, this.addR / 255,
+          0, this.mulG, 0, 0, this.addG / 255,
+          0, 0, this.mulB, 0, this.addB / 255,
+          0, 0, 0, 1, this.addA / 255,
+        ].join(' ');
+    },
+    get opacity() {
+      return this.mulA;
+    },
+    get isOpacityOnly() {
+      return this.mulR === 1 && this.mulG === 1 && this.mulB === 1
+        && this.addR === 0 && this.addG === 0 && this.addB === 0
+        && this.addA === 0;
     },
     isEqualTo: function(ct) {
       if (ct === this) return true;
