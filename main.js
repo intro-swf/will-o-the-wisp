@@ -183,6 +183,7 @@ require([
       movie.displayList.displayObjectTemplates[def.getAttribute('id')] = template;
       def.removeAttribute('id');
       template.style.position = 'absolute';
+      template.style.transformOrigin = 'top left';
       template.appendChild(def);
       template.addEventListener('display-object-init', onDisplayObjectInit);
       template.addEventListener('display-object-init', function(e) {
