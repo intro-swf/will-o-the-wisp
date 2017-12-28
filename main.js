@@ -196,7 +196,10 @@ require([
       else {
         this.colorTransform.parentNode.removeChild(this.colorTransform);
         delete this.colorTransform;
-        if (this.style.filter !== 'brightness(100%)') {
+        if (/^brightness/.test(this.style.filter)) {
+          this.style.filter = 'brightness(100%)';
+        }
+        else {
           this.style.filter = '';
         }
       }
