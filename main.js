@@ -66,6 +66,8 @@ require([
   });
   var client = new SWFDecoderClient;
   
+  const nullColorTransform = ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0', '0 0 0 1 0'].join(' ');
+  
   function makeColorTransform() {
     var num = 1;
     while (document.getElementById('cxform'+num)) {
@@ -76,7 +78,7 @@ require([
     filter.setAttribute('id', id);
     filter.setAttribute('color-interpolation-filters', 'sRGB');
     const feColorMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
-    var valueString = ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0', '0 0 0 1 0'].join(' ');
+    var valueString = nullColorTransform;
     feColorMatrix.setAttribute('values', valueString);
     const cssRef = 'url(#' + id + ')';
     const values = feColorMatrix.values.baseVal;
@@ -95,6 +97,7 @@ require([
       },
       set: function(values) {
         if (values === valueString) return;
+        valueString = values;
         values = values.split(/ /g).map(parseFloat);
         if (values[0] !== mulR.value) mulR.value = values[0];
         if (values[6] !== mulG.value) mulG.value = values[6];
@@ -108,6 +111,7 @@ require([
     });
     Object.defineProperty(filter, 'cssRef', {
       get: function() {
+        if (valueString === nullColorTransform) return '';
         if (mulR.value !== mulG.value) return cssRef;
         if (mulR.value !== mulB.value) return cssRef;
         if (addR.value || addG.value || addB.value || addA.value) return cssRef;
