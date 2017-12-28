@@ -15,6 +15,46 @@ require([
   
   'use strict';
   
+  function Matrix() {
+  }
+  Matrix.prototype = {
+    a: 1, b: 0, c: 0, d: 1, e: 0, f: 0,
+    set: function(a, b, c, d, e, f) {
+      this.a = a; this.b = b; this.c = c;
+      this.d = d; this.e = e; this.f = f;
+      return this;
+    },
+    copy: function(other) {
+      this.a = other.a; this.b = other.b; this.c = other.c;
+      this.d = other.d; this.e = other.e; this.f = other.f;
+      return this;
+    },
+    postMultiply: function(other) {
+      return this.set(
+        this.a * other.a + this.c * other.b,
+        this.b * other.a + this.d * other.b,
+        this.a * other.c + this.c * other.d,
+        this.b * other.c + this.d * other.d,
+        this.a * other.e + this.c * other.f + this.e,
+        this.b * other.e + this.d * other.f + this.f);
+    },
+    preMultiply: function(other) {
+      return this.set(
+        other.a * this.a + other.c * this.b,
+        other.b * this.a + other.d * this.b,
+        other.a * this.c + other.c * this.d,
+        other.b * this.c + other.d * this.d,
+        other.a * this.e + other.c * this.f + other.e,
+        other.b * this.e + other.d * this.f + other.f);
+    },
+    applyPointX: function(x, y) {
+      return x*this.a + y*this.c + this.e;
+    },
+    applyPointY: function(x, y) {
+      return x*this.b + y*this.d + this.f;
+    },
+  };
+  
   var movie = document.getElementById('movie');
   movie.defs = document.getElementById('defs');
   movie.scrubber = document.getElementById('scrubber');
@@ -84,6 +124,7 @@ require([
           var x = Math.round((window.innerWidth - twipWidth*ratio)/2);
           var y = Math.round((height - twipHeight*ratio)/2);
           movie.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + ratio + ')';
+          movie.pixelRatio = ratio;
         });
       }
     }
