@@ -196,7 +196,9 @@ require([
       else {
         this.colorTransform.parentNode.removeChild(this.colorTransform);
         delete this.colorTransform;
-        this.style.filter = '';
+        if (this.style.filter !== 'brightness(100%)') {
+          this.style.filter = '';
+        }
       }
     }
     else if (this.state.colorMatrix) {
