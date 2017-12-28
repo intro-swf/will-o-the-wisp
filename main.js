@@ -184,11 +184,12 @@ require([
   }
   client.ondef = function(def) {
     if (def.nodeName === 'svg') {
-      movie.displayList.displayObjectTemplates[def.getAttribute('id')] = def;
+      var div = document.createElement('DIV');
+      movie.displayList.displayObjectTemplates[def.getAttribute('id')] = div;
       def.removeAttribute('id');
-      def.style.position = 'absolute';
-      def.style.transformOrigin = 'top left';
-      def.addEventListener('display-object-init', onDisplayObjectInit);
+      div.style.position = 'absolute';
+      div.addEventListener('display-object-init', onDisplayObjectInit);
+      div.appendChild(def);
     }
     else {
       movie.defs.appendChild(def);
