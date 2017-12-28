@@ -143,12 +143,7 @@ require([
     console.log('frameset', frameset);
   };
   function onDisplayObjectState(e) {
-    if ('viewBox' in this) {
-      this.style.transform = this.state.transform + ' translate3d(' + this.viewBox.baseVal.x + 'px, ' + this.viewBox.baseVal.y + 'px), 0';
-    }
-    else {
-      this.style.transform = this.state.transform;
-    }
+    this.style.transform = this.state.transform + this.baseTransform;
     if ('class' in this.state) {
       this.setAttribute('class', this.state['class']);
     }
@@ -184,12 +179,16 @@ require([
   }
   client.ondef = function(def) {
     if (def.nodeName === 'svg') {
-      var div = document.createElement('DIV');
-      movie.displayList.displayObjectTemplates[def.getAttribute('id')] = div;
+      var template = document.createElement('DIV');
+      movie.displayList.displayObjectTemplates[def.getAttribute('id')] = template;
       def.removeAttribute('id');
-      div.style.position = 'absolute';
-      div.addEventListener('display-object-init', onDisplayObjectInit);
-      div.appendChild(def);
+      template.style.position = 'absolute';
+      template.appendChild(def);
+      template.addEventListener('display-object-init', onDisplayObjectInit);
+      template.addEventListener('display-object-init', function(e) {
+        var div = this.displayObject;
+        div.baseTransform = ' translate3d(' + def.viewBox.baseVal.x + 'px, ' + def.viewBox.baseVal.y + 'px, 0)';
+      });
     }
     else {
       movie.defs.appendChild(def);
@@ -243,6 +242,7 @@ require([
       var displayList = e.detail.displayList;
       var button = e.detail.displayObject;
       button.displayList = new DisplayList(button.firstChild);
+      button.baseTransform = ' translateZ(0)';
       button.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
         var update = def.contentUpdates[i_update];
@@ -270,6 +270,7 @@ require([
       sprite.displayList = new DisplayList(sprite.firstChild);
       sprite.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       sprite.timeline = new DisplayList.Timeline();
+      sprite.baseTransform = ' translateZ(0)';
       for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
         var frameDef = def.frames[i_frame];
         var frame = sprite.timeline.allocateFrame();
