@@ -76,7 +76,8 @@ require([
     filter.setAttribute('id', id);
     filter.setAttribute('color-interpolation-filters', 'sRGB');
     const feColorMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
-    feColorMatrix.setAttribute('values', ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0', '0 0 0 1 0'].join(' '));
+    var valueString = ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0', '0 0 0 1 0'].join(' ');
+    feColorMatrix.setAttribute('values', valueString);
     const cssRef = 'url(#' + id + ')';
     const values = feColorMatrix.values.baseVal;
     const mulR = values.getItem(0);
@@ -93,6 +94,7 @@ require([
         return feColorMatrix.getAttribute('values');
       },
       set: function(values) {
+        if (values === valueString) return;
         values = values.split(/ /g).map(parseFloat);
         if (values[0] !== mulR.value) mulR.value = values[0];
         if (values[6] !== mulG.value) mulG.value = values[6];
