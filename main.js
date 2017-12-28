@@ -76,6 +76,16 @@ require([
     filter.setAttribute('id', id);
     filter.setAttribute('color-interpolation-filters', 'sRGB');
     const feColorMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+    feColorMatrix.setAttribute('values', ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0', '0 0 0 1 0'].join(' '));
+    const cssRef = 'url(#' + id + ')';
+    const values = feColorMatrix.values.baseVal;
+    const mulR = values.getItem(0);
+    const mulG = values.getItem(6);
+    const mulB = values.getItem(12);
+    const addR = values.getItem(4);
+    const addG = values.getItem(9);
+    const addB = values.getItem(14);
+    const addA = values.getItem(19);
     filter.appendChild(feColorMatrix);
     movie.defs.appendChild(filter);
     Object.defineProperty(filter, 'matrixValues', {
@@ -86,6 +96,14 @@ require([
         if (feColorMatrix.getAttribute('values') !== values) {
           feColorMatrix.setAttribute('values', values);
         }
+      },
+    });
+    Object.defineProperty(filter, 'cssRef', {
+      get: function() {
+        if (mulR.value !== mulG.value) return cssRef;
+        if (mulR.value !== mulB.value) return cssRef;
+        if (addR.value || addG.value || addB.value || addA.value) return cssRef;
+        return 'brightness(' + (mulR.value * 100) + '%)';
       },
     });
     return filter;
@@ -158,6 +176,10 @@ require([
     if (this.colorTransform) {
       if (this.state.colorMatrix) {
         this.colorTransform.matrixValues = this.state.colorMatrix;
+        var cssRef = this.colorTransform.cssRef;
+        if (cssRef !== this.style.filter) {
+          this.style.filter = cssRef;
+        }
       }
       else {
         this.colorTransform.parentNode.removeChild(this.colorTransform);
@@ -168,7 +190,7 @@ require([
     else if (this.state.colorMatrix) {
       this.colorTransform = makeColorTransform();
       this.colorTransform.matrixValues = this.state.colorMatrix;
-      this.style.filter = 'url(#' + this.colorTransform.getAttribute('id') + ')';
+      this.style.filter = this.colorTransform.cssRef;
     }
   }
   function onDisplayObjectDelete(e) {
