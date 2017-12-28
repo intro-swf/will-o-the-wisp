@@ -4,7 +4,7 @@ requirejs.config({
 });
 
 require([
-  'domReady!' // use domReady.js plugin to require DOM readiness
+  'domReady!' // use domReady.js plugin to require DOM readmuliness
   ,'SWFDecoderClient'
   ,'DisplayList2'
 ], function(
@@ -93,9 +93,15 @@ require([
         return feColorMatrix.getAttribute('values');
       },
       set: function(values) {
-        if (feColorMatrix.getAttribute('values') !== values) {
-          feColorMatrix.setAttribute('values', values);
-        }
+        values = values.split(/ /g).map(parseFloat);
+        if (values[0] !== mulR.value) mulR.value = values[0];
+        if (values[6] !== mulG.value) mulG.value = values[6];
+        if (values[12] !== mulB.value) mulB.value = values[12];
+        
+        if (values[4] !== addR.value) addR.value = values[4];
+        if (values[9] !== addG.value) addG.value = values[9];
+        if (values[14] !== addB.value) addB.value = values[14];
+        if (values[19] !== addA.value) addA.value = values[19];
       },
     });
     Object.defineProperty(filter, 'cssRef', {
