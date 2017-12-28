@@ -83,7 +83,9 @@ require([
         return feColorMatrix.getAttribute('values');
       },
       set: function(values) {
-        feColorMatrix.setAttribute('values', values);
+        if (feColorMatrix.getAttribute('values') !== values) {
+          feColorMatrix.setAttribute('values', values);
+        }
       },
     });
     return filter;
