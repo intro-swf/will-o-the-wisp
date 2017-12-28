@@ -250,7 +250,7 @@ require([
         button.displayList.setStateAt(update.depth,
           Object.assign({
               template: update.url.replace(/^#/, ''),
-              transform: 'translateZ(0)',
+              transform: 'translate(0, 0)',
             },
           update.settings)
         );
@@ -271,7 +271,7 @@ require([
       sprite.displayList = new DisplayList(sprite.firstChild);
       sprite.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       sprite.timeline = new DisplayList.Timeline();
-      sprite.baseTransform = ' translateZ(0)';
+      sprite.baseTransform = ' translate(0, 0)';
       for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
         var frameDef = def.frames[i_frame];
         var frame = sprite.timeline.allocateFrame();
