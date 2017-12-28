@@ -243,14 +243,14 @@ require([
       var displayList = e.detail.displayList;
       var button = e.detail.displayObject;
       button.displayList = new DisplayList(button.firstChild);
-      button.baseTransform = ' translateZ(0)';
+      button.baseTransform = ' translate(0, 0)';
       button.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
         var update = def.contentUpdates[i_update];
         button.displayList.setStateAt(update.depth,
           Object.assign({
               template: update.url.replace(/^#/, ''),
-              transform: 'translate(0, 0)',
+              transform: 'translateZ(0)',
             },
           update.settings)
         );
