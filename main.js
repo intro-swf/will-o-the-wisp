@@ -186,7 +186,7 @@ require([
       template.appendChild(def);
       template.addEventListener('display-object-init', onDisplayObjectInit);
       template.addEventListener('display-object-init', function(e) {
-        var div = this.displayObject;
+        var div = e.detail.displayObject;
         div.baseTransform = ' translate3d(' + def.viewBox.baseVal.x + 'px, ' + def.viewBox.baseVal.y + 'px, 0)';
       });
     }
