@@ -143,11 +143,16 @@ require([
     console.log('frameset', frameset);
   };
   function onDisplayObjectState(e) {
-    this.style.transform = this.state.transform + this.baseTransform;
+    var transform = this.state.transform + this.baseTransform;
+    if (transform !== this.style.transform) {
+      this.style.transform = transform;
+    }
     if ('class' in this.state) {
       this.setAttribute('class', this.state['class']);
     }
-    this.style.opacity = this.state.opacity;
+    if (this.style.opacity !== this.state.opacity) {
+      this.style.opacity = this.state.opacity;
+    }
     if (this.colorTransform) {
       if (this.state.colorMatrix) {
         this.colorTransform.matrixValues = this.state.colorMatrix;
