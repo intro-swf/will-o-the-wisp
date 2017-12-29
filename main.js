@@ -182,15 +182,15 @@ require([
     if ('class' in this.state) {
       this.setAttribute('class', this.state['class']);
     }
-    if (this.style.opacity !== this.state.opacity) {
-      this.style.opacity = this.state.opacity;
+    if (this.opacityValue !== this.state.opacity) {
+      this.style.opacity = this.opacityValue = this.state.opacity;
     }
     if (this.colorTransform) {
       if (this.state.colorMatrix) {
         this.colorTransform.matrixValues = this.state.colorMatrix;
         var cssRef = this.colorTransform.cssRef;
-        if (cssRef !== this.style.filter) {
-          this.style.filter = cssRef;
+        if (cssRef !== this.filterValue) {
+          this.style.filter = this.filterValue = cssRef;
         }
       }
       else {
@@ -207,7 +207,7 @@ require([
     else if (this.state.colorMatrix) {
       this.colorTransform = makeColorTransform();
       this.colorTransform.matrixValues = this.state.colorMatrix;
-      this.style.filter = this.colorTransform.cssRef;
+      this.style.filter = this.filterValue = this.colorTransform.cssRef;
     }
   }
   function onDisplayObjectDelete(e) {
