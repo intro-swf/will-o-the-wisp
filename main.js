@@ -176,8 +176,8 @@ require([
   };
   function onDisplayObjectState(e) {
     var transform = this.state.transform + this.baseTransform;
-    if (transform !== this.style.transform) {
-      this.style.transform = transform;
+    if (transform !== this.transformString) {
+      this.style.transform = this.transformString = transform;
     }
     if ('class' in this.state) {
       this.setAttribute('class', this.state['class']);
