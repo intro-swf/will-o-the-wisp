@@ -68,11 +68,15 @@ require([
   
   const nullColorTransform = ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0', '0 0 0 1 0'].join(' ');
   
+  var nextNum = 1;
   function makeColorTransform() {
+    var num = nextNum++;
+    /*
     var num = 1;
     while (document.getElementById('cxform'+num)) {
       num++;
     }
+    */
     var id = 'cxform' + num;
     const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
     filter.setAttribute('id', id);
