@@ -6,7 +6,7 @@ requirejs.config({
 require([
   'domReady!' // use domReady.js plugin to require DOM readmuliness
   ,'SWFDecoderClient'
-  ,'DisplayList2'
+  ,'DisplayList'
 ], function(
   domReady
   ,SWFDecoderClient
