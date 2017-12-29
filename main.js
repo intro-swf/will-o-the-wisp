@@ -80,7 +80,7 @@ require([
     const feColorMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
     var valueString = nullColorTransform;
     feColorMatrix.setAttribute('values', valueString);
-    const cssRef = 'url(#' + id + ')';
+    const cssRef = 'url("#' + id + '")';
     const values = feColorMatrix.values.baseVal;
     const mulR = values.getItem(0);
     const mulG = values.getItem(6);
