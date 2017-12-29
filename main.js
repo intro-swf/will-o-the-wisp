@@ -332,7 +332,9 @@ require([
         frame_i = (frame_i + 1) % sprite.timeline.frames.length;
         sprite.displayList.setAllStates(sprite.timeline.frames[frame_i].states);
       }
-      movie.addEventListener('tick', ontick);
+      if (sprite.timeline.frames.length > 1) {
+        movie.addEventListener('tick', ontick);
+      }
       sprite.addEventListener('display-object-delete', function() {
         movie.removeEventListener('tick', ontick);
       });
