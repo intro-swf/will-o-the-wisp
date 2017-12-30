@@ -307,87 +307,117 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
       }
       return style;
     },
-    makeSVGStyleDefs: function(baseID) {
-      var defs = [];
-      for (var i_layer = 0; i_layer < this.layers.length; i_layer++) {
-        var layer = this.layers[i_layer];
-        for (var i_fill = 1; i_fill < layer.fills.length; i_fill++) {
-          var fillStyle = layer.fills[i_fill].style;
-          switch (fillStyle.type) {
-            case 'gradient':
-              var id = [
-                'gradient' + baseID,
-                (this.layers.length === 1 ? '' : 'L' + i_layer),
-                (layer.fills.length === 2 ? '' : 'F' + i_fill),
-              ].join('');
-              var gradAttr = {
-                id: id,
-                gradientUnits: 'userSpaceOnUse',
-                gradientTransform: fillStyle.matrix.toString(),
-              };
-              if (fillStyle.mode === 'radial') {
-                gradAttr.r = 16384;
-                gradAttr.cx = 0;
-                gradAttr.cy = 0;
-              }
-              else {
-                gradAttr.x1 = -16384;
-                gradAttr.x2 = 16384;
-              }
-              var grad = new MakeshiftXML(fillStyle.mode + 'Gradient', gradAttr);
-              if (fillStyle.matrix.morphTo) {
-                grad.empty('animate', {attributeName:'gradientTransform', to:fillStyle.matrix.morphTo.toString()});
-              }
-              for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
-                var stop = fillStyle.stops[i_stop];
-                var stopAttr = {
-                  offset: stop.ratio,
-                  'stop-color': stop.color.solidColor,
-                };
-                if (stop.color.opacity !== 1) {
-                  stopAttr['stop-opacity'] = stop.color.opacity;
-                }
-                var stopEl = grad.open('stop', stopAttr);
-                if (stop.morphTo) {
-                  if (stop.morphTo.ratio !== stop.ratio) {
-                    stopEl.empty('animate', {attributeName:'offset', to:stop.morphTo.ratio});
-                  }
-                  if (stop.morphTo.color.solidColor !== stop.color.solidColor) {
-                    stopEl.empty('animate', {attributeName:'stop-color', to:stop.morphTo.color.solidColor});
-                  }
-                  if (stop.morphTo.color.opacity !== stop.color.opacity) {
-                    stopEl.empty('animate', {attributeName:'stop-opacity', to:stop.morphTo.color.opacity});
-                  }
-                }
-              }
-              defs.push(grad);
-              break;
-            case 'bitmap':
-              if (fillStyle.bitmapID !== 0xffff) {
-                var id = [
-                  'pattern' + baseID,
-                  (this.layers.length === 1 ? '' : 'L' + i_layer),
-                  (layer.fills.length === 2 ? '' : 'F' + i_fill),
-                ].join('');
-                var bitmap = this.bitmaps[fillStyle.bitmapID];
-                var patternAttr = {id:id, width:bitmap.width, height:bitmap.height, patternUnits:'userSpaceOnUse'};
-                if (!fillStyle.matrix.isIdentity) {
-                  patternAttr.patternTransform = fillStyle.matrix.toString();
-                }
-                var pattern = new MakeshiftXML('pattern', patternAttr);
-                if (fillStyle.matrix.morphTo) {
-                  pattern.empty('animate', {'attributeName':'patternTransform', to:fillStyle.matrix.morphTo.toString()});
-                }
-                var useAttr = {href:'#'+bitmap.id};
-                if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
-                pattern.empty('use', useAttr);
-                defs.push(pattern);
-              }
-              break;
+    getFillProps: function(xml, id, fillStyle) {
+      switch (fillStyle.type) {
+        case 'solid':
+          var props = {fill: fillStyle.fill.solidColor};
+          if (fillStyle.fill.opacity !== 1 || (fillStyle.morphTo && fillStyle.morphTo.opacity !== 1)) {
+            props.opacity = fillStyle.fill.opacity;
           }
-        }
+          if (fillStyle.morphTo) {
+            if (fillStyle.morphTo.fill.solidColor !== fillStyle.fill.solidColor) {
+              props.morphTo = {fill: fillStyle.morphTo.fill.solidColor};
+            }
+            if (fillStyle.morphTo.fill.opacity !== fillStyle.fill.opacity) {
+              props.morphTo = props.morphTo || {};
+              props.morphTo.opacity = fillStyle.morphTo.fill.opacity;
+            }
+          }
+          return props;
+        case 'gradient':
+          var grad = xml.open(fillStyle.mode + 'Gradient', {
+            id: id,
+            gradientUnits: 'userSpaceOnUse',
+            gradientTransform: fillStyle.matrix.toString(),
+          });
+          if (fillStyle.mode === 'radial') {
+            grad.attr('r', 16384);
+            grad.attr('cx', 0);
+            grad.attr('cy', 0);
+          }
+          else {
+            grad.attr('x1', -16384);
+            grad.attr('x2', 16384);
+          }
+          if (fillStyle.matrix.morphTo) {
+            grad.empty('animate', {
+              attributeName: 'gradientTransform',
+              to: fillStyle.matrix.morphTo.toString(),
+            });
+          }
+          for (var i_stop = 0; i_stop < fillStyle.stops.length; i_stop++) {
+            var stop = fillStyle.stops[i_stop];
+            var stopEl = grad.open('stop', {
+              offset: stop.ratio,
+              'stop-color': stop.color.solidColor,
+            });
+            if (stop.color.opacity !== 1 || stop.morphTo && stop.morphTo.color.opacity !== 1) {
+              stopEl.attr('stop-opacity', stop.color.opacity);
+            }
+            if (stop.morphTo) {
+              if (stop.morphTo.ratio !== stop.ratio) {
+                stopEl.empty('animate', {
+                  attributeName: 'offset',
+                  to: stop.morphTo.ratio
+                });
+              }
+              if (stop.morphTo.color.solidColor !== stop.color.solidColor) {
+                stopEl.empty('animate', {
+                  attributeName: 'stop-color',
+                  to: stop.morphTo.color.solidColor,
+                });
+              }
+              if (stop.morphTo.color.opacity !== stop.color.opacity) {
+                stopEl.empty('animate', {
+                  attributeName: 'stop-opacity',
+                  to: stop.morphTo.color.opacity,
+                });
+              }
+            }
+          }
+          return {fill:'url("#'+id+'")'};
+        case 'bitmap':
+          if (fillStyle.bitmapID === 0xffff) {
+            return {fill:'none'}; // TODO: what's the deal with this?
+          }
+          var bitmap = this.bitmaps[fillStyle.bitmapID];
+          var maskID;
+          if (bitmap.maskURL) {
+            maskID = id + '_mask';
+            var maskEl = xml.open('mask', {
+              id: maskID,
+              maskUnits: 'userSpaceOnUse',
+              maskContentUnits: 'userSpaceOnUse',
+              x: 0,
+              y: 0,
+              width: bitmap.width,
+              height: bitmap.height,
+-            });
+            maskEl.empty('image', {
+              href: bitmap.maskURL,
+              width: bitmap.width,
+              height: bitmap.height
+            });
+          }
+          var pattern = xml.open('pattern', {
+            id: id,
+            width: bitmap.width,
+            height: bitmap.height,
+            patternUnits: 'userSpaceOnUse',
+          });
+          if (!fillStyle.matrix.isIdentity || (fillStyle.matrix.morphTo && !fillStyle.matrix.isIdentity)) {
+            pattern.attr('patternTransform', fillStyle.matrix.toString());
+          }
+          if (fillStyle.matrix.morphTo) {
+            pattern.empty('animate', {
+              attributeName: 'patternTransform',
+              to: fillStyle.matrix.morphTo.toString(),
+            });
+          }
+          var imageEl = pattern.open('image', {href: bitmap.url, image: bitmap.width, height: bitmap.height});
+          if (fillStyle.hardEdges) imageEl.attr('class', 'hard-edges');
+          return {fill:'url("#'+id+'")')};
       }
-      return defs;
     },
     makeSVG: function(baseID) {
       var xml = new MakeshiftXML('g', {id:'shape'+baseID});
@@ -395,74 +425,12 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
         var layer = this.layers[i_layer];
         var edges = layer.edges;
         var morphEdges = edges.morphTo;
+        var layerID = this.layers.length === 1 ? '' : 'L' + i_layer;
         for (var i_fill = 1; i_fill < layer.fills.length; i_fill++) {
           var fill = layer.fills[i_fill];
           if (fill.segments.length === 0) continue;
           var fillStyle = fill.style;
-          var morphElements = this.isMorphShape ? [] : null;
-          var attr = {};
-          switch (fillStyle.type) {
-            case 'solid':
-              if (typeof fillStyle.fill === 'string') {
-                attr.fill = fillStyle.fill;
-              }
-              else {
-                attr.fill = fillStyle.fill.solidColor;
-                if (fillStyle.fill.opacity !== 1) {
-                  attr.opacity = fillStyle.fill.opacity;
-                }
-                if (fillStyle.morphTo) {
-                  if (fillStyle.morphTo.fill.solidColor !== fillStyle.fill.solidColor) {
-                    morphElements.push(new MakeshiftXML('animate', {attributeName:'fill', to:fillStyle.morphTo.fill.solidColor}));
-                  }
-                  if (fillStyle.morphTo.fill.opacity !== fillStyle.fill.opacity) {
-                    morphElements.push(new MakeshiftXML('animate', {attributeName:'opacity', to:fillStyle.morphTo.fill.opacity}));
-                  }
-                }
-              }
-              break;
-            case 'gradient':
-              var id = [
-                'gradient' + baseID,
-                (this.layers.length === 1 ? '' : 'L' + i_layer),
-                (layer.fills.length === 2 ? '' : 'F' + i_fill),
-              ].join('');
-              attr.fill = 'url(#'+id+')';
-              break;
-            case 'bitmap':
-              if (fillStyle.bitmapID !== 0xffff) {
-                var id = [
-                  'pattern' + baseID,
-                  (this.layers.length === 1 ? '' : 'L' + i_layer),
-                  (layer.fills.length === 2 ? '' : 'F' + i_fill),
-                ].join('');
-                attr.fill = 'url(#'+id+')';
-              }
-              break;
-            default:
-              console.warn('NYI: fill style ' + fillStyle.type);
-              break;
-          }
-          if (!this.isMorphShape) {
-            var rect = fill.toRect();
-            if (rect) {
-              if (fillStyle.type === 'bitmap' && fillStyle.matrix.b === 0 && fillStyle.matrix.c === 0) {
-                var bitmap = this.bitmaps[fillStyle.bitmapID];
-                if (bitmap.width * fillStyle.matrix.a === rect.width && bitmap.height * fillStyle.matrix.d === rect.height) {
-                  var useAttr = {href:'#'+bitmap.id, transform:fillStyle.matrix.toString()};
-                  if (fillStyle.hardEdges) useAttr.class = 'hard-edges';
-                  xml.empty('use', useAttr);
-                  continue;
-                }
-              }
-              attr.x = rect.left;
-              attr.y = rect.top;
-              attr.width = rect.width;
-              attr.height = rect.height;
-              xml.empty('rect', attr);
-              continue;
-            }
-          }
+          
           var patches = fill.segments;
           var pathData = [];
           for (var i_patch = 0; i_patch < patches.length; i_patch++) {
@@ -485,36 +453,82 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               }
             }
           }
-          attr.d = pathData.join('');
-          var pathEl = xml.open('path', attr);
-          if (morphElements) {
-            pathEl.children = morphElements;
+          
+          var rect = morphEdges ? null : fill.toRect();
+          
+          if (rect
+              && fillStyle.type === 'bitmap'
+              && fillStyle.matrix.b === 0
+              && fillStyle.matrix.c === 0
+              && !fillStyle.matrix.morphTo) {
+            var bitmap = this.bitmaps[fillStyle.bitmapID];
+            if (bitmap.width * fillStyle.matrix.a === rect.width
+                && bitmap.height * fillStyle.matrix.d === rect.height) {
+              var imageEl = xml.empty('image', {
+                href: bitmap.url,
+                x: rect.left,
+                y: rect.top,
+                width: rect.width,
+                height: rect.height,
+              });
+              if (fillStyle.hardEdges) {
+                imageEl.attr('class', 'hard-edges');
+              }
+              continue;
+            }
           }
-          if (morphEdges) {
-            var morphPathData = [];
-            for (var i_patch = 0; i_patch < patches.length; i_patch++) {
-              var patch = patches[i_patch];
-              if (patch[0] < 0) {
-                morphPathData.push(morphEdges[~patch[0]].pathStartLeft);
-              }
-              else {
-                morphPathData.push(morphEdges[patch[0]].pathStartRight);
-              }
-              for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
-                var i_edge = patch[ii_edge];
-                if (i_edge < 0) {
-                  var edge = morphEdges[~i_edge];
-                  morphPathData.push(edge.pathStepLeft);
+          
+          var fillProps = this.getFillProps(xml, fillStyle, layerID + 'F' + i_fill);
+          
+          var shapeEl;
+          if (rect) {
+            shapeEl = xml.open('rect', {
+              x: rect.left,
+              y: rect.top,
+              width: rect.width,
+              height: rect.height,
+            });
+          }
+          else {
+            shapeEl = xml.open('path', {d: pathData.join('')});
+              if (morphEdges) {
+              var morphPathData = [];
+              for (var i_patch = 0; i_patch < patches.length; i_patch++) {
+                var patch = patches[i_patch];
+                if (patch[0] < 0) {
+                  morphPathData.push(morphEdges[~patch[0]].pathStartLeft);
                 }
                 else {
-                  var edge = morphEdges[i_edge];
-                  morphPathData.push(edge.pathStepRight);
+                  morphPathData.push(morphEdges[patch[0]].pathStartRight);
+                }
+                for (var ii_edge = 0; ii_edge < patch.length; ii_edge++) {
+                  var i_edge = patch[ii_edge];
+                  if (i_edge < 0) {
+                    var edge = morphEdges[~i_edge];
+                    morphPathData.push(edge.pathStepLeft);
+                  }
+                  else {
+                    var edge = morphEdges[i_edge];
+                    morphPathData.push(edge.pathStepRight);
+                  }
                 }
               }
+              morphPathData = morphPathData.join('');
+              if (morphPathData !== attr.d) {
+                shapeEl.empty('animate', {'attributeName':'d', 'to':morphPathData});
+              }
             }
-            morphPathData = morphPathData.join('');
-            if (morphPathData !== attr.d) {
-              pathEl.empty('animate', {'attributeName':'d', 'to':morphPathData});
+          }
+          shapeEl.attr('fill', fillProps.fill);
+          if ('opacity' in fillProps) {
+            shapeEl.attr('opacity', fillProps.opacity);
+          }
+          if ('morphTo' in fillProps) {
+            if ('fill' in fillProps.morphTo) {
+              shapeEl.empty('animate', {attributeName:'fill', to:fillProps.morphTo.fill});
+            }
+            if ('opacity' in fillProps.morphTo) {
+              shapeEl.empty('animate', {attributeName:'opacity', to:fillProps.morphTo.fill});
             }
           }
         }
