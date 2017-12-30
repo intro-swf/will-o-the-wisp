@@ -527,7 +527,7 @@ function(
                 var font = this.fonts[data.readUint16LE()];
                 if (!font.definedFamily) {
                   font.file = buildFont(font);
-                  nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
+                  this.nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
                   font.definedFamily = 'font'+id;
                 }
                 attr['font-family'] = '"' + font.definedFamily + '"';
@@ -605,7 +605,7 @@ function(
             var font = this.fonts[data.readUint16LE()];
             if (!font.definedFamily) {
               font.file = buildFont(font);
-              nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
+              this.nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
               font.definedFamily = 'font'+id;
             }
             styles.push('font-family: "' + font.definedFamily + '"');
