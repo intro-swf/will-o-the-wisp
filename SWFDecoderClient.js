@@ -361,6 +361,7 @@ define(function() {
             }
             break;
           case 'do':
+            frame.updates.push(new ActionUpdate(part));
             break;
           case 'play':
           case 'play-exclusive':
@@ -497,6 +498,13 @@ define(function() {
   }
   DeleteUpdate.prototype = {
     type: 'delete',
+  };
+  
+  function ActionUpdate(steps) {
+    this.steps = steps;
+  }
+  ActionUpdate.prototype = {
+    type: 'action',
   };
   
   function Button() {
