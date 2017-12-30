@@ -306,6 +306,15 @@ require([
     movie.displayList.displayObjectTemplates[def.id] = template;
   };
   client.onsprite = function(def) {
+    const timeline = new DisplayList.Timeline();
+    for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
+      var frameDef = def.frames[i_frame];
+      var frame = timeline.allocateFrame();
+      for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
+        doUpdate(frame, frameDef.updates[i_update]);
+      }
+      frame.commit();
+    }
     var template = document.createElement('DIV');
     template.style.position = 'absolute';
     template.classList.add('sprite-container');
@@ -317,21 +326,13 @@ require([
       var sprite = e.detail.displayObject;
       sprite.displayList = new DisplayList(sprite.firstChild);
       sprite.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
-      sprite.timeline = new DisplayList.Timeline();
+      sprite.timeline = timeline;
       sprite.baseTransform = ' translate(0, 0)';
-      for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
-        var frameDef = def.frames[i_frame];
-        var frame = sprite.timeline.allocateFrame();
-        for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
-          doUpdate(frame, frameDef.updates[i_update]);
-        }
-        frame.commit();
-      }
-      sprite.displayList.setAllStates(sprite.timeline.frames[0].states);
+      sprite.displayList.setAllStates(timeline.frames[0].states);
       if (def.frames.length > 1) {
         var frame_i = 0;
         function ontick(e) {
-          frame_i = (frame_i + 1) % sprite.timeline.frames.length;
+          frame_i = (frame_i + 1) % timeline.frames.length;
           //sprite.displayList.setAllStates(sprite.timeline.frames[frame_i].states);
         }
         movie.addEventListener('tick', ontick);
