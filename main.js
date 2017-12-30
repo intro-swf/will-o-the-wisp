@@ -259,12 +259,10 @@ require([
         break;
     }
   }
-  function checkTick(stamp) {
-    requestAnimationFrame(checkTick);
-    while (stamp >= movie.nextTick) {
-      movie.nextTick += movie.tickMs;
-      movie.dispatchEvent(new Event('tick'));
-    }
+  function tick(stamp) {
+    requestAnimationFrame(function() {
+      movie.dispatchEvent(new Event('tick'))
+    });
   }
   client.onframe = function onframe(def) {
     var frame = movie.timeline.allocateFrame();
@@ -274,8 +272,7 @@ require([
     frame.commit();
     if (movie.timeline.frames.length === 1) {
       movie.displayList.setAllStates(movie.timeline.frames[0].states);
-      movie.nextTick = performance.now() + movie.tickMs;
-      requestAnimationFrame(checkTick);
+      setInterval(tick, movie.tickMs);
     }
     if (def.count > 1) {
       movie.timeline.duplicateFrame(def.count - 1);
