@@ -93,79 +93,58 @@ function(
     ,EVT_CONSTRUCT = 0x40000
   ;
   
-  function readSWF(input) {
-    var frameCount;
-    var swfVersion;
-    var displayObjects = {};
-    var sounds = {};
-    var nextUpdates = [];
-    var fonts = {};
-    var bitmaps = {};
-    var clipAtDepth = {};
-    var jpegTables;
-    var nextFrame = new FrameInfo;
-    function showFrame() {
-      frameCount--;
-      while (input.peekUint16LE() === 0x0040) {
-        input.skipBytes(2);
-        nextFrame.count++;
-        frameCount--;
-      }
-      nextUpdates.push(nextFrame);
-      self.postMessage(JSON.stringify(nextUpdates));
-      nextFrame = new FrameInfo;
-      nextUpdates.length = 0;
-    }
-    function readChunkHeader() {
-      return input.gotUint16LE().then(function(b) {
-        var typeCode = b >>> 6;
-        var len = b & 0x3F;
-        if (len < 0x3F) {
-          if (len === 0) {
-            return processChunk(typeCode) === 'end' ? null : readChunkHeader();
-          }
-          return input.gotUint8Array(len).then(function(data) {
-            return processChunk(typeCode, data) === 'end' ? null : readChunkHeader();
-          });
-        }
-        return input.gotUint32LE().then(function(len) {
-          return input.gotUint8Array(len);
-        })
-        .then(function(data) {
-          return processChunk(typeCode, data) === 'end' ? null : readChunkHeader();
-        });
-      });
-    }
-    function processChunk(typeCode, data) {
+  function FrameContext(swfVersion, frameCount) {
+    this.swfVersion = swfVersion;
+    this.frameCount = frameCount;
+    this.nextFrame = new FrameInfo;
+    this.nextUpdates = [];
+    this.bitmaps = {};
+    this.displayObjects = {};
+    this.fonts = {};
+    this.sounds = {};
+    this.clipAtDepth = {};
+  }
+  FrameContext.prototype = {
+    frameCount: 0,
+    showFrame: function() {
+      this.frameCount--;
+      var oldFrame = this.nextFrame;
+      this.nextFrame = new FrameInfo;
+      this.onframe(oldFrame);
+    },
+    processChunk: function(typeCode, data) {
       switch (typeCode) {
         case TAG_END:
-          if (frameCount > 0) {
-            if (frameCount === 1) {
-              showFrame();
+          if (this.frameCount > 0) {
+            if (this.frameCount === 1) {
+              this.showFrame();
             }
             else {
-              throw new Error('missing ' + frameCount + ' frames');
+              throw new Error('missing ' + this.frameCount + ' frames');
             }
           }
           return 'end';
+        case TAG_SHOW_FRAME:
+          this.showFrame();
+          break;
         case TAG_JPEG_TABLES:
           var info = data.readJPEGInfo();
           data.warnIfMore();
           if (!info.hasHuffmanTables) {
             throw new Error('no huffman tables found');
           }
-          jpegTables = info.data;
+          this.jpegTables = info.data;
           break;
         case TAG_DEFINE_BITS:
           var characterID = data.readUint16LE();
           var info = data.readJPEGInfo();
           data.warnIfMore();
-          var jpeg = bitmapTools.jpegJoin(jpegTables, info.data);
+          var jpeg = bitmapTools.jpegJoin(this.jpegTables, info.data);
           var url = URL.createObjectURL(jpeg);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:info.width, height:info.height});
-          bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
-          nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
+          this.nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_BITS_2:
         case TAG_DEFINE_BITS_3:
@@ -222,15 +201,15 @@ function(
               height: info.height,
             });
             maskSVG.empty('image', {href:maskURL, width:info.width, height:info.height});
-            nextUpdates.push(['def', maskSVG.toString()]);
+            this.nextUpdates.push(['def', maskSVG.toString()]);
           }
           var url = URL.createObjectURL(jpegFile);
           var imageID = 'bitmap' + characterID;
           var imageAttr = {id:imageID, href:url, width:info.width, height:info.height};
           if (maskID) imageAttr.mask = 'url(#' + maskID + ')';
           var imageSVG = new MakeshiftXML('image', imageAttr);
-          bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
-          nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
+          this.nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_BITS_LOSSLESS:
           var characterID = data.readUint16LE();
@@ -302,8 +281,8 @@ function(
           var url = URL.createObjectURL(bitmapFile);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:width, height:height});
-          bitmaps[characterID] = {id:imageID, width:width, height:height};
-          nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {id:imageID, width:width, height:height};
+          this.nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_BITS_LOSSLESS_2:
           var characterID = data.readUint16LE();
@@ -358,8 +337,8 @@ function(
           var url = URL.createObjectURL(bitmapFile);
           var imageID = 'bitmap' + characterID;
           var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:width, height:height});
-          bitmaps[characterID] = {id:imageID, width:width, height:height};
-          nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {id:imageID, width:width, height:height};
+          this.nextUpdates.push(['def', imageSVG.toString()]);
           break;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
@@ -376,13 +355,13 @@ function(
             var targetEdgesOffset = data.readUint32LE();
           }
           shape.hasStyles = true;
-          shape.bitmaps = bitmaps;
+          shape.bitmaps = this.bitmaps;
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
           var defs = shape.makeSVGStyleDefs(id);
           for (var i = 0; i < defs.length; i++) {
-            nextUpdates.push(['def', defs[i].toString()]);
+            this.nextUpdates.push(['def', defs[i].toString()]);
           }
           var shapeSVG = shape.makeSVG(id);
           shapeSVG.name = 'svg';
@@ -391,8 +370,8 @@ function(
             width: bounds.width,
             height: bounds.height,
           });
-          nextUpdates.push(['def', shapeSVG.toString()]);
-          displayObjects[id] = '#shape'+id;
+          this.nextUpdates.push(['def', shapeSVG.toString()]);
+          this.displayObjects[id] = '#shape'+id;
           break;
         case TAG_DEFINE_FONT:
           var id = data.readUint16LE();
@@ -405,12 +384,12 @@ function(
             shape.readFrom(data);
             glyphs[i_glyph] = {shape: shape};
           }
-          fonts[id] = font;
+          this.fonts[id] = font;
           break;
         case TAG_DEFINE_FONT_INFO:
         case TAG_DEFINE_FONT_INFO_2:
           var id = data.readUint16LE();
-          var font = fonts[id];
+          var font = this.fonts[id];
           var nameLen = data.readUint8();
           font.name = data.readByteString(nameLen);
           var flags = data.readUint8();
@@ -510,12 +489,12 @@ function(
             }
           }
           data.warnIfMore();
-          fonts[id] = font;
+          this.fonts[id] = font;
           break;
         case TAG_DEFINE_FONT_NAME:
           var id = data.readUint16LE();
-          fonts[id].displayName = data.readByteString('\0');
-          fonts[id].copyrightMessage = data.readByteString('\0');
+          this.fonts[id].displayName = data.readByteString('\0');
+          this.fonts[id].copyrightMessage = data.readByteString('\0');
           break;
         case TAG_DEFINE_TEXT:
         case TAG_DEFINE_TEXT_2:
@@ -545,7 +524,7 @@ function(
               var hasY = b & 2;
               var hasColor = b & 4;
               if (b & 8) {
-                var font = fonts[data.readUint16LE()];
+                var font = this.fonts[data.readUint16LE()];
                 if (!font.definedFamily) {
                   font.file = buildFont(font);
                   nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
@@ -584,8 +563,8 @@ function(
             attr.x = xList.join(' ');
             textSVG.open('tspan', Object.assign({}, attr)).text(chars.join(''));
           }
-          nextUpdates.push(['def', containerSVG.toString()]);
-          displayObjects[id] = '#text' + id;
+          this.nextUpdates.push(['def', containerSVG.toString()]);
+          this.displayObjects[id] = '#text' + id;
           break;
         case TAG_DEFINE_EDIT_TEXT:
           var id = data.readUint16LE();
@@ -623,7 +602,7 @@ function(
           if (flags2 & 0x10) classList.push('unselectable-edit');
           if (flags2 & 0x40) classList.push('autoresize-edit');
           if (flags1 & 1) {
-            var font = fonts[data.readUint16LE()];
+            var font = this.fonts[data.readUint16LE()];
             if (!font.definedFamily) {
               font.file = buildFont(font);
               nextUpdates.push(['font', 'font'+id, URL.createObjectURL(font.file)]);
@@ -670,8 +649,8 @@ function(
           if (styles.length !== 0) {
             editText.attr('style', styles.join('; '));
           }
-          nextUpdates.push(['def', containerSVG.toString()]);
-          displayObjects[id] = '#edit' + id;
+          this.nextUpdates.push(['def', containerSVG.toString()]);
+          this.displayObjects[id] = '#edit' + id;
           break;
         case TAG_DEFINE_BUTTON:
           var id = data.readUint16LE();
@@ -683,7 +662,7 @@ function(
             var depth = data.readUint16LE();
             var matrix = data.readSWFMatrix();
             // no color transform until DefineButton2
-            var insertion = ['i', depth + characterID/65536, displayObjects[characterID]];
+            var insertion = ['i', depth + characterID/65536, this.displayObjects[characterID]];
             if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
             var classes = [];
             if (flags & 1) classes.push('up');
@@ -694,8 +673,8 @@ function(
             def.push(insertion);
           }
           def.push(['on', ['t', 'overdown', 'overup'], data.readSWFActions()]);
-          nextUpdates.push(def);
-          displayObjects[id] = '#button' + id;
+          this.nextUpdates.push(def);
+          this.displayObjects[id] = '#button' + id;
           break;
         case TAG_DEFINE_BUTTON_2:
           var id = data.readUint16LE();
@@ -714,7 +693,7 @@ function(
               var depth = membersData.readUint16LE() + memberNumber/65536;
               var matrix = membersData.readSWFMatrix();
               var colorTransform = membersData.readSWFColorTransform();
-              var insertion = ['i', depth, displayObjects[characterID]];
+              var insertion = ['i', depth, this.displayObjects[characterID]];
               if (!matrix.isIdentity) insertion.push(['transform', matrix.toString()]);
               insertion.push(['opacity', colorTransform.opacity]);
               if (colorTransform.isOpacityOnly) {
@@ -771,15 +750,15 @@ function(
             on.push(actsrc.readSWFActions());
             def.push(on);
           }
-          nextUpdates.push(def);
-          displayObjects[id] = '#button' + id;
+          this.nextUpdates.push(def);
+          this.displayObjects[id] = '#button' + id;
           break;
         case TAG_PLACE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
           var matrix = data.readSWFMatrix();
           var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
-          var insertion = ['i', depth, displayObjects[characterID]];
+          var insertion = ['i', depth, this.displayObjects[characterID]];
           if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
           if (!colorTransform) {
             insertion.push(["opacity", 1]);
@@ -794,12 +773,12 @@ function(
               insertion.push(['colorMatrix', colorTransform.colorMatrixFullOpacity]);
             }
           }
-          nextFrame.updates.push(insertion);
-          for (var i = nextFrame.updates.length-2; i >= 0; i--) {
-            if (nextFrame.updates[i][0] === 'd' && nextFrame.updates[i][1] === depth) {
-              nextFrame.updates.pop();
+          this.nextFrame.updates.push(insertion);
+          for (var i = this.nextFrame.updates.length-2; i >= 0; i--) {
+            if (this.nextFrame.updates[i][0] === 'd' && this.nextFrame.updates[i][1] === depth) {
+              this.nextFrame.updates.pop();
               insertion.splice(0, 3, 'm', depth);
-              nextFrame.updates[i] = insertion;
+              this.nextFrame.updates[i] = insertion;
               break;
             }
           }
@@ -810,7 +789,7 @@ function(
           var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), depth];
           
           if (flags & 2) {
-            update.push(displayObjects[data.readUint16LE()]);
+            update.push(this.displayObjects[data.readUint16LE()]);
           }
           if (flags & 4) {
             update.push(['transform', data.readSWFMatrix().toString()]);
@@ -835,20 +814,20 @@ function(
           }
           if (flags & 0x40) {
             var clipDepth = data.readUint16LE();
-            if (depth in clipAtDepth && clipAtDepth[depth][2] !== clipDepth) {
-              nextFrame.updates.push(['d', clipAtDepth[depth]]);
+            if (depth in this.clipAtDepth && this.clipAtDepth[depth][2] !== clipDepth) {
+              this.nextFrame.updates.push(['d', this.clipAtDepth[depth]]);
             }
-            update[1] = clipAtDepth[depth] = ['clip', depth+1, clipDepth];
+            update[1] = this.clipAtDepth[depth] = ['clip', depth+1, clipDepth];
           }
-          else if (depth in clipAtDepth) {
-            update[1] = clipAtDepth[depth];
+          else if (depth in this.clipAtDepth) {
+            update[1] = this.clipAtDepth[depth];
             if (update[0] === 'd') {
-              delete clipAtDepth[depth];
+              delete this.clipAtDepth[depth];
             }
           }
           if (flags & 0x80) {
             data.readUint16LE(); // reserved
-            var readEventFlags = (swfVersion >= 6) ? data.readUint32LE.bind(data) : data.readUint16LE.bind(data);
+            var readEventFlags = (this.swfVersion >= 6) ? data.readUint32LE.bind(data) : data.readUint16LE.bind(data);
             readEventFlags(); // usedEventFlags
             var eventFlags;
             while (eventFlags = readEventFlags()) {
@@ -901,28 +880,25 @@ function(
             }
           }
           data.warnIfMore();
-          nextFrame.updates.push(update);
+          this.nextFrame.updates.push(update);
           break;
         case TAG_REMOVE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
-          nextFrame.updates.push(['d', depth]);
+          this.nextFrame.updates.push(['d', depth]);
           break;
         case TAG_REMOVE_OBJECT_2:
           var depth = data.readUint16LE();
-          if (depth in clipAtDepth) {
-            nextFrame.updates.push(['d', clipAtDepth[depth]]);
-            delete clipAtDepth[depth];
+          if (depth in this.clipAtDepth) {
+            this.nextFrame.updates.push(['d', this.clipAtDepth[depth]]);
+            delete this.clipAtDepth[depth];
           }
           else {
-            nextFrame.updates.push(['d', depth]);
+            this.nextFrame.updates.push(['d', depth]);
           }
           break;
         case TAG_DO_ACTION:
-          nextFrame.updates.push(data.readSWFActions());
-          break;
-        case TAG_SHOW_FRAME:
-          showFrame();
+          this.nextFrame.updates.push(data.readSWFActions());
           break;
         case TAG_DEFINE_SOUND:
           var id = data.readUint16LE();
@@ -961,23 +937,27 @@ function(
             default:
               throw new Error('NYI: DefineSound ' + sound.encoding);
           }
-          sounds[id] = sound;
+          this.sounds[id] = sound;
           break;
         case TAG_PLAY_SOUND:
           var id = data.readUint16LE();
-          var action = data.readSWFAudioAction(sounds[id]);
+          var action = data.readSWFAudioAction(this.sounds[id]);
           data.warnIfMore();
-          nextFrame.updates.push(action);
+          this.nextFrame.updates.push(action);
           break;
         case TAG_SET_BACKGROUND_COLOR:
-          nextFrame.updates.push(['m', -1, ['background', data.readSWFColor(true)]]);
+          this.nextFrame.updates.push(['m', -1, ['background', data.readSWFColor(true)]]);
           break;
         case TAG_DEFINE_SPRITE:
           var id = data.readUint16LE();
-          var spriteFrameCount = data.readUint16LE();
-          var spriteClipAtDepth = {};
+          var spriteContext = Object.create(this);
+          spriteContext.frameCount = data.readUint16LE();
+          spriteContext.clipAtDepth = {};
+          spriteContext.nextFrame = new FrameInfo;
           var def = ['sprite', 'sprite'+id];
-          var nextSpriteFrame = new FrameInfo;
+          spriteContext.onframe = function(f) {
+            def.push(f);
+          };
           var spriteData = data;
           spriteLoop: while (spriteData.offset < spriteData.length) {
             var tagAndLen = spriteData.readUint16LE();
@@ -987,173 +967,26 @@ function(
               len = spriteData.readUint32LE();
             }
             var data = (len === 0) ? null : spriteData.readSubarray(len);
-            switch (tag) {
-              case TAG_END: break spriteLoop;
-              case TAG_PLACE_OBJECT:
-                var characterID = data.readUint16LE();
-                var depth = data.readUint16LE() + characterID/65536;
-                var matrix = data.readSWFMatrix();
-                var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
-                var insertion = ['i', depth, displayObjects[characterID]];
-                if (matrix && !matrix.isIdentity) insertion.push(["transform", matrix.toString()]);
-                if (!colorTransform) {
-                  insertion.push(["opacity", 1]);
-                  insertion.push(["colorMatrix", null]);
-                }
-                else {
-                  insertion.push(["opacity", colorTransform.opacity]);
-                  if (colorTransform.isOpacityOnly) {
-                    insertion.push(["colorMatrix", null]);
-                  }
-                  else {
-                    insertion.push(["colorMatrix", colorTransform.colorMatrixFullOpacity]);
-                  }
-                }
-                nextSpriteFrame.updates.push(insertion);
-                for (var i = nextSpriteFrame.updates.length-2; i >= 0; i--) {
-                  if (nextSpriteFrame.updates[i][0] === 'd' && nextSpriteFrame.updates[i][1] === depth) {
-                    nextSpriteFrame.updates.pop();
-                    insertion.splice(0, 3, 'm', depth);
-                    nextSpriteFrame.updates[i] = insertion;
-                    break;
-                  }
-                }
-                continue spriteLoop;
-              case TAG_PLACE_OBJECT_2:
-                var flags = data.readUint8();
-                var depth = data.readUint16LE();
-                var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), depth];
-                if (flags & 2) {
-                  update.push(displayObjects[data.readUint16LE()]);
-                }
-                if (flags & 4) {
-                  update.push(['transform', data.readSWFMatrix().toString()]);
-                }
-                if (flags & 8) {
-                  var colorTransform = data.readSWFColorTransform();
-                  update.push(['opacity', colorTransform.opacity]);
-                  if (colorTransform.isOpacityOnly) {
-                    update.push(['colorMatrix', null]);
-                  }
-                  else {
-                    update.push(['colorMatrix', colorTransform.colorMatrixFullOpacity]);
-                  }
-                }
-                if (flags & 0x10) {
-                  var v = data.readUint16LE();
-                  update.push(['morphRatio', v / 0xffff]);
-                  update.push(['spriteReplaceCheck', v]);
-                }
-                if (flags & 0x20) {
-                  update.push(['name', data.readByteString('\0')]);
-                }
-                if (flags & 0x40) {
-                  var clipDepth = data.readUint16LE();
-                  if (depth in spriteClipAtDepth && spriteClipAtDepth[depth][2] !== clipDepth) {
-                    nextFrame.updates.push(['d', spriteClipAtDepth[depth]]);
-                  }
-                  update[1] = spriteClipAtDepth[depth] = ['clip', depth+1, clipDepth];
-                }
-                else if (depth in spriteClipAtDepth) {
-                  update[1] = spriteClipAtDepth[depth];
-                  if (update[0] === 'd') {
-                    delete spriteClipAtDepth[depth];
-                  }
-                }
-                if (flags & 0x80) {
-                  data.readUint16LE(); // reserved
-                  var readEventFlags = (swfVersion >= 6) ? data.readUint32LE.bind(data) : data.readUint16LE.bind(data);
-                  readEventFlags(); // usedEventFlags
-                  var eventFlags;
-                  while (eventFlags = readEventFlags()) {
-                    var handler = ['on'];
-                    if (eventFlags & EVT_CONSTRUCT) handler.push('construct');
-                    if (eventFlags & EVT_KEY_PRESS) handler.push('key_press');
-                    if (eventFlags & EVT_DRAG_OUT) handler.push('drag_out');
-                    if (eventFlags & EVT_KEY_PRESS) {
-                      var key = data.readUint8();
-                      switch (key) {
-                        // KeyboardEvent.key values
-                        case 1: key = 'ArrowLeft'; break;
-                        case 2: key = 'ArrowRight'; break;
-                        case 3: key = 'Home'; break;
-                        case 4: key = 'End'; break;
-                        case 5: key = 'Insert'; break;
-                        case 6: key = 'Delete'; break;
-                        case 8: key = 'Backspace'; break;
-                        case 13: key = 'Enter'; break;
-                        case 14: key = 'ArrowUp'; break;
-                        case 15: key = 'ArrowDown'; break;
-                        case 16: key = 'PageUp'; break;
-                        case 17: key = 'PageDown'; break;
-                        case 18: key = 'Tab'; break;
-                        case 19: key = 'Escape'; break;
-                        default: key = String.fromCharCode(key); break;
-                      }
-                      handler.push(['key', key]);
-                    }
-                    if (eventFlags & EVT_DRAG_OVER) handler.push('drag_over');
-                    if (eventFlags & EVT_ROLL_OUT) handler.push('roll_out');
-                    if (eventFlags & EVT_ROLL_OVER) handler.push('roll_out');
-                    if (eventFlags & EVT_RELEASE_OUTSIDE) handler.push('release_outside');
-                    if (eventFlags & EVT_RELEASE) handler.push('release');
-                    if (eventFlags & EVT_PRESS) handler.push('press');
-                    if (eventFlags & EVT_INITIALIZE) handler.push('initialize');
-                    if (eventFlags & EVT_DATA) handler.push('data');
-                    if (eventFlags & EVT_KEY_UP) handler.push('key_up');
-                    if (eventFlags & EVT_KEY_DOWN) handler.push('key_down');
-                    if (eventFlags & EVT_MOUSE_UP) handler.push('mouse_up');
-                    if (eventFlags & EVT_MOUSE_DOWN) handler.push('mouse_down');
-                    if (eventFlags & EVT_MOUSE_MOVE) handler.push('mouse_move');
-                    if (eventFlags & EVT_UNLOAD) handler.push('unload');
-                    if (eventFlags & EVT_ENTER_FRAME) handler.push('enter_frame');
-                    if (eventFlags & EVT_ONLOAD) handler.push('onload');
-                    var actionData = data.readSubarray(data.readUint32LE());
-                    handler.push(actionData.readSWFActions());
-                    actionData.warnIfMore();
-                    update.push(handler);
-                  }
-                }
-                data.warnIfMore();
-                nextSpriteFrame.updates.push(update);
-                continue spriteLoop;
-              case TAG_REMOVE_OBJECT:
-                var characterID = data.readUint16LE();
-                var depth = data.readUint16LE() + characterID/65536;
-                nextSpriteFrame.updates.push(['d', depth]);
-                continue spriteLoop;
-              case TAG_REMOVE_OBJECT_2:
-                var depth = data.readUint16LE();
-                nextSpriteFrame.updates.push(['d', depth]);
-                continue spriteLoop;
-              case TAG_SHOW_FRAME:
-                def.push(nextSpriteFrame);
-                spriteFrameCount--;
-                nextSpriteFrame = new FrameInfo;
-                continue spriteLoop;
-            }
+            if (spriteContext.processChunk(tag, data) === 'end') break;
           }
-          if (spriteFrameCount === 1) {
-            def.push(nextSpriteFrame);
-          }
-          else if (spriteFrameCount > 0) {
-            throw new Error('not enough sprite frames');
-          }
-          nextUpdates.push(def);
-          displayObjects[id] = '#sprite' + id;
+          this.nextUpdates.push(def);
+          this.displayObjects[id] = '#sprite' + id;
           break;
         default:
           console.log('unhandled tag: ' + typeCode, data);
           break;
       }
-    }
+    },
+  };
+  
+  function readSWF(input) {
     input.gotUint8Array(8).then(function(bytes) {
       switch (String.fromCharCode(bytes[0], bytes[1], bytes[2])) {
         case 'CWS': input = input.makeInflateReader(); break;
         case 'FWS': break;
         default: throw new Error('invalid header');
       }
-      swfVersion = bytes[3];
+      var swfVersion = bytes[3];
       var uncompressedFileSize = new DataView(bytes.buffer, bytes.byteOffset+4, 4).getUint32(0, true);
       var frameBounds, framesPerSecond;
       return input.gotSWFRect().then(function(rect) {
@@ -1165,13 +998,44 @@ function(
         return input.gotUint16LE();
       })
       .then(function(count) {
-        frameCount = count;
+        var frameCount = count;
         self.postMessage(JSON.stringify([['init', {
           v: swfVersion,
           bounds: frameBounds.toString(),
           count: frameCount,
           rate: framesPerSecond,
         }]]));
+        var movieContext = new FrameContext(swfVersion, frameCount);
+        movieContext.onframe = function(frame) {
+          this.nextUpdates.push(frame);
+          while (input.peekUint16LE() === 0x0040) {
+            input.skipBytes(2);
+            frame.count++;
+            this.frameCount--;
+          }
+          self.postMessage(JSON.stringify(this.nextUpdates));
+          this.nextUpdates.length = 0;
+        };
+        function readChunkHeader() {
+          return input.gotUint16LE().then(function(b) {
+            var typeCode = b >>> 6;
+            var len = b & 0x3F;
+            if (len < 0x3F) {
+              if (len === 0) {
+                return movieContext.processChunk(typeCode) === 'end' ? null : readChunkHeader();
+              }
+              return input.gotUint8Array(len).then(function(data) {
+                return movieContext.processChunk(typeCode, data) === 'end' ? null : readChunkHeader();
+              });
+            }
+            return input.gotUint32LE().then(function(len) {
+              return input.gotUint8Array(len);
+            })
+            .then(function(data) {
+              return movieContext.processChunk(typeCode, data) === 'end' ? null : readChunkHeader();
+            });
+          });
+        }
         return readChunkHeader();
       });
     });
