@@ -122,17 +122,17 @@ function(
         var len = b & 0x3F;
         if (len < 0x3F) {
           if (len === 0) {
-            return processChunk(typeCode);
+            return processChunk(typeCode) === 'end' ? null : readChunkHeader();
           }
           return input.gotUint8Array(len).then(function(data) {
-            return processChunk(typeCode, data);
+            return processChunk(typeCode, data) === 'end' ? null : readChunkHeader();
           });
         }
         return input.gotUint32LE().then(function(len) {
           return input.gotUint8Array(len);
         })
         .then(function(data) {
-          return processChunk(typeCode, data);
+          return processChunk(typeCode, data) === 'end' ? null : readChunkHeader();
         });
       });
     }
@@ -147,7 +147,7 @@ function(
               throw new Error('missing ' + frameCount + ' frames');
             }
           }
-          return;
+          return 'end';
         case TAG_JPEG_TABLES:
           var info = data.readJPEGInfo();
           data.warnIfMore();
@@ -1146,7 +1146,6 @@ function(
           console.log('unhandled tag: ' + typeCode, data);
           break;
       }
-      return readChunkHeader();
     }
     input.gotUint8Array(8).then(function(bytes) {
       switch (String.fromCharCode(bytes[0], bytes[1], bytes[2])) {
@@ -1173,7 +1172,6 @@ function(
           count: frameCount,
           rate: framesPerSecond,
         }]]));
-        return readChunkHeader();
       });
     });
   }
