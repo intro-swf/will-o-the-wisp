@@ -333,10 +333,6 @@ function(
           if (typeCode >= TAG_DEFINE_SHAPE_2) shape.hasExtendedLength = true;
           if (typeCode < TAG_DEFINE_SHAPE_3) shape.hasNoAlpha = true;
           shape.readFrom(data);
-          var defs = shape.makeSVGStyleDefs(id);
-          for (var i = 0; i < defs.length; i++) {
-            this.nextUpdates.push(['def', defs[i].toString()]);
-          }
           var shapeSVG = shape.makeSVG(id);
           shapeSVG.name = 'svg';
           shapeSVG.attr({
