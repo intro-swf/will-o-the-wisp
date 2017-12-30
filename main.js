@@ -257,7 +257,7 @@ require([
       case 'delete':
         frame.setStateAt(update.depth, null);
         break;
-      case 'actions':
+      case 'action':
         frame.addAction(update.steps);
         break;
     }
