@@ -1172,6 +1172,7 @@ function(
           count: frameCount,
           rate: framesPerSecond,
         }]]));
+        return readChunkHeader();
       });
     });
   }
