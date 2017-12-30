@@ -257,6 +257,9 @@ require([
       case 'delete':
         frame.setStateAt(update.depth, null);
         break;
+      case 'actions':
+        frame.addAction(update.steps);
+        break;
     }
   }
   function tick(stamp) {
