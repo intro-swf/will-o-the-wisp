@@ -141,10 +141,7 @@ function(
           data.warnIfMore();
           var jpeg = bitmapTools.jpegJoin(this.jpegTables, info.data);
           var url = URL.createObjectURL(jpeg);
-          var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:info.width, height:info.height});
-          this.bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
-          this.nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {width:info.width, height:info.height, url:url};
           break;
         case TAG_DEFINE_BITS_2:
         case TAG_DEFINE_BITS_3:
@@ -171,9 +168,8 @@ function(
               jpegFile = new Blob([info.data], {type:'image/jpeg'});
             }
           }
-          var maskID;
+          var maskURL;
           if (typeCode >= TAG_DEFINE_BITS_3) {
-            maskID = 'mask' + characterID;
             var uncompressedSize = info.width * info.height;
             var compressed = data.subarray(data.offset);
             var uncompressed = zlib.inflate(compressed, uncompressedSize);
@@ -190,26 +186,10 @@ function(
               pal32[i] = 0xffffffff;
               pal8[i*4 + 3] = i;
             }
-            var maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:pal32, bpp:8}));
-            var maskSVG = new MakeshiftXML('mask', {
-              id: maskID,
-              maskUnits: 'userSpaceOnUse',
-              maskContentUnits: 'userSpaceOnUse',
-              x: 0,
-              y: 0,
-              width: info.width,
-              height: info.height,
-            });
-            maskSVG.empty('image', {href:maskURL, width:info.width, height:info.height});
-            this.nextUpdates.push(['def', maskSVG.toString()]);
+            maskURL = URL.createObjectURL(bitmapTools.makeBitmapBlob({rows:rows, palette:pal32, bpp:8}));
           }
           var url = URL.createObjectURL(jpegFile);
-          var imageID = 'bitmap' + characterID;
-          var imageAttr = {id:imageID, href:url, width:info.width, height:info.height};
-          if (maskID) imageAttr.mask = 'url(#' + maskID + ')';
-          var imageSVG = new MakeshiftXML('image', imageAttr);
-          this.bitmaps[characterID] = {id:imageID, width:info.width, height:info.height};
-          this.nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {width:info.width, height:info.height, url:url, maskURL:maskURL};
           break;
         case TAG_DEFINE_BITS_LOSSLESS:
           var characterID = data.readUint16LE();
@@ -279,10 +259,7 @@ function(
               throw new Error('NYI: lossless mode ' + format);
           }
           var url = URL.createObjectURL(bitmapFile);
-          var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:width, height:height});
-          this.bitmaps[characterID] = {id:imageID, width:width, height:height};
-          this.nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {url:url, width:width, height:height};
           break;
         case TAG_DEFINE_BITS_LOSSLESS_2:
           var characterID = data.readUint16LE();
@@ -335,10 +312,7 @@ function(
               throw new Error('NYI: lossless mode ' + format);
           }
           var url = URL.createObjectURL(bitmapFile);
-          var imageID = 'bitmap' + characterID;
-          var imageSVG = new MakeshiftXML('image', {id:imageID, href:url, width:width, height:height});
-          this.bitmaps[characterID] = {id:imageID, width:width, height:height};
-          this.nextUpdates.push(['def', imageSVG.toString()]);
+          this.bitmaps[characterID] = {url:url, width:width, height:height};
           break;
         case TAG_DEFINE_SHAPE:
         case TAG_DEFINE_SHAPE_2:
