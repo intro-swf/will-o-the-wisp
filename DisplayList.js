@@ -284,6 +284,10 @@ define(['arrayExtensions'], function() {
       }
       this.timeline.writeHead = null;
     },
+    addAction: function(action) {
+      if (!this.actions) this.actions = [];
+      this.actions.push(action);
+    },
   };
   
   DisplayList.Group = DisplayListGroup;
