@@ -239,7 +239,7 @@ require([
           for (var i = 0; i < breadcrumb.length; i++) {
             context = context.childNodes[breadcrumb[i]];
           }
-          fixup(context, e.detail.displayList.idBase + e.detail.displayObject.depth);
+          callback(context, e.detail.displayList.idBase + e.detail.displayObject.depth);
         });
       }
       function iterEl(el, breadcrumb) {
