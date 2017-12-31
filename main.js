@@ -242,6 +242,7 @@ require([
           callback(context, e.detail.displayList.idBase + e.detail.displayObject.depth);
         });
       }
+      var animations = false;
       function iterEl(el, breadcrumb) {
         for (var i = 0; i < el.childNodes.length; i++) {
           var child = el.childNodes[i];
@@ -268,6 +269,10 @@ require([
                   });
                 }
                 break;
+              case 'attributeName':
+                animations = true;
+                child.setAttribute('dur', '1s');
+                break;
             }
           }
           if (child.hasChildNodes()) {
@@ -287,6 +292,17 @@ require([
       template.addEventListener('display-object-init', function(e) {
         var div = e.detail.displayObject;
         div.baseTransform = ' translate3d(' + def.viewBox.baseVal.x + 'px, ' + def.viewBox.baseVal.y + 'px, 0)';
+        if (animations) {
+          var svg = div.firstChild;
+          svg.pauseAnimations();
+          svg.setCurrentTime(0);
+          div.morphRatio = 0;
+          div.addEventListener('display-object-state', function(e) {
+            if (this.morphRatio !== this.state.morphRatio) {
+              svg.setCurrentTime(this.morphRatio = this.state.morphRatio);
+            }
+          });
+        }
       });
     }
     else {
