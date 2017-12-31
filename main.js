@@ -264,7 +264,7 @@ require([
                   const propName = attr.name;
                   const idRef = idRefMatch[1];
                   fixup(breadcrumb, i, function(refHolder, idBase) {
-                    refHolder.setAttribute(propName, 'url(#"' + idBase + idRef + '")');
+                    refHolder.setAttribute(propName, 'url("#' + idBase + idRef + '")');
                   });
                 }
                 break;
