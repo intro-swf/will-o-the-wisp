@@ -298,8 +298,9 @@ require([
           svg.setCurrentTime(0);
           div.morphRatio = 0;
           div.addEventListener('display-object-state', function(e) {
-            if (this.morphRatio !== this.state.morphRatio) {
-              svg.setCurrentTime(this.morphRatio = this.state.morphRatio);
+            var newRatio = this.state.morphRatio || 0;
+            if (this.morphRatio !== newRatio) {
+              svg.setCurrentTime(this.morphRatio = newRatio);
             }
           });
         }
