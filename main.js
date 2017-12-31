@@ -277,7 +277,7 @@ require([
           }
         }
       }
-      iterEl(def, []);
+      iterEl(def, [0]);
       movie.displayList.displayObjectTemplates[def.getAttribute('id')] = template;
       def.removeAttribute('id');
       template.style.position = 'absolute';
