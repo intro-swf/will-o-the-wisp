@@ -59,6 +59,7 @@ require([
   movie.defs = document.getElementById('defs');
   movie.scrubber = document.getElementById('scrubber');
   movie.displayList = new DisplayList(movie);
+  movie.displayList.idBase = '_';
   movie.timeline = new DisplayList.Timeline({background:'#000'});
   movie.framePos = -1;
   movie.addEventListener('display-object-state', function() {
@@ -230,6 +231,53 @@ require([
   client.ondef = function(def) {
     if (def.nodeName === 'svg') {
       var template = document.createElement('DIV');
+      function fixup(breadcrumb, i, callback) {
+        breadcrumb = breadcrumb.slice();
+        breadcrumb.push(i);
+        template.addEventListener('display-object-init', function(e) {
+          var context = e.detail.displayObject;
+          for (var i = 0; i < breadcrumb.length; i++) {
+            context = context.childNodes[breadcrumb[i]];
+          }
+          fixup(context, e.detail.displayList.idBase + e.detail.displayObject.depth);
+        });
+      }
+      function iterEl(el, breadcrumb) {
+        for (var i = 0; i < el.childNodes.length; i++) {
+          var child = el.childNodes[i];
+          if (child.nodeType !== 1) continue;
+          for (var i_attr = 0; i_attr < child.attributes.length; i_attr++) {
+            var attr = child.attributes[i_attr];
+            switch (attr.name) {
+              case 'id':
+                fixup(breadcrumb, i, function(idHolder, idBase) {
+                  idHolder.id = idBase + idHolder.id;
+                });
+                break;
+              case 'filter':
+              case 'mask':
+              case 'href':
+              case 'fill':
+              case 'stroke':
+                var idRefMatch = attr.value.match(/^url\("#(.*)"\)$/);
+                if (idRefMatch) {
+                  const propName = attr.name;
+                  const idRef = idRefMatch[1];
+                  fixup(breadcrumb, i, function(refHolder, idBase) {
+                    refHolder.setAttribute(propName, 'url(#"' + idBase + idRef + '")');
+                  });
+                }
+                break;
+            }
+          }
+          if (child.hasChildNodes()) {
+            breadcrumb.push(i);
+            iterEl(child, breadcrumb);
+            breadcrumb.pop();
+          }
+        }
+      }
+      iterEl(def, []);
       movie.displayList.displayObjectTemplates[def.getAttribute('id')] = template;
       def.removeAttribute('id');
       template.style.position = 'absolute';
@@ -242,7 +290,7 @@ require([
       });
     }
     else {
-      movie.defs.appendChild(def);
+      throw new Error('bad def');
     }
   };
   function doUpdate(frame, update) {
@@ -293,6 +341,7 @@ require([
       var displayList = e.detail.displayList;
       var button = e.detail.displayObject;
       button.displayList = new DisplayList(button.firstChild);
+      button.displayList.idBase = displayList.idBase + button.depth + ':B_';
       button.baseTransform = ' translate(0, 0)';
       button.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
@@ -328,6 +377,7 @@ require([
       var displayList = e.detail.displayList;
       var sprite = e.detail.displayObject;
       sprite.displayList = new DisplayList(sprite.firstChild);
+      sprite.displayList.idBase = displayList.idBase + sprite.depth + ':S_';
       sprite.displayList.displayObjectTemplates = movie.displayList.displayObjectTemplates;
       sprite.timeline = timeline;
       sprite.baseTransform = ' translate(0, 0)';
