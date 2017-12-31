@@ -416,7 +416,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           }
           var imageEl = pattern.open('image', {href: bitmap.url, image: bitmap.width, height: bitmap.height});
           if (fillStyle.hardEdges) imageEl.attr('class', 'hard-edges');
-          return {fill:'url("#'+id+'")')};
+          return {fill:'url("#'+id+'")'};
       }
     },
     makeSVG: function(baseID) {
