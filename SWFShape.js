@@ -417,6 +417,8 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
           var imageEl = pattern.open('image', {href: bitmap.url, image: bitmap.width, height: bitmap.height});
           if (fillStyle.hardEdges) imageEl.attr('class', 'hard-edges');
           return {fill:'url("#'+id+'")'};
+        default:
+          throw new Error('unexpected fill type');
       }
     },
     makeSVG: function(baseID) {
@@ -478,7 +480,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
             }
           }
           
-          var fillProps = this.getFillProps(xml, fillStyle, layerID + 'F' + i_fill);
+          var fillProps = this.getFillProps(xml, layerID + 'F' + i_fill, fillStyle);
           
           var shapeEl;
           if (rect) {
