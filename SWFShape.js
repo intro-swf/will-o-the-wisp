@@ -392,7 +392,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
               y: 0,
               width: bitmap.width,
               height: bitmap.height,
--            });
+            });
             maskEl.empty('image', {
               href: bitmap.maskURL,
               width: bitmap.width,
