@@ -516,7 +516,7 @@ define(['MakeshiftXML'], function(MakeshiftXML) {
                 }
               }
               morphPathData = morphPathData.join('');
-              if (morphPathData !== attr.d) {
+              if (morphPathData !== shapeEl.attrValues.d) {
                 shapeEl.empty('animate', {'attributeName':'d', 'to':morphPathData});
               }
             }
