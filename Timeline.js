@@ -64,13 +64,13 @@ define(['arrayExtensions'], function(arrayExtensions) {
     type: 'shape',
   });
 
-  function ListCel(settings) {
+  function StaticContainerCel(settings) {
     PositionedCel.call(this, settings);
     this.cels = [];
     this.celDepths = [];
   }
-  ListCel.prototype = Object.assign(Object.create(PositionedCel.prototype), {
-    type: 'list',
+  StaticContainerCel.prototype = Object.assign(Object.create(PositionedCel.prototype), {
+    type: 'static-container',
     addCelAt: function(depth, cel) {
       var i_cel = this.celDepths.sortedIndexOf(depth);
       if (i_cel < 0) {
@@ -84,20 +84,20 @@ define(['arrayExtensions'], function(arrayExtensions) {
     },
   });
 
-  function TimelineCel(timeline, settings) {
+  function TimelineContainerCel(timeline, settings) {
     PositionedCel.call(this, settings);
     this.timeline = timeline;
   }
-  TimelineCel.prototype = Object.assign(Object.create(PositionedCel.prototype), {
-    type: 'timeline',
+  TimelineContainerCel.prototype = Object.assign(Object.create(PositionedCel.prototype), {
+    type: 'timeline-container',
   });
 
   Object.assign(Cel, {
     Empty: EmptyCel,
     Positioned: PositionedCel,
     Shape: ShapeCel,
-    List: ListCel,
-    Timeline: TimelineCel,
+    StaticContainer: StaticContainerCel,
+    TimelineContainer: TimelineContainerCel,
   });
 
   Timeline.Cel = Cel;
