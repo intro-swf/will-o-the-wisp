@@ -810,6 +810,7 @@ function(
             }
           }
           if (flags & 0x80) {
+            var handlers = ['handlers'];
             data.readUint16LE(); // reserved
             var readEventFlags = (this.swfVersion >= 6) ? data.readUint32LE.bind(data) : data.readUint16LE.bind(data);
             readEventFlags(); // usedEventFlags
@@ -860,8 +861,9 @@ function(
               var actionData = data.readSubarray(data.readUint32LE());
               handler.push(actionData.readSWFActions());
               actionData.warnIfMore();
-              update.push(handler);
+              handlers.push(handler);
             }
+            update.push(handlers);
           }
           data.warnIfMore();
           this.nextFrame.updates.push(update);
