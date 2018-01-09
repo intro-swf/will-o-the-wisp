@@ -35,8 +35,8 @@ define(['arrayExtensions'], function(arrayExtensions) {
       else {
         do { i_cel++; } while (this.celDepths[i_cel] === depth);
       }
-      this.depths.splice(i_cel, 0, depth);
       this.cels.splice(i_cel, 0, cel);
+      this.celDepths.splice(i_cel, 0, depth);
       this.celSettings.splice(i_cel, 0, settings || null);
     },
   });
