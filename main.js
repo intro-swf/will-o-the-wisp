@@ -434,6 +434,9 @@ require([
       let frameDef = def.frames[i_frame];
       for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
         let update = frameDef.updates[i_update];
+        if ('eventHandlers' in update) {
+          console.log('handlers', update);
+        }
         switch (update.type) {
           case 'insert':
           case 'replace':
