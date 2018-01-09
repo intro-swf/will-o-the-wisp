@@ -60,6 +60,7 @@ require([
   var movie = document.getElementById('movie');
   movie.rootCel = new Cel.Timeline;
   movie.cels = {};
+  movie.frameActions = {};
   movie.defs = document.getElementById('defs');
   movie.scrubber = document.getElementById('scrubber');
   movie.displayList = new DisplayList(movie);
@@ -360,6 +361,14 @@ require([
         case 'delete':
           movie.rootCel.getSequenceAtDepth(update.depth).setCelAtFrame(movie.frameCount, null, null);
           break;
+        case 'action':
+          if (movie.frameCount in movie.frameActions) {
+            Array.prototype.push.apply(movie.frameActions[movie.frameCount], update.steps.slice(1));
+          }
+          else {
+            movie.frameActions[movie.frameCount] = update.steps;
+          }
+          break;
       }
     }
     movie.frameCount++;
@@ -420,6 +429,7 @@ require([
   client.onsprite = function(def) {
     // new:
     const spriteCel = movie.cels[def.id] = new Cel.Timeline;
+    spriteCel.frameActions = {};
     for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
       let frameDef = def.frames[i_frame];
       for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
@@ -440,6 +450,14 @@ require([
             break;
           case 'delete':
             spriteCel.getSequenceAtDepth(update.depth).setCelAtFrame(i_frame, null, null);
+            break;
+          case 'action':
+            if (i_frame in spriteCel.frameActions) {
+              Array.prototype.push.apply(spriteCel.frameActions[i_frame], update.steps.slice(1));
+            }
+            else {
+              spriteCel.frameActions[spriteCel] = update.steps;
+            }
             break;
         }
       }
