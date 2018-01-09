@@ -71,7 +71,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
   TimelineCel.prototype = Object.assign(Object.create(Cel.prototype), {
     type: 'timeline',
     getSequenceAtDepth: function(depth) {
-      if (depth in this.celSequenceByDepth) {
+      if (depth in this.celSequencesByDepth) {
         return this.celSequencesByDepth[depth];
       }
       this.depths.splice(~this.celSequenceDepths.sortedIndexOf(depth, COMPARE_NUM), 0, depth);
