@@ -84,6 +84,10 @@ define(function() {
       while (this.readOffset > this.chunks[this.readIndex].length) {
         this.readOffset -= this.chunks[this.readIndex++].length;
       }
+      if (this.readOffset === this.chunks[this.readIndex].length) {
+        this.readIndex++;
+        this.readOffset = 0;
+      }
     },
     byteCallback: function(n, callback) {
       var result = this.byteCallbackImmediate(n, callback);
