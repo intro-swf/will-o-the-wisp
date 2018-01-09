@@ -440,6 +440,22 @@ define(function() {
                   }
                   button.contentUpdates.push(insertion);
                   break;
+                case 'on':
+                  var action = part.pop();
+                  for (var i_event = 1; i_event < part.length; i_event++) {
+                    let event = part[i_event];
+                    switch (event[0]) {
+                      case 't':
+                        button.transitionHandlers[event[1] + '2' + event[2]] = action;
+                        break;
+                      case 'key':
+                        button.keyHandlers[event[1]] = action;
+                        break;
+                      default:
+                        throw new Error('unknown event type');
+                    }
+                  }
+                  break;
               }
             }
             this.onbutton(button);
@@ -509,6 +525,8 @@ define(function() {
   
   function Button() {
     this.contentUpdates = [];
+    this.transitionHandlers = {};
+    this.keyHandlers = {};
   }
   Button.prototype = {
   };
