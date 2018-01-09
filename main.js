@@ -456,7 +456,7 @@ require([
               Array.prototype.push.apply(spriteCel.frameActions[i_frame], update.steps.slice(1));
             }
             else {
-              spriteCel.frameActions[spriteCel] = update.steps;
+              spriteCel.frameActions[i_frame] = update.steps;
             }
             break;
         }
