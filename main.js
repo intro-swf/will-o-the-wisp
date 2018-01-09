@@ -238,7 +238,7 @@ require([
     }
     // new:
     var template = def;
-    movie.cels[def.getAttribute('id')] = template;
+    movie.cels[def.getAttribute('id')] = new Cel(template);
     // old:
     var template = document.createElement('DIV');
     function fixup(breadcrumb, i, callback) {
