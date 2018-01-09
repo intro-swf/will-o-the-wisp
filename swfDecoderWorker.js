@@ -53,6 +53,7 @@ function(
       ,TAG_DEFINE_FONT_NAME = 88
     ,TAG_DEFINE_TEXT = 11
       ,TAG_DEFINE_TEXT_2 = 33
+    ,TAG_DEFINE_VIDEO = 38
     ,TAG_DO_ACTION = 12
     ,TAG_DEFINE_SOUND = 14
     ,TAG_PLAY_SOUND = 15
@@ -954,6 +955,17 @@ function(
           }
           this.nextUpdates.push(def);
           this.displayObjects[id] = '#sprite' + id;
+          break;
+        case TAG_DEFINE_VIDEO:
+          var id = data.readUint16LE();
+          var path = data.readByteString('\0');
+          var videoXML = new MakeshiftXML('svg', {id:'video'+id});
+          videoXML.open('g', {
+            'xmlns:video': 'video',
+            'video:href': path,
+          });
+          this.nextUpdates.push(['def', videoXML.toString()]);
+          this.displayObjects[id] = '#video' + id;
           break;
         default:
           console.log('unhandled tag: ' + typeCode, data);
