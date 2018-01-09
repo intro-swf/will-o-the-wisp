@@ -74,7 +74,7 @@ define(['arrayExtensions'], function(arrayExtensions) {
       if (depth in this.celSequencesByDepth) {
         return this.celSequencesByDepth[depth];
       }
-      this.depths.splice(~this.celSequenceDepths.sortedIndexOf(depth, COMPARE_NUM), 0, depth);
+      this.celSequenceDepths.splice(~this.celSequenceDepths.sortedIndexOf(depth, COMPARE_NUM), 0, depth);
       return this.celSequencesByDepth[depth] = new CelSequence;
     },
   });
