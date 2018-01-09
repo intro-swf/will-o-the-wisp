@@ -490,6 +490,30 @@ define(function() {
   InsertUpdate.prototype = {
     type: 'insert',
     addModifier: function(name, value) {
+      if (name === 'handlers') {
+        this.keyHandlers = {};
+        this.eventHandlers = {};
+        for (var i_arg = 1; i_arg < arguments.length; i_arg++) {
+          var handler = arguments[i_arg];
+          if (!Array.isArray(handler) || handler[0] !== 'on') {
+            throw new Error('invalid handler');
+          }
+          var actions = handler.pop();
+          for (var i_on = 1; i_on < handler.length; i_on++) {
+            var on = handler[i_on];
+            if (Array.isArray(on)) {
+              if (on.length === 2 && on[0] === 'key') {
+                this.keyHandlers[on[1]] = actions;
+              }
+              else throw new Error('unknown event type');
+            }
+            else {
+              this.eventHandlers[on] = actions;
+            }
+          }
+        }
+        return;
+      }
       this.settings[name] = value;
     },
   };
