@@ -7,10 +7,12 @@ require([
   'domReady!' // use domReady.js plugin to require DOM readmuliness
   ,'SWFDecoderClient'
   ,'DisplayList'
+  ,'Cel'
 ], function(
   domReady
   ,SWFDecoderClient
   ,DisplayList
+  ,Cel
 ) {
   
   'use strict';
@@ -56,6 +58,8 @@ require([
   };
   
   var movie = document.getElementById('movie');
+  movie.rootCel = new Cel.Timeline;
+  movie.cels = {};
   movie.defs = document.getElementById('defs');
   movie.scrubber = document.getElementById('scrubber');
   movie.displayList = new DisplayList(movie);
@@ -229,86 +233,88 @@ require([
     displayObject.addEventListener('display-object-delete', onDisplayObjectDelete);
   }
   client.ondef = function(def) {
-    if (def.nodeName === 'svg') {
-      var template = document.createElement('DIV');
-      function fixup(breadcrumb, i, callback) {
-        breadcrumb = breadcrumb.slice();
-        breadcrumb.push(i);
-        template.addEventListener('display-object-init', function(e) {
-          var context = e.detail.displayObject;
-          for (var i = 0; i < breadcrumb.length; i++) {
-            context = context.childNodes[breadcrumb[i]];
-          }
-          callback(context, e.detail.displayList.idBase + e.detail.displayObject.depth);
-        });
-      }
-      var animations = false;
-      function iterEl(el, breadcrumb) {
-        for (var i = 0; i < el.childNodes.length; i++) {
-          var child = el.childNodes[i];
-          if (child.nodeType !== 1) continue;
-          for (var i_attr = 0; i_attr < child.attributes.length; i_attr++) {
-            var attr = child.attributes[i_attr];
-            switch (attr.name) {
-              case 'id':
-                fixup(breadcrumb, i, function(idHolder, idBase) {
-                  idHolder.id = idBase + idHolder.id;
-                });
-                break;
-              case 'filter':
-              case 'mask':
-              case 'href':
-              case 'fill':
-              case 'stroke':
-                var idRefMatch = attr.value.match(/^url\("#(.*)"\)$/);
-                if (idRefMatch) {
-                  const propName = attr.name;
-                  const idRef = idRefMatch[1];
-                  fixup(breadcrumb, i, function(refHolder, idBase) {
-                    refHolder.setAttribute(propName, 'url("#' + idBase + idRef + '")');
-                  });
-                }
-                break;
-              case 'attributeName':
-                animations = true;
-                child.setAttribute('dur', '1s');
-                break;
-            }
-          }
-          if (child.hasChildNodes()) {
-            breadcrumb.push(i);
-            iterEl(child, breadcrumb);
-            breadcrumb.pop();
-          }
-        }
-      }
-      iterEl(def, [0]);
-      movie.displayList.displayObjectTemplates[def.getAttribute('id')] = template;
-      def.removeAttribute('id');
-      template.style.position = 'absolute';
-      template.style.transformOrigin = 'top left';
-      template.appendChild(def);
-      template.addEventListener('display-object-init', onDisplayObjectInit);
-      template.addEventListener('display-object-init', function(e) {
-        var div = e.detail.displayObject;
-        div.baseTransform = ' translate3d(' + def.viewBox.baseVal.x + 'px, ' + def.viewBox.baseVal.y + 'px, 0)';
-        if (animations) {
-          var svg = div.firstChild;
-          svg.pauseAnimations();
-          svg.setCurrentTime(0);
-          div.morphRatio = 0;
-          div.addEventListener('display-object-state', function(e) {
-            var newRatio = this.state.morphRatio || 0;
-            if (this.morphRatio !== newRatio) {
-              svg.setCurrentTime(this.morphRatio = newRatio);
-            }
-          });
-        }
-      });
-    }
-    else {
+    if (def.nodeName !== 'svg') {
       throw new Error('bad def');
     }
+    // new:
+    var template = def;
+    movie.cels[def.getAttribute('id')] = template;
+    // old:
+    var template = document.createElement('DIV');
+    function fixup(breadcrumb, i, callback) {
+      breadcrumb = breadcrumb.slice();
+      breadcrumb.push(i);
+      template.addEventListener('display-object-init', function(e) {
+        var context = e.detail.displayObject;
+        for (var i = 0; i < breadcrumb.length; i++) {
+          context = context.childNodes[breadcrumb[i]];
+        }
+        callback(context, e.detail.displayList.idBase + e.detail.displayObject.depth);
+      });
+    }
+    var animations = false;
+    function iterEl(el, breadcrumb) {
+      for (var i = 0; i < el.childNodes.length; i++) {
+        var child = el.childNodes[i];
+        if (child.nodeType !== 1) continue;
+        for (var i_attr = 0; i_attr < child.attributes.length; i_attr++) {
+          var attr = child.attributes[i_attr];
+          switch (attr.name) {
+            case 'id':
+              fixup(breadcrumb, i, function(idHolder, idBase) {
+                idHolder.id = idBase + idHolder.id;
+              });
+              break;
+            case 'filter':
+            case 'mask':
+            case 'href':
+            case 'fill':
+            case 'stroke':
+              var idRefMatch = attr.value.match(/^url\("#(.*)"\)$/);
+              if (idRefMatch) {
+                const propName = attr.name;
+                const idRef = idRefMatch[1];
+                fixup(breadcrumb, i, function(refHolder, idBase) {
+                  refHolder.setAttribute(propName, 'url("#' + idBase + idRef + '")');
+                });
+              }
+              break;
+            case 'attributeName':
+              animations = true;
+              child.setAttribute('dur', '1s');
+              break;
+          }
+        }
+        if (child.hasChildNodes()) {
+          breadcrumb.push(i);
+          iterEl(child, breadcrumb);
+          breadcrumb.pop();
+        }
+      }
+    }
+    iterEl(def, [0]);
+    movie.displayList.displayObjectTemplates[def.getAttribute('id')] = template;
+    def.removeAttribute('id');
+    template.style.position = 'absolute';
+    template.style.transformOrigin = 'top left';
+    template.appendChild(def);
+    template.addEventListener('display-object-init', onDisplayObjectInit);
+    template.addEventListener('display-object-init', function(e) {
+      var div = e.detail.displayObject;
+      div.baseTransform = ' translate3d(' + def.viewBox.baseVal.x + 'px, ' + def.viewBox.baseVal.y + 'px, 0)';
+      if (animations) {
+        var svg = div.firstChild;
+        svg.pauseAnimations();
+        svg.setCurrentTime(0);
+        div.morphRatio = 0;
+        div.addEventListener('display-object-state', function(e) {
+          var newRatio = this.state.morphRatio || 0;
+          if (this.morphRatio !== newRatio) {
+            svg.setCurrentTime(this.morphRatio = newRatio);
+          }
+        });
+      }
+    });
   };
   function doUpdate(frame, update) {
     switch (update.type) {
@@ -332,7 +338,32 @@ require([
       movie.dispatchEvent(new Event('tick'))
     });
   }
+  movie.frameCount = 0;
   client.onframe = function onframe(def) {
+    // new:
+    for (var i_update = 0; i_update < def.updates.length; i_update++) {
+      let update = def.updates[i_update];
+      switch (update.type) {
+        case 'insert':
+        case 'replace':
+          let id = update.url.replace(/^#/, '');
+          let cel = movie.cels[id];
+          if (!cel) throw new Error('cel not defined: ' + id);
+          movie.rootCel.getSequenceAtDepth(update.depth).setCelAtFrame(movie.frameCount, cel, update.settings);
+          break;
+        case 'modify':
+          let sequence = movie.rootCel.getSequenceAtDepth(update.depth);
+          sequence.cels.push(sequence.cels[sequence.cels.length-1]);
+          sequence.celStartFrames.push(movie.frameCount);
+          sequence.celSettings.push(update.settings);
+          break;
+        case 'delete':
+          movie.rootCel.getSequenceAtDepth(update.depth).setCelAtFrame(movie.frameCount, null, null);
+          break;
+      }
+    }
+    movie.frameCount++;
+    // old:
     var frame = movie.timeline.allocateFrame();
     for (var i_update = 0; i_update < def.updates.length; i_update++) {
       doUpdate(frame, def.updates[i_update]);
@@ -347,6 +378,16 @@ require([
     }
   };
   client.onbutton = function(def) {
+    // new:
+    const buttonCel = movie.cels[def.id] = new Cel.Container;
+    for (var i_update = 0; i_update < def.contentUpdates.length; i_update++) {
+      let update = def.contentUpdates[i_update];
+      let id = update.url.replace(/^#/, '');
+      let cel = movie.cels[id];
+      if (!cel) throw new Error('undefined cel: ' + id);
+      buttonCel.addCelAtDepth(update.depth, cel, update.settings);
+    }
+    // old:
     var template = document.createElement('DIV');
     template.style.position = 'absolute';
     template.classList.add('button-container');
@@ -375,6 +416,33 @@ require([
     movie.displayList.displayObjectTemplates[def.id] = template;
   };
   client.onsprite = function(def) {
+    // new:
+    const spriteCel = movie.cels[def.id] = new Cel.Timeline;
+    for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
+      let frameDef = def.frames[i_frame];
+      for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
+        let update = frameDef.updates[i_update];
+        switch (update.type) {
+          case 'insert':
+          case 'replace':
+            let id = update.url.replace(/^#/, '');
+            let cel = movie.cels[id];
+            if (!cel) throw new Error('cel not defined: ' + id);
+            spriteCel.getSequenceAtDepth(update.depth).setCelAtFrame(i_frame, cel, update.settings);
+            break;
+          case 'modify':
+            let sequence = spriteCel.getSequenceAtDepth(update.depth);
+            sequence.cels.push(sequence.cels[sequence.cels.length-1]);
+            sequence.celStartFrames.push(i_frame);
+            sequence.celSettings.push(update.settings);
+            break;
+          case 'delete':
+            spriteCel.getSequenceAtDepth(update.depth).setCelAtFrame(i_frame, null, null);
+            break;
+        }
+      }
+    }
+    // old:
     const timeline = new DisplayList.Timeline();
     for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
       var frameDef = def.frames[i_frame];
