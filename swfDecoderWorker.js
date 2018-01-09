@@ -642,7 +642,10 @@ function(
             insertion.push(['class', classes.join(' ')]);
             def.push(insertion);
           }
-          def.push(['on', ['t', 'overdown', 'overup'], data.readSWFActions()]);
+          var action = data.readSWFActions();
+          if (action.length > 1) {
+            def.push(['on', ['t', 'overdown', 'overup'], action]);
+          }
           this.nextUpdates.push(def);
           this.displayObjects[id] = '#button' + id;
           break;
@@ -724,8 +727,11 @@ function(
               }
               if (key) on.push(['key', key]);
             }
-            on.push(actsrc.readSWFActions());
-            def.push(on);
+            var action = actsrc.readSWFActions();
+            if (action.length > 1) {
+              on.push(action);
+              def.push(on);
+            }
           }
           this.nextUpdates.push(def);
           this.displayObjects[id] = '#button' + id;
