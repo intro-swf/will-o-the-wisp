@@ -691,37 +691,39 @@ function(
             else {
               actsrc = data.readSubarray(actionLen - 2);
             }
-            var key = actsrc.readTopBits(7);
-            switch (key) {
-              // KeyboardEvent.key values
-              case 0: break;
-              case 1: key = 'ArrowLeft'; break;
-              case 2: key = 'ArrowRight'; break;
-              case 3: key = 'Home'; break;
-              case 4: key = 'End'; break;
-              case 5: key = 'Insert'; break;
-              case 6: key = 'Delete'; break;
-              case 8: key = 'Backspace'; break;
-              case 13: key = 'Enter'; break;
-              case 14: key = 'ArrowUp'; break;
-              case 15: key = 'ArrowDown'; break;
-              case 16: key = 'PageUp'; break;
-              case 17: key = 'PageDown'; break;
-              case 18: key = 'Tab'; break;
-              case 19: key = 'Escape'; break;
-              default: key = String.fromCharCode(key); break;
-            }
+            var eventFlags = actsrc.readUint16LE();
             var on = ['on'];
-            if (key) on.push(['key', key]);
-            if (actsrc.readTopBits(1)) on.push(['t', 'overdown', 'idle']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'idle', 'overdown']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'outdown', 'idle']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'outdown', 'overdown']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'overdown', 'outdown']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'overdown', 'overup']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'overup', 'overdown']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'overup', 'idle']);
-            if (actsrc.readTopBits(1)) on.push(['t', 'idle', 'overup']);
+            if (eventFlags & 1) on.push(['t', 'idle', 'overup']);
+            if (eventFlags & 2) on.push(['t', 'overup', 'idle']);
+            if (eventFlags & 4) on.push(['t', 'overup', 'overdown']);
+            if (eventFlags & 8) on.push(['t', 'overdown', 'overup']);
+            if (eventFlags & 0x10) on.push(['t', 'overdown', 'outdown']);
+            if (eventFlags & 0x20) on.push(['t', 'outdown', 'overdown']);
+            if (eventFlags & 0x40) on.push(['t', 'outdown', 'idle']);
+            if (eventFlags & 0x80) on.push(['t', 'idle', 'overdown']);
+            if (eventFlags & 0x100) on.push(['t', 'overdown', 'idle']);
+            var key = eventFlags >>> 9;
+            if (key !== 0) {
+              switch (key) {
+                // KeyboardEvent.key values
+                case 1: key = 'ArrowLeft'; break;
+                case 2: key = 'ArrowRight'; break;
+                case 3: key = 'Home'; break;
+                case 4: key = 'End'; break;
+                case 5: key = 'Insert'; break;
+                case 6: key = 'Delete'; break;
+                case 8: key = 'Backspace'; break;
+                case 13: key = 'Enter'; break;
+                case 14: key = 'ArrowUp'; break;
+                case 15: key = 'ArrowDown'; break;
+                case 16: key = 'PageUp'; break;
+                case 17: key = 'PageDown'; break;
+                case 18: key = 'Tab'; break;
+                case 19: key = 'Escape'; break;
+                default: key = String.fromCharCode(key); break;
+              }
+              if (key) on.push(['key', key]);
+            }
             on.push(actsrc.readSWFActions());
             def.push(on);
           }
