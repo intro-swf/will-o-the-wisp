@@ -81,7 +81,7 @@ define(function() {
       if (n > this.available) throw new Error('not enough data');
       this.available -= n;
       this.readOffset += n;
-      while (this.readOffset >= this.chunks[this.readIndex].length) {
+      while (this.readOffset > this.chunks[this.readIndex].length) {
         this.readOffset -= this.chunks[this.readIndex++].length;
       }
     },
