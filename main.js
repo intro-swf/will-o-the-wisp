@@ -387,6 +387,8 @@ require([
       if (!cel) throw new Error('undefined cel: ' + id);
       buttonCel.addCelAtDepth(update.depth, cel, update.settings);
     }
+    buttonCel.transitionHandlers = def.transitionHandlers;
+    buttonCel.keyHandlers = def.keyHandlers;
     // old:
     var template = document.createElement('DIV');
     template.style.position = 'absolute';
