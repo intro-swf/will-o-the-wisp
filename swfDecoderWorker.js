@@ -682,10 +682,15 @@ function(
               memberNumber++;
             }
           }
-          for (;;) {
+          while (data.offset < data.length) {
             var actionLen = data.readUint16LE();
-            if (actionLen === 0) break;
-            var actsrc = data.readSubarray(actionLen - 2);
+            var actsrc;
+            if (actionLen === 0) {
+              actsrc = data.readSubarray(data.length - data.offset);
+            }
+            else {
+              actsrc = data.readSubarray(actionLen - 2);
+            }
             var key = actsrc.readTopBits(7);
             switch (key) {
               // KeyboardEvent.key values
