@@ -134,7 +134,7 @@ function(
           var stream = data.readSWFAudioFormat();
           stream.playback = playback;
           stream.samplesPerBlock = data.readUint16LE();
-          if (stream.format === 'mp3') {
+          if (stream.encoding === 'mp3') {
             stream.seekSamples = data.readInt16LE();
           }
           data.warnIfMore();
@@ -145,7 +145,7 @@ function(
           if (!stream) throw new Error('stream block without defined head');
           if (!stream.notified) {
             var notification = {};
-            if (stream.format === 'mp3') {
+            if (stream.encoding === 'mp3') {
               notification.format = 'mp3';
             }
             else {
@@ -159,7 +159,7 @@ function(
           }
           var streamBlock = ['smbk'];
           var blockFile;
-          switch (stream.format) {
+          switch (stream.encoding) {
             case 'mp3':
               var sampleCount = data.readUint16LE();
               var sampleSeek = data.readInt16LE();
@@ -190,7 +190,7 @@ function(
               blockFile = data.readSWFSoundADPCM(stream.samplesPerBlock, stream.hz, stream.channels);
               break;
             default:
-              throw new Error('unsupported stream format: ' + stream.format);
+              throw new Error('unsupported stream format: ' + stream.encoding);
               break;
           }
           streamBlock.push(URL.createObjectURL(blockFile));
