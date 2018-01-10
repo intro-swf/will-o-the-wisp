@@ -194,7 +194,7 @@ function(
               break;
           }
           streamBlock.push(URL.createObjectURL(blockFile));
-          this.nextFrame.push(streamBlock);
+          this.nextFrame.updates.push(streamBlock);
           break;
         case TAG_JPEG_TABLES:
           var info = data.readJPEGInfo();
