@@ -128,6 +128,74 @@ function(
         case TAG_SHOW_FRAME:
           this.showFrame();
           break;
+        case TAG_SOUND_STREAM_HEAD:
+        case TAG_SOUND_STREAM_HEAD_2:
+          var playback = data.readSWFAudioFormat();
+          var stream = data.readSWFAudioFormat();
+          stream.playback = playback;
+          stream.samplesPerBlock = data.readUint16LE();
+          if (stream.format === 'mp3') {
+            stream.seekSamples = data.readInt16LE();
+          }
+          data.warnIfMore();
+          this.stream = stream;
+          break;
+        case TAG_SOUND_STREAM_BLOCK:
+          var stream = this.stream;
+          if (!stream) throw new Error('stream block without defined head');
+          if (!stream.notified) {
+            var notification = {};
+            if (stream.format === 'mp3') {
+              notification.format = 'mp3';
+            }
+            else {
+              notification.format = 'pcm';
+              notification.sampleBits = this.stream.bits;
+              notification.sampleRate = this.stream.hz;
+              notification.channels = this.stream.channels;
+            }
+            this.nextUpdates.push(['stream', 'sound', notification]);
+            stream.notified = true;
+          }
+          var streamBlock = ['smbk'];
+          var blockFile;
+          switch (stream.format) {
+            case 'mp3':
+              var sampleCount = data.readUint16LE();
+              var sampleSeek = data.readInt16LE();
+              streamBlock.push(sampleCount, sampleSeek);
+              blockFile = new Blob([data.subarray(data.offset)], 'audio/mpeg')
+              break;
+            case 'pcm':
+              var wavBuffer = new ArrayBuffer(4 + 4 + 16);
+              var dataSizeSlot = new DataView(wavBuffer, 0, 4);
+              var totalSizeSlot = new DataView(wavBuffer, 4, 4);
+              var fmt = new DataView(wavBuffer, 8, 16);
+              dataSizeSlot.setUint32(0, data.byteLength, true);
+              totalSizeSlot.setUint32(0, 36 + data.byteLength, true);
+              fmt.setUint16(0, 1, true);
+              fmt.setUint16(2, stream.channels, true);
+              fmt.setUint32(4, stream.hz, true);
+              fmt.setUint32(8, stream.hz * stream.channels * stream.bits/8, true);
+              fmt.setUint16(12, stream.channels * stream.bits/8, true);
+              fmt.setUint16(14, stream.bits, true);
+              var parts = [
+                'RIFF', totalSizeSlot, 'WAVE',
+                'fmt ', String.fromCharCode(16,0,0,0), fmt,
+                'data', dataSizeSlot, data,
+              ];
+              blockFile = new Blob(parts, {type:'audio/x-wav'});
+              break;
+            case 'adpcm':
+              blockFile = data.readSWFSoundADPCM(stream.samplesPerBlock, stream.hz, stream.channels);
+              break;
+            default:
+              throw new Error('unsupported stream format: ' + stream.format);
+              break;
+          }
+          streamBlock.push(URL.createObjectURL(blockFile));
+          this.nextFrame.push(streamBlock);
+          break;
         case TAG_JPEG_TABLES:
           var info = data.readJPEGInfo();
           data.warnIfMore();
