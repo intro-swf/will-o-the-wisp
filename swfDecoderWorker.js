@@ -164,7 +164,7 @@ function(
               var sampleCount = data.readUint16LE();
               var sampleSeek = data.readInt16LE();
               streamBlock.push(sampleCount, sampleSeek);
-              blockFile = new Blob([data.subarray(data.offset)], 'audio/mpeg')
+              blockFile = new Blob([data.subarray(data.offset)], {type:'audio/mpeg'});
               break;
             case 'pcm':
               var wavBuffer = new ArrayBuffer(4 + 4 + 16);
