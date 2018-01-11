@@ -128,6 +128,9 @@ function(
         case TAG_SHOW_FRAME:
           this.showFrame();
           break;
+        case TAG_FRAME_LABEL:
+          this.nextFrame.updates.push(['label', data.readByteString('\0')]);
+          break;
         case TAG_SOUND_STREAM_HEAD:
         case TAG_SOUND_STREAM_HEAD_2:
           var playback = data.readSWFAudioFormat();
