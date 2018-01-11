@@ -392,6 +392,9 @@ define(function() {
           case 'init':
             this.onframeset(message[1]);
             break;
+          case 'stream':
+            console.log(message[1]);
+            break;
           case 'dep':
             for (var i_dep = 3; i_dep < message.length; i_dep++) {
               this.onurldependency(message[2], message[i_dep]);
@@ -421,7 +424,9 @@ define(function() {
             var sprite = new Sprite;
             sprite.id = message[1];
             for (var i_part = 2; i_part < message.length; i_part++) {
-              sprite.frames.push(this.readframe(message[i_part]));
+              if (message[i_part][0] === 'f') {
+                sprite.frames.push(this.readframe(message[i_part]));
+              }
             }
             this.onsprite(sprite);
             break;
