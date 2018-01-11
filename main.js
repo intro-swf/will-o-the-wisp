@@ -59,6 +59,7 @@ require([
   
   var movie = document.getElementById('movie');
   movie.rootCel = new Cel.Timeline;
+  movie.rootCel.frameLabels = {};
   movie.cels = {};
   movie.frameActions = {};
   movie.defs = document.getElementById('defs');
@@ -342,6 +343,9 @@ require([
   movie.frameCount = 0;
   client.onframe = function onframe(def) {
     // new:
+    if (typeof def.label === 'string') {
+      movie.rootCel.frameLabels[def.label] = movie.frameCount;
+    }
     for (var i_update = 0; i_update < def.updates.length; i_update++) {
       let update = def.updates[i_update];
       switch (update.type) {
@@ -429,9 +433,13 @@ require([
   client.onsprite = function(def) {
     // new:
     const spriteCel = movie.cels[def.id] = new Cel.Timeline;
+    spriteCel.frameLabels = {};
     spriteCel.frameActions = {};
     for (var i_frame = 0; i_frame < def.frames.length; i_frame++) {
       let frameDef = def.frames[i_frame];
+      if (typeof frameDef.label === 'string') {
+        spriteCel.frameLabels[frameDef.label] = i_frame;
+      }
       for (var i_update = 0; i_update < frameDef.updates.length; i_update++) {
         let update = frameDef.updates[i_update];
         if ('eventHandlers' in update) {
