@@ -370,6 +370,9 @@ define(function() {
           case 'strm':
             frame.audioStream = message.slice(1);
             break;
+          case 'label':
+            frame.label = message[1];
+            break;
         }
       }
       return frame;
