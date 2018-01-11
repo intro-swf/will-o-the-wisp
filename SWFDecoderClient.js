@@ -396,7 +396,14 @@ define(function() {
             this.onframeset(message[1]);
             break;
           case 'stream':
-            console.log(message[1]);
+            switch (message[1]) {
+              case 'sound':
+                console.log(message[2]);
+                break;
+              default:
+                console.warn('unsupported stream: ' + message[1]);
+                break;
+            }
             break;
           case 'dep':
             for (var i_dep = 3; i_dep < message.length; i_dep++) {
