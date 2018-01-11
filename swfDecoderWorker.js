@@ -187,7 +187,7 @@ function(
               blockFile = new Blob(parts, {type:'audio/x-wav'});
               break;
             case 'adpcm':
-              blockFile = data.readSWFSoundADPCM(stream.samplesPerBlock, stream.hz, stream.channels);
+              blockFile = data.readADPCMForSWF(stream.samplesPerBlock, stream.hz, stream.channels);
               break;
             default:
               throw new Error('unsupported stream format: ' + stream.encoding);
