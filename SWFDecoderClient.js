@@ -367,11 +367,8 @@ define(function() {
           case 'play-exclusive':
           case 'stop':
             break;
-          case 'strm':
-            frame.audioStream = message.slice(1);
-            break;
           case 'label':
-            frame.label = message[1];
+            frame.label = part[1];
             break;
         }
       }
