@@ -103,6 +103,7 @@ function(
     this.displayObjects = {};
     this.fonts = {};
     this.sounds = {};
+    this.lastAtDepth = {};
   }
   FrameContext.prototype = {
     frameCount: 0,
@@ -810,6 +811,7 @@ function(
         case TAG_PLACE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
+          this.lastAtDepth[depth] = this.displayObjects[characterID];
           var matrix = data.readSWFMatrix();
           var colorTransform = (data.offset === data.length) ? null : data.readSWFColorTransform(true);
           var insertion = ['i', depth, this.displayObjects[characterID]];
@@ -843,7 +845,7 @@ function(
           var update = [flags & 1 ? (flags & 2 ? 'r' : 'm') : (flags & 2 ? 'i' : 'd'), depth];
           
           if (flags & 2) {
-            update.push(this.displayObjects[data.readUint16LE()]);
+            update.push(this.lastAtDepth[depth] = this.displayObjects[data.readUint16LE()]);
           }
           if (flags & 4) {
             update.push(['transform', data.readSWFMatrix().toString()]);
@@ -860,8 +862,12 @@ function(
           }
           if (flags & 0x10) {
             var v = data.readUint16LE();
-            update.push(['morphRatio', v / 0xffff]);
-            update.push(['instance', v]);
+            if (/^#morph/.test(this.lastAtDepth[depth])) {
+              update.push(['morphRatio', v / 0xffff]);
+            }
+            else {
+              update.push(['instance', v]);
+            }
           }
           if (flags & 0x20) {
             update.push(['name', data.readByteString('\0')]);
@@ -931,10 +937,13 @@ function(
         case TAG_REMOVE_OBJECT:
           var characterID = data.readUint16LE();
           var depth = data.readUint16LE() + characterID/65536;
+          delete this.lastAtDepth[depth];
           this.nextFrame.updates.push(['d', depth]);
           break;
         case TAG_REMOVE_OBJECT_2:
-          this.nextFrame.updates.push(['d', data.readUint16LE()]);
+          var depth = data.readUint16LE();
+          delete this.lastAtDepth[depth];
+          this.nextFrame.updates.push(['d', depth]);
           break;
         case TAG_DO_ACTION:
           this.nextFrame.updates.push(data.readSWFActions());
@@ -990,8 +999,9 @@ function(
         case TAG_DEFINE_SPRITE:
           var id = data.readUint16LE();
           var spriteContext = Object.create(this);
-          spriteContext.frameCount = data.readUint16LE();
+          spriteContext.lastAtDepth = {};
           spriteContext.nextFrame = new FrameInfo;
+          spriteContext.frameCount = data.readUint16LE();
           var def = ['sprite', 'sprite'+id];
           spriteContext.onframe = function(f) {
             def.push(f);
