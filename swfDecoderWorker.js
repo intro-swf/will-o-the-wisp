@@ -862,7 +862,7 @@ function(
           if (flags & 0x10) {
             var v = data.readUint16LE();
             update.push(['morphRatio', v / 0xffff]);
-            update.push(['spriteReplaceCheck', v]);
+            update.push(['instance', v]);
           }
           if (flags & 0x20) {
             update.push(['name', data.readByteString('\0')]);
