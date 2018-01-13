@@ -103,7 +103,6 @@ function(
     this.displayObjects = {};
     this.fonts = {};
     this.sounds = {};
-    this.clipAtDepth = {};
   }
   FrameContext.prototype = {
     frameCount: 0,
@@ -868,17 +867,7 @@ function(
             update.push(['name', data.readByteString('\0')]);
           }
           if (flags & 0x40) {
-            var clipDepth = data.readUint16LE();
-            if (depth in this.clipAtDepth && this.clipAtDepth[depth][2] !== clipDepth) {
-              this.nextFrame.updates.push(['d', this.clipAtDepth[depth]]);
-            }
-            update[1] = this.clipAtDepth[depth] = ['clip', depth+1, clipDepth];
-          }
-          else if (depth in this.clipAtDepth) {
-            update[1] = this.clipAtDepth[depth];
-            if (update[0] === 'd') {
-              delete this.clipAtDepth[depth];
-            }
+            update.push(['clipToDepth', data.readUint16LE()]);
           }
           if (flags & 0x80) {
             var handlers = ['handlers'];
@@ -945,14 +934,7 @@ function(
           this.nextFrame.updates.push(['d', depth]);
           break;
         case TAG_REMOVE_OBJECT_2:
-          var depth = data.readUint16LE();
-          if (depth in this.clipAtDepth) {
-            this.nextFrame.updates.push(['d', this.clipAtDepth[depth]]);
-            delete this.clipAtDepth[depth];
-          }
-          else {
-            this.nextFrame.updates.push(['d', depth]);
-          }
+          this.nextFrame.updates.push(['d', data.readUint16LE()]);
           break;
         case TAG_DO_ACTION:
           this.nextFrame.updates.push(data.readSWFActions());
@@ -1009,7 +991,6 @@ function(
           var id = data.readUint16LE();
           var spriteContext = Object.create(this);
           spriteContext.frameCount = data.readUint16LE();
-          spriteContext.clipAtDepth = {};
           spriteContext.nextFrame = new FrameInfo;
           var def = ['sprite', 'sprite'+id];
           spriteContext.onframe = function(f) {
