@@ -9,7 +9,8 @@ require(['java', 'z'], function(java, z) {
     var classes = {};
     for (var filename in files) {
       if (/\.class$/i.test(filename)) {
-        var classDef = new java.ClassView(files[filename]);
+        var bytes = files[filename];
+        var classDef = new java.ClassView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
         if (!classDef.hasValidSignature) {
           throw new Error('invalid class file: ' + filename);
         }
