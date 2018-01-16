@@ -117,6 +117,11 @@ define(['dataExtensions!'], function(dataExtensions) {
         var presetAdler32 = this.readUint32BE();
         throw new Error('preset dictionary not supported');
       }
+      var result = this.decompressZPartsRaw(windowSize);
+      result.adler32 = this.readUint32BE();
+      return result;
+    },
+    decompressZPartsRaw: function(windowSize) {
       var window = new Uint8Array(windowSize * 2);
       var windowHalf2 = window.subarray(windowSize);
       var outputParts = [];
@@ -236,7 +241,6 @@ define(['dataExtensions!'], function(dataExtensions) {
         }
       }
       this.flushBits();
-      outputParts.adler32 = this.readUint32BE();
       return outputParts;
     },
     toZStoredParts: function() {
@@ -268,6 +272,19 @@ define(['dataExtensions!'], function(dataExtensions) {
     },
     inflate: function(bytes) {
       var parts = bytes.decompressZParts();
+      if (parts.length === 1) return parts[0];
+      var concat = new Uint8Array(parts.reduce(function(len, part) {
+        return len + part.length;
+      }, 0));
+      var offset = 0;
+      for (var i = 0; i < parts.length; i++) {
+        concat.set(parts[i], offset);
+        offset += parts[i].length;
+      }
+      return concat;
+    },
+    inflateRaw: function(bytes) {
+      var parts = bytes.decompressZPartsRaw();
       if (parts.length === 1) return parts[0];
       var concat = new Uint8Array(parts.reduce(function(len, part) {
         return len + part.length;
