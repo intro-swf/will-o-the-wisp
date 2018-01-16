@@ -284,7 +284,7 @@ define(['dataExtensions!'], function(dataExtensions) {
       return concat;
     },
     inflateRaw: function(bytes) {
-      var parts = bytes.decompressZPartsRaw();
+      var parts = bytes.decompressZPartsRaw(32768);
       if (parts.length === 1) return parts[0];
       var concat = new Uint8Array(parts.reduce(function(len, part) {
         return len + part.length;
