@@ -6,11 +6,17 @@ requirejs.config({
 require(['java', 'z'], function(java, z) {
   
   function loadFiles(files) {
+    var classes = {};
     for (var filename in files) {
       if (/\.class$/i.test(filename)) {
-        console.log(filename);
+        var classDef = new java.ClassView(files[filename]);
+        if (!classDef.hasValidSignature) {
+          throw new Error('invalid class file: ' + filename);
+        }
+        classes[classDef.name] = classDef;
       }
     }
+    console.log(classes);
   }
   
   var xhr = new XMLHttpRequest;
