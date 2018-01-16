@@ -13,10 +13,10 @@ require(['java', 'z'], function(java, z) {
     var pos = 0;
     while (pos < jar.length) {
       if (dv.getUint32(pos, true) !== 0x04034b50) break;
-      var compressionMethod = dv.getUint16(8, true);
-      var compressedLen = dv.getUint32(18, true);
-      var filenameLen = dv.getUint16(26, true);
-      var extraLen = dv.getUint16(28, true);
+      var compressionMethod = dv.getUint16(pos + 8, true);
+      var compressedLen = dv.getUint32(pos + 18, true);
+      var filenameLen = dv.getUint16(pos + 26, true);
+      var extraLen = dv.getUint16(pos + 28, true);
       pos += 30;
       var filename = jar.subarray(pos, pos + filenameLen);
       pos += filenameLen;
@@ -25,7 +25,7 @@ require(['java', 'z'], function(java, z) {
       var compressed = jar.subarray(pos, pos + compressedLen);
       pos += compressedLen;
       filename = String.fromCharCode.apply(null, filename);
-      console.log(filename, compressionMethod, compressed.length);
+      console.log(filename, compressionMethod, compressedLen);
     }
   };
   xhr.send();
