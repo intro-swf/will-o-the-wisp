@@ -13,6 +13,7 @@ require(['java', 'z'], function(java, z) {
     var pos = 0;
     while (pos < jar.length) {
       if (dv.getUint32(pos, true) !== 0x04034b50) break;
+      var flags = dv.getUint16(pos + 6, true);
       var compressionMethod = dv.getUint16(pos + 8, true);
       var compressedLen = dv.getUint32(pos + 18, true);
       var filenameLen = dv.getUint16(pos + 26, true);
@@ -22,10 +23,21 @@ require(['java', 'z'], function(java, z) {
       pos += filenameLen;
       var extra = jar.subarray(pos, pos + extraLen);
       pos += extraLen;
-      var compressed = jar.subarray(pos, pos + compressedLen);
-      pos += compressedLen;
+      var compressed;
+      if (flags & 8) {
+        var startPos = pos;
+        while (dv.getUint32(pos, true) !== 0x08074b50) {
+          if (++pos >= jar.length) throw new Error('data descriptor not found');
+        }
+        compressed = jar.subarray(startPos, pos);
+        pos += 16;
+      }
+      else {
+        compressed = jar.subarray(pos, pos + compressedLen);
+        pos += compressedLen;
+      }
       filename = String.fromCharCode.apply(null, filename);
-      console.log(filename, compressionMethod, compressedLen);
+      console.log(filename, compressionMethod, compressed.length);
     }
   };
   xhr.send();
