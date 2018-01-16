@@ -44,7 +44,7 @@ require(['java', 'z'], function(java, z) {
       var uncompressed;
       switch (compressionMethod) {
         case 0: uncompressed = compressed; break;
-        case 8: uncompressed = z.inflate(compressed); break;
+        case 8: uncompressed = z.inflateRaw(compressed); break;
       }
       console.log(filename, compressionMethod, compressed.length, uncompressed.length, uncompressedLen);
     }
