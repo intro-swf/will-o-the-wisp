@@ -6,7 +6,7 @@ requirejs.config({
 require(['java', 'z'], function(java, z) {
   var xhr = new XMLHttpRequest;
   xhr.responseType = 'arraybuffer';
-  xhr.open('GET', '//cors.archive.org/cors/midlet_misc/doom_rpg_mobile.jar');
+  xhr.open('GET', '//cors.archive.org/cors/misc_midlet/DoomRPG_s60v2-N70.jar');
   xhr.onload = function(e) {
     var jar = new Uint8Array(this.response);
     var dv = new DataView(this.response);
