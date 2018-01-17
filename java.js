@@ -1603,6 +1603,147 @@ define(function() {
     },
   };
   
+  const _CTOR = new Symbol('constructor');
+  const _REFLECTS = new Symbol('reflects');
+  const _ENTRIES = new Symbol('entries');
+
+  function JInterface(def) {
+    Object.assign(this, def);
+  }
+  JInterface.prototype = Object.create(null);
+
+  function JObject() {
+  }
+  JObject.name = 'java.lang.Object';
+  JObject.prototype = Object.create(null);
+  JObject.prototype[_CTOR] = JObject;
+
+  function JClass(reflects) {
+    this[_REFLECTS] = reflects;
+  }
+
+  JObject.api = {
+    Array: {
+      get: function() {
+        function TArray(v) {
+          if (typeof v === 'number') {
+            v = new Array(v);
+            v.fill(null);
+          }
+          else if (Array.isArray(v)) {
+            for (var i = 0; i < v.length; i++) {
+              v[i] = v[i] || null;
+            }
+          }
+          else {
+            throw new Error('invalid array specifier');
+          }
+          this[_ENTRIES] = v;
+        }
+        initClass(TArray, {
+          ctor: function(v) {
+            if (typeof v === 'number') {
+              v = new Array(v);
+              v.fill(null);
+            }
+            else if (Array.isArray(v)) {
+              for (var i = 0; i < v.length; i++) {
+                v[i] = v[i] || null;
+              }
+            }
+            else {
+              throw new Error('invalid array specifier');
+            }
+            this[_ENTRIES] = v;
+          },
+          name: '[L'+this.name+';',
+        });
+        Object.defineProperty(this, 'Array', {
+          value: TArray,
+          enumerable: true,
+          configurable: false,
+        });
+        return TArray;
+      },
+      configurable: true,
+      enumerable: false,
+    },
+    classObject: {
+      get: function() {
+        var classObject = new JClass(this);
+        Object.defineProperty(this, 'classObject', {
+          value: classObject,
+          enumerable: true,
+          configurable: false,
+        });
+      },
+      configurable: true,
+      enumerable: true,
+    },
+    interfaceSet: {
+      get: function() {
+        var set;
+        var superclass = this.superclass;
+        if ((this.interfaces || []).length === 0) {
+          set = superclass ? superclass.interfaceSet : new Set;
+        }
+        else {
+          set = new Set;
+          if (superclass) {
+            superclass.interfaceSet.forEach(function(v) {
+              set.add(v);
+            });
+          }
+          (this.interfaces || []).forEach(function(v) {
+            v.interfaceSet.forEach(function(v) {
+              set.add(v);
+            });
+          });
+          if (this instanceof JInterface) {
+            set.add(this);
+          }
+        }
+        Object.defineProperty(this, 'interfaceSet', {
+          value: set,
+          enumerable: true,
+          configurable: false,
+        });
+        return set;
+      },
+      configurable: true,
+      enumerable: false,
+    },
+  };
+
+  function initClass(ctor, def) {
+    var superclass = def.extends || JObject;
+    ctor.name = def.name;
+    ctor.superclass = superclass;
+    ctor.prototype = Object.create(superclass.prototype);
+    ctor.prototype[_CTOR] = ctor;
+    if ('instanceMembers' in def) {
+      Object.assign(ctor.prototype, def.instanceMembers);
+    }
+    if ('staticMembers' in def) {
+      ctor.staticMembers = Object.create(null);
+      Object.assign(ctor.staticMembers, def.staticMembers);
+    }
+    if ('interfaces' in def) {
+      ctor.interfaces = def.interfaces.slice();
+    }
+    Object.defineProperties(ctor, JObject.api);
+    return ctor;
+  }
+  
+  const JSerializable = new JInterface({
+    name: 'java.lang.Serializable',
+  });
+
+  initClass(JClass, {
+    name: 'java.lang.Class',
+    interfaces: [JSerializable],
+  });
+  
   return {
     ClassView: ClassView,
     MemberView: MemberView,
@@ -1612,6 +1753,15 @@ define(function() {
     AnnotationView: AnnotationView,
     AnnotationValueView: AnnotationValueView,
     CodeView: CodeView,
+    
+    _CTOR: _CTOR,
+    _REFLECTS: _REFLECTS,
+    _ENTRIES: _ENTRIES,
+    Interface: JInterface,
+    Object: JObject,
+    Class: JClass,
+    Serializable: JSerializable,
+    initClass: initClass,
   };
 
 });
