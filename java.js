@@ -1603,9 +1603,9 @@ define(function() {
     },
   };
   
-  const _CTOR = new Symbol('constructor');
-  const _REFLECTS = new Symbol('reflects');
-  const _ENTRIES = new Symbol('entries');
+  const _CTOR = Symbol('constructor');
+  const _REFLECTS = Symbol('reflects');
+  const _ENTRIES = Symbol('entries');
 
   function JInterface(def) {
     Object.assign(this, def);
