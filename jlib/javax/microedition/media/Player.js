@@ -1,19 +1,12 @@
-define(['java', './Controllable', './PlayerListener'], function(java, Controllable, PlayerListener) {
+define(['java'], function(java) {
 
   'use strict';
   
-  const UNREALIZED = 100,
-        REALIZED = 200,
-        PREFETCHED = 300,
-        STARTED = 400,
-        CLOSED = 0,
-        TIME_UNKNOWN = -1;
-  
   return java.define('javax/microedition.media.Player', {
     superclass: 'interface',
-    interfaces: ['Controllable'],
+    interfaces: ['./Controllable'],
     methods: {
-      addPlayerListener: [PlayerListener],
+      addPlayerListener: ['./PlayerListener'],
       close: [],
       deallocate: [],
       getContentType: [{ret:'string'}],
@@ -22,19 +15,19 @@ define(['java', './Controllable', './PlayerListener'], function(java, Controllab
       getState: [{ret:'i32'}],
       prefetch: [],
       realize: [],
-      removePlayerListener: [PlayerListener],
+      removePlayerListener: ['./PlayerListener'],
       setLoopCount: ['i32'],
       setMediaTime: [{ret:'i64'}, 'i64'],
       start: [],
       stop: [],
     },
     constants: {
-      UNREALIZED: UNREALIZED,
-      REALIZED: REALIZED,
-      PREFETCHED: PREFETCHED,
-      STARTED: STARTED,
-      CLOSED: CLOSED,
-      TIME_UNKNOWN: TIME_UNKNOWN,
+      UNREALIZED: 100,
+      REALIZED: 200,
+      PREFETCHED: 300,
+      STARTED: 400,
+      CLOSED: 0,
+      TIME_UNKNOWN: -1,
     },
   });
 
