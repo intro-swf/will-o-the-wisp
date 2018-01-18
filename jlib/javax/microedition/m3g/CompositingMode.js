@@ -2,8 +2,8 @@ define(['java', './Object3D'], function(java, Object3D) {
 
   'use strict';
   
-  const ALPHA	= 64,
-        ALPHA_ADD	= 65,
+  const ALPHA = 64,
+        ALPHA_ADD = 65,
         MODULATE = 66,
         MODULATE_X2 = 67,
         REPLACE = 68;
