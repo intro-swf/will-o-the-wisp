@@ -26,7 +26,7 @@ define(['java'], function(java) {
       notifyAll: [function() {
       }],
       toString: [{ret:'string'}, function() {
-        return this[_CTOR].name + "@" + (this.hashCode() >>> 0).toString(16);
+        return this[_CTOR].className + "@" + (this.hashCode() >>> 0).toString(16);
       }],
       wait: [
         [],
