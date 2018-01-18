@@ -2,6 +2,10 @@ define(['java'], function(java) {
   
   'use strict';
   
+  const _CAPACITY_INCREMENT = Symbol('capacityIncrement');
+  const _ELEMENT_COUNT = Symbol('elementCount');
+  const _ELEMENT_DATA = Symbol('elementData');
+  
   return java.define('java.util.Vector', {
     constructor: [
       [],
@@ -15,7 +19,7 @@ define(['java'], function(java) {
       }],
       capacity: [{ret:'i32'}, function() {
       }],
-      contains: [{ret:'boolean', 'object', function(element) {
+      contains: [{ret:'boolean'}, 'object', function(element) {
       }],
       copyInto: ['object[]', function(array) {
       }],
@@ -62,6 +66,11 @@ define(['java'], function(java) {
       }],
       trimToSize: [function() {
       }],
+    },
+    fields: {
+      capacityIncrement: [{access:'protected'}, 'i32', _CAPACITY_INCREMENT],
+      elementCount: [{access:'protected'}, 'i32', _ELEMENT_COUNT],
+      elementData: [{access:'protected'}, 'object[]', _ELEMENT_DATA],
     },
   });
   
