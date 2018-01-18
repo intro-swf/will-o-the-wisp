@@ -1,4 +1,4 @@
-define(['java'], function(java) {
+define(['java', './Object3D'], function(java, Object3D) {
 
   'use strict';
   
@@ -9,6 +9,7 @@ define(['java'], function(java) {
         RGBA = 100;
   
   return java.define('javax.microedition.m3g.Image2D', {
+    base: Object3D,
     constructor: [
       ['i32', 'i32', 'i32'],
       ['i32', 'i32', 'i32', 'i8[]'],
