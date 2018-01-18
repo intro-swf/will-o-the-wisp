@@ -22,7 +22,9 @@ require(['java', 'z'], function(java, z) {
   
   var xhr = new XMLHttpRequest;
   xhr.responseType = 'arraybuffer';
-  xhr.open('GET', '//cors.archive.org/cors/misc_midlet/DoomRPG_s60v2-N70.jar');
+  var path = location.search.match(/^\??\/?([^\/]+\/([^\/].*?)\/?$/);
+  path = path ? path[1] : 'misc_midlet/DoomRPG_s60v2-N70.jar';
+  xhr.open('GET', '//cors.archive.org/cors/' + path);
   xhr.onload = function(e) {
     var jar = new Uint8Array(this.response);
     var dv = new DataView(this.response);
