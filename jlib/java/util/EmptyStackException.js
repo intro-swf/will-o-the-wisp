@@ -6,8 +6,8 @@ define(['java', '../lang/RuntimeException'], function(java, RuntimeException) {
     base: RuntimeException,
     constructor: [
       [],
-      function RuntimeException() {
-        Exception.apply(this);
+      function EmptyStackException() {
+        RuntimeException.apply(this);
       },
     ],
   });
