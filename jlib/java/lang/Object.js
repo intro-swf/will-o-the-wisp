@@ -2,8 +2,6 @@ define(['java'], function(java) {
 
   'use strict';
 
-  const JObject = java.Object;
-  
   const _CTOR = java._CTOR;
   const _HASHCODE = Symbol('hashCode');
   
