@@ -1614,7 +1614,7 @@ define(function() {
 
   function JObject() {
   }
-  JObject.name = 'java.lang.Object';
+  JObject.className = 'java.lang.Object';
   JObject.prototype = Object.create(null);
   JObject.prototype[_CTOR] = JObject;
 
@@ -1717,7 +1717,7 @@ define(function() {
 
   function initClass(ctor, def) {
     var superclass = def.extends || JObject;
-    ctor.name = def.name;
+    ctor.className = def.name;
     ctor.superclass = superclass;
     ctor.prototype = Object.create(superclass.prototype);
     ctor.prototype[_CTOR] = ctor;
