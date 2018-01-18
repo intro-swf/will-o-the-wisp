@@ -45,11 +45,11 @@ define(['java', './Object3D'], function(java, Object3D) {
       }],
     },
     constants: {
-      ALPHA: ALPHA,
-      ALPHA_ADD: ALPHA_ADD,
-      MODULATE: MODULATE,
+      ALPHA:       ALPHA,
+      ALPHA_ADD:   ALPHA_ADD,
+      MODULATE:    MODULATE,
       MODULATE_X2: MODULATE_X2,
-      REPLACE: REPLACE;
+      REPLACE:     REPLACE,
     },
   });
 
