@@ -7,6 +7,9 @@ define(['java'], function(java) {
       [],
       ['i64'],
       function Random(seed) {
+        if (arguments.length === 1) {
+          seed = new Date().getTime();
+        }
       },
     ],
     methods: {
