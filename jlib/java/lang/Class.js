@@ -13,7 +13,7 @@ define(['java'], function(java) {
     },
     methods: {
       getName: [{ret:'string'}, function() {
-        return this[_REFLECTS].name;
+        return this[_REFLECTS].className;
       }],
       getResourceAsStream: [{ret:'../io/InputStream'}, 'string', function(name) {
       }],
@@ -43,9 +43,9 @@ define(['java'], function(java) {
       }],
       toString: [{ret:'string'}, function() {
         var reflect = this[_REFLECTS];
-        if (reflect.isPrimitive) return reflect.name;
-        if (reflect instanceof Interface) return 'interface ' + reflect.name;
-        return 'class ' + reflect.name;
+        if (reflect.isPrimitive) return reflect.className;
+        if (reflect instanceof Interface) return 'interface ' + reflect.className;
+        return 'class ' + reflect.className;
       }],
     },
   });
