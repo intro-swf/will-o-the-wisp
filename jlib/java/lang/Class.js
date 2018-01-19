@@ -8,7 +8,7 @@ define(['java'], function(java) {
   return java.define('java.lang.Class', {
     constructor: [{access:'private'}, Class],
     staticMethods: {
-      forName: [{ret:Class}, 'string', function(className) {
+      forName: [{blocking:true, ret:Class}, 'string', function(className) {
       }],
     },
     methods: {
