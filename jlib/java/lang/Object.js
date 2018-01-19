@@ -29,9 +29,9 @@ define(['java'], function(java) {
         return this[_CTOR].className + "@" + (this.hashCode() >>> 0).toString(16);
       }],
       wait: [
-        [],
-        ['i64'],
-        ['i64', 'i32'],
+        [{blocking:true}],
+        [{blocking:true}, 'i64'],
+        [{blocking:true}, 'i64', 'i32'],
         function(timeout, nanos) {
         },
       ],
