@@ -5,7 +5,7 @@ requirejs.config({
 
 require(['java', 'z'], function(java, z) {
   
-  function loadFiles(files) {
+  function loadFiles(files, containerFilename) {
     var classes = {};
     for (var filename in files) {
       if (/\.class$/i.test(filename)) {
@@ -18,7 +18,24 @@ require(['java', 'z'], function(java, z) {
         classes[classDef.name] = classDef;
       }
     }
-    console.log(classes);
+    var refs = [];
+    for (var className in classes) {
+      var constants = classes[className].constants;
+      for (var i = 0; i < constants.length; i++) {
+        var c = constants[i];
+        if (/Ref$/.test(c.type)) {
+          var refClass = constants[constants[c.classIndex].nameIndex];
+          if (!(refClass in classes)) {
+            var nameAndType = constants[c.nameAndTypeIndex];
+            var refMember = constants[nameAndType.nameIndex];
+            var refType = constants[nameAndType.descriptorIndex];
+            var ref = containerFilename + ' ' + refClass + ' ' + refMember + ' ' + refType;
+            if (refs.indexOf(ref) === -1) refs.push(ref);
+          }
+        }
+      }
+    }
+    console.log(refs.sort().join('\n'));
   }
   
   var xhr = new XMLHttpRequest;
@@ -69,7 +86,7 @@ require(['java', 'z'], function(java, z) {
       if (uncompressed.length !== uncompressedLen) throw new Error('bad decompression');
       files[filename] = uncompressed;
     }
-    loadFiles(files);
+    loadFiles(files, path.replace(/^.*\//, ''));
   };
   xhr.send();
 });
