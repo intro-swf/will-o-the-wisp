@@ -23,6 +23,7 @@ require(['java', 'z'], function(java, z) {
       var constants = classes[className].constants;
       for (var i = 0; i < constants.length; i++) {
         var c = constants[i];
+        if (!c) continue;
         if (/Ref$/.test(c.type)) {
           var refClass = constants[constants[c.classIndex].nameIndex];
           if (!(refClass in classes)) {
