@@ -2,6 +2,9 @@ define(['java', '../../microedition/io/Connection'], function(java, Connection) 
 
   'use strict';
   
+  const BINARY_MESSAGE = 'binary',
+        TEXT_MESSAGE = 'text';
+  
   return java.define('javax.wireless.messaging.MessageListener', {
     base: 'interface',
     interfaces: [Connection],
@@ -14,6 +17,10 @@ define(['java', '../../microedition/io/Connection'], function(java, Connection) 
       receive: [{ret:'./Message'}],
       send: ['./Message'],
       setMessageListener: ['./MessageListener'],
+    },
+    constants: {
+      BINARY_MESSAGE: BINARY_MESSAGE,
+      TEXT_MESSAGE: TEXT_MESSAGE,
     },
   });
 
