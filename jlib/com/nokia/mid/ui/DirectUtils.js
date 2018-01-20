@@ -6,7 +6,7 @@ define(['java'], function(java) {
     staticMethods: {
       createImage: [
         [
-          {ret:'javax.microedition.lcdui.Image'}, 'i8[]', 'i32', 'i32',
+          {blocking:true, ret:'javax.microedition.lcdui.Image'}, 'i8[]', 'i32', 'i32',
           function createImage(bytes, offset, length) {
           },
         ],
