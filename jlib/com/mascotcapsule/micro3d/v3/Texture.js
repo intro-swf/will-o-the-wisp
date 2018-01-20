@@ -6,7 +6,7 @@ define(['java'], function(java) {
     constructor: [
       ['i8[]', function Texture(data) {
       }],
-      ['string', function Texture(resourceName) {
+      [{blocking:true}, 'string', function Texture(resourceName) {
       }],
     ],
     methods {
