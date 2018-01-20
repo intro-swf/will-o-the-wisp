@@ -18,8 +18,10 @@ define(['java', '../io/PrintStream'], function(java, PrintStream) {
         return new Date().getTime();
       }],
       exit: [{blocking:true}, 'i32', function exit(statusCode) {
+        return java.currentThread.vm.exit(statusCode);
       }],
       gc: [function() {
+        java.currentThread.vm.gc();
       }],
       getProperty: [{ret:'string'}, 'string', function getProperty(propertyName) {
         return java.currentThread.vm.getProperty(propertyName);
