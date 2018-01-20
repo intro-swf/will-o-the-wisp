@@ -5,17 +5,17 @@ define(['java'], function(java) {
   return java.define('com.siemens.mp.ui.Image', {
     constructor: [
       [
-        'i8[]',
+        {blocking:true}, 'i8[]',
         function Image(data) {
         },
       ],
       [
-        'i8[]', 'i32', 'i32',
+        {blocking:true}, 'i8[]', 'i32', 'i32',
         function Image(data, width, height) {
         },
       ],
       [
-        'i8[]', 'i32', 'i32', 'boolean',
+        {blocking:true}, 'i8[]', 'i32', 'i32', 'boolean',
         function Image(data, width, height, isTransparent) {
         },
       ],
@@ -30,7 +30,7 @@ define(['java'], function(java) {
         },
       ],
       [
-        'string', 'boolean',
+        {blocking:true}, 'string', 'boolean',
         function Image(resourceName, doScale) {
         },
       ],
@@ -49,26 +49,26 @@ define(['java'], function(java) {
       ],
       createImageFromBitmap: [
         [
-          {ret:'javax.microedition.lcdui.Image'},
+          {blocking:true, ret:'javax.microedition.lcdui.Image'},
           'i8[]', 'i8[]', 'i32', 'i32',
           function createImageFromBitmap(imageData, alpha, width, height) {
           },
         ],
         [
-          {ret:'javax.microedition.lcdui.Image'},
+          {blocking:true, ret:'javax.microedition.lcdui.Image'},
           'i8[]', 'i32', 'i32',
           function createImageFromBitmap(imageData, width, height) {
           },
         ],
       ],
       createTransparentImageFromBitmap: [
-        {ret:'javax.microedition.lcdui.Image'},
+        {blocking:true, ret:'javax.microedition.lcdui.Image'},
         'i8[]', 'i32', 'i32',
         function createImageFromBitmap(imageData, width, height) {
         },
       ],
       createImageWithoutScaling: [
-        {ret:'javax.microedition.lcdui.Image'},
+        {blocking:true, ret:'javax.microedition.lcdui.Image'},
         'string',
         function createImageWithoutScaling(resourceName) {
         },
