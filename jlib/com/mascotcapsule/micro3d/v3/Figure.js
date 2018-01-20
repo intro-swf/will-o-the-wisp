@@ -6,7 +6,7 @@ define(['java'], function(java) {
     constructor: [
       ['i8[]', function Figure(data) {
       }],
-      ['string', function Figure(resourceName) {
+      [{blocking:true}, 'string', function Figure(resourceName) {
       }],
     ],
     methods: {
