@@ -9,6 +9,7 @@ define(['java'], function(java) {
     constructor: [{access:'private'}, Class],
     staticMethods: {
       forName: [{blocking:true, ret:Class}, 'string', function(className) {
+        return java.currentThread.vm.loadClass(className);
       }],
     },
     methods: {
@@ -16,6 +17,7 @@ define(['java'], function(java) {
         return this[_REFLECTS].className;
       }],
       getResourceAsStream: [{ret:'../io/InputStream'}, 'string', function(name) {
+        return java.currentThread.vm.getResourceAsStream(name);
       }],
       isArray: [{ret:'boolean'}, function() {
         return !!this[_REFLECTS].componentType;
