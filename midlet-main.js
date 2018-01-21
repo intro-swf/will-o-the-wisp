@@ -13,6 +13,17 @@ require(['java', 'z'], function(java, z) {
     console.log(manifest);
     manifest = java.parseManifestSections(manifest);
     console.log(manifest);
+    var midlets = [];
+    for (var i = 1; ; i++) {
+      var midlet = manifest['midlet-' + i];
+      if (!midlet) break;
+      var info = midlet.trim().split(/\s*,\s*/g);
+      if (info.length !== 3) {
+        throw new Error('invalid MIDlet');
+      }
+      midlets.push({name:info[0], icon:info[1], className:info[2]});
+    }
+    console.log(midlets);
     return;
     var classes = {};
     for (var filename in files) {
