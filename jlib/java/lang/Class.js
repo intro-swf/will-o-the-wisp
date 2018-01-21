@@ -6,6 +6,7 @@ define(['java'], function(java) {
   const _CTOR = java._CTOR;
 
   return java.define('java.lang.Class', {
+    final: true,
     constructor: [{access:'private'}, Class],
     staticMethods: {
       forName: [{blocking:true, ret:Class}, 'string', function(className) {
