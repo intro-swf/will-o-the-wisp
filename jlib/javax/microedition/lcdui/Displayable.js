@@ -2,48 +2,39 @@ define(['java'], function(java) {
 
   'use strict';
 
-  return java.defineClass(
-  
-    function Displayable() {
+  return java.define('javax.microedition.lcdui.Displayable', {
+    
+    constructor: [
+      {access:'package'},
+      function Displayable() {
+      },
+    ],
+    
+    methods: {
+      addCommand: ['./Command', function addCommand(cmd) {
+      }],
+      removeCommand: ['./Command', function removeCommand(cmd) {
+      }],
+      setCommandListener: ['./CommandListener', function setCommandListener(listener) {
+      }],
+      setTicker: ['./Ticker', function setTicker(ticker) {
+      }],
+      getTicker: [{ret:'./Ticker'}, function getTicker() {
+      }],
+      setTitle: ['string', function setTitle(title) {
+      }],
+      getTitle: [{ret:'string'}, function getHeight() {
+      }],
+      getWidth: [{ret:'i32'}, function getWidth() {
+      }],
+      getHeight: [{ret:'i32'}, function getHeight() {
+      }],
+      sizeChanged: ['i32', 'i32', function(width, height) {
+      }],
+      isShown: [{ret:'boolean'}, function() {
+      }],
     },
     
-    {
-      name: 'javax.microedition.lcdui.Displayable',
-      instanceMembers: {
-        addCommand: function(command) {
-          throw new Error('NYI');
-        },
-        getHeight: function() {
-          throw new Error('NYI');
-        },
-        getTicker: function() {
-          throw new Error('NYI');
-        },
-        getTitle: function() {
-          throw new Error('NYI');
-        },
-        getWidth: function() {
-          throw new Error('NYI');
-        },
-        isShown: function() {
-          throw new Error('NYI');
-        },
-        removeCommand: function(command) {
-          throw new Error('NYI');
-        },
-        setCommandListener: function(commandListener) {
-          throw new Error('NYI');
-        },
-        setTicker: function(ticker) {
-          throw new Error('NYI');
-        },
-        setTitle: function(title) {
-          throw new Error('NYI');
-        },
-        sizeChanged: function(width, height) {
-          throw new Error('NYI');
-        },
-      },
-    });
+  });
 
 });
