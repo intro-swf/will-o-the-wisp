@@ -1752,7 +1752,7 @@ define(function() {
         var list = section.match(/^.*(?:(?:\r\n?|\n) .*)*/gm);
         var map = Object.create(null);
         for (var i = 0; i < list.length; i++) {
-          var header = list[i].match(/^([a-z0-9][a-z0-9_\-]*): ([\s\S]*)$/);
+          var header = list[i].match(/^([a-z0-9][a-z0-9_\-]*): ([\s\S]*)$/i);
           if (!header) throw new Error('invalid manifest');
           map[header[1].toLowerCase()] = header[2];
         }
