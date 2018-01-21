@@ -41,7 +41,7 @@ define(['java', './NumberFormatException'], function(java, NumberFormatException
       shortValue: [{ret:'i16'}, function shortValue() {
         return this[_VALUE];
       }],
-      longValue: [{ret:'i64'}, function shortValue() {
+      longValue: [{ret:'i64'}, function longValue() {
         return this[_VALUE];
       }],
       equals: [{ret:'boolean'}, 'object', function equals(o) {
