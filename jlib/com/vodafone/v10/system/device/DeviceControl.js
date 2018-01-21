@@ -10,6 +10,7 @@ define(['java'], function(java) {
         EIGHT_DIRECTIONS = 6;
   
   return java.define('com.vodafone.v10.system.device.DeviceControl', {
+    final: true,
     staticMethods: {
       getDefaultDeviceControl: [
         {ret:'./DeviceControl'},
