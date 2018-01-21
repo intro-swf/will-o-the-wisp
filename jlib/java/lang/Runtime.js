@@ -3,6 +3,7 @@ define(['java'], function(java) {
   'use strict';
   
   return java.define('java.lang.Runtime', {
+    final: true, // no accessible constructor
     staticMethods: {
       getRuntime: [{ret:'./Runtime'}, function() {
         return java.currentThread.vm.runtimeObject;
