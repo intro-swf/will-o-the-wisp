@@ -8,7 +8,7 @@ define(['java'], function(java) {
   return java.define('java.lang.Byte', {
     primitive: 'i8',
     constructor: ['i8', function Byte(v) {
-      this[_VALUE] = b;
+      this[_VALUE] = v;
     }],
     constants: {
       MIN_VALUE: ['i8', -128],
