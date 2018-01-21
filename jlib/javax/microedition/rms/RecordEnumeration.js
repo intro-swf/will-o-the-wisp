@@ -1,7 +1,7 @@
 define(['java'], function(java) {
 
   return java.define('javax.microedition.rms.RecordEnumeration', {
-    superclass: 'interface',
+    base: 'interface',
     methods: {
       destroy: [],
       hasNextElement: [{blocking:true, ret:'boolean'}],
