@@ -10,8 +10,8 @@ define(['java'], function(java) {
       this[_VALUE] = b;
     }],
     constants: {
-      FALSE: ['./Boolean', false],
-      TRUE: ['./Boolean', true],
+      FALSE: false,
+      TRUE: true,
     },
     methods: {
       booleanValue: [{ret:'boolean'}, function booleanValue() {
