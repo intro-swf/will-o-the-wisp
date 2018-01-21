@@ -15,8 +15,12 @@ define(['java'], function(java) {
         COLOR_HIGHLIGHTED_BORDER = 5;
   
   var Display = java.define('javax.microedition.lcdui.Display', {
-    constructor: [function Display(midlet) {
-    }],
+    final: true, // no accessible constructor
+    constructor: [
+      {access:'private'},
+      function Display(midlet) {
+      },
+    ],
     staticMethods: {
       getDisplay: function(midlet) {
         if (_DISPLAY in midlet) {
