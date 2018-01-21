@@ -122,8 +122,6 @@ define(['java'], function(java) {
       valueOf: [
         ['boolean'],
         ['char'],
-        ['char[]'],
-        ['char[]', 'i32', 'i32'],
         ['f32'],
         ['f64'],
         ['i32'],
@@ -131,6 +129,14 @@ define(['java'], function(java) {
         ['object'],
         function valueOf(v) {
           return ''+v;
+        },
+        ['char[]'],
+        function valueOf(chars) {
+          return String.fromCharCode.apply(null, chars);
+        },
+        ['char[]', 'i32', 'i32'],
+        function valueOf(chars, offset, length) {
+          return String.fromCharCode.apply(null, chars.subarray(offset, offset+length));
         },
       ],
     },
