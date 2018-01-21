@@ -16,7 +16,7 @@ define(['java', './NumberFormatException'], function(java, NumberFormatException
         [{ret:'i8'}, 'string', 'i32'],
         function parseByte(str, radix) {
           if (isNaN(radix)) radix = 10;
-          var v = parseInt(str);
+          var v = parseInt(str, radix);
           if (isNaN(v) || v < -128 || v > 127) {
             throw new NumberFormatException();
           }
