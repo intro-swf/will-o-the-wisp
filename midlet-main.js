@@ -9,6 +9,17 @@ require(['java', 'z'], function(java, z) {
   
   function loadFiles(files, containerFilename) {
     var manifest = files['META-INF/MANIFEST.MF'];
+    if (!manifest) {
+      for (var k in files) {
+        if (k.toUpperCase() === 'META-INF/MANIFEST.MF') {
+          manifest = files[k];
+          break;
+        }
+      }
+      if (!manifest) {
+        throw new Error('manifest not found');
+      }
+    }
     manifest = utf8.decode(manifest);
     console.log(manifest);
     manifest = java.parseManifestSections(manifest);
