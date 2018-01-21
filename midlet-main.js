@@ -11,6 +11,8 @@ require(['java', 'z'], function(java, z) {
     var manifest = files['META-INF/MANIFEST.MF'];
     manifest = utf8.decode(manifest);
     console.log(manifest);
+    manifest = java.parseManifestSections(manifest);
+    console.log(manifest);
     return;
     var classes = {};
     for (var filename in files) {
