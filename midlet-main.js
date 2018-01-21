@@ -8,7 +8,7 @@ require(['java', 'z'], function(java, z) {
   const utf8 = new TextDecoder('utf-8');
   
   function loadFiles(files, containerFilename) {
-    var manifest = files['META_INF/MANIFEST.MF'];
+    var manifest = files['META-INF/MANIFEST.MF'];
     manifest = utf8.decode(manifest);
     console.log(manifest);
     return;
