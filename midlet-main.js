@@ -15,7 +15,7 @@ require(['java', 'z'], function(java, z) {
     console.log(manifest);
     var midlets = [];
     for (var i = 1; ; i++) {
-      var midlet = manifest['midlet-' + i];
+      var midlet = manifest[0]['midlet-' + i];
       if (!midlet) break;
       var info = midlet.trim().split(/\s*,\s*/g);
       if (info.length !== 3) {
