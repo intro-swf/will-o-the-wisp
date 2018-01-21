@@ -4,7 +4,7 @@ define(['java'], function(java) {
   
   const _VALUE = java._VALUE;
   
-  var Boolean = java.define('java.lang.Boolean', {
+  return java.define('java.lang.Boolean', {
     primitive: 'boolean',
     constructor: ['boolean', function Boolean(b) {
       this[_VALUE] = b;
