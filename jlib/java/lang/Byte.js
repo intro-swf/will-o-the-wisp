@@ -1,4 +1,4 @@
-define(['java'], function(java) {
+define(['java', './NumberFormatException'], function(java, NumberFormatException) {
   
   'use strict';
   
@@ -10,6 +10,20 @@ define(['java'], function(java) {
     constructor: ['i8', function Byte(v) {
       this[_VALUE] = v;
     }],
+    staticMethods: {
+      parseByte: [
+        [{ret:'i8'}, 'string'],
+        [{ret:'i8'}, 'string', 'i32'],
+        function parseByte(str, radix) {
+          if (isNaN(radix)) radix = 10;
+          var v = parseInt(str);
+          if (isNaN(v) || v < -128 || v > 127) {
+            throw new NumberFormatException();
+          }
+          return v;
+        },
+      ],
+    },
     constants: {
       MIN_VALUE: ['i8', -128],
       MAX_VALUE: ['i8', 127],
