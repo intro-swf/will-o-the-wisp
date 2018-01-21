@@ -1747,7 +1747,7 @@ define(function() {
   function parseManifestSections(manifest) {
     return manifest
       .trim()
-      .split(/(?:\r\n?|\n){2,}/g)
+      .split(/(?:\r\n|\n|\r(?!\n)){2,}/g)
       .map(function(section) {
         var list = section.match(/^.*(?:(?:\r\n?|\n) .*)*/gm);
         var map = Object.create(null);
