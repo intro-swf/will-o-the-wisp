@@ -24,6 +24,7 @@ require(['java', 'z'], function(java, z) {
       midlets.push({name:info[0], icon:info[1], className:info[2]});
     }
     console.log(midlets);
+    console.log(files);
     return;
     var classes = {};
     for (var filename in files) {
