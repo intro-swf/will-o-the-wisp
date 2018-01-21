@@ -6,75 +6,132 @@ define(['java'], function(java) {
         AUTHMODE_ANY = 1;
   
   return java.define('javax.microedition.rms.RecordStore', {
+    final: true, // no accessible constructors
     constants: {
-      AUTHMODE_PRIVATE: AUTHMODE_PRIVATE,
-      AUTHMODE_ANY: AUTHMODE_ANY,
+      AUTHMODE_PRIVATE : AUTHMODE_PRIVATE,
+          AUTHMODE_ANY : AUTHMODE_ANY,
     },
     staticMethods: {
-      deleteRecordStore: ['string', function(storeName) {
-      }],
-      listRecordStores: ['string[]', function() {
-      }],
+      deleteRecordStore: [
+        {blocking:true}, 'string',
+        function deleteRecordStore(storeName) {
+        },
+      ],
+      listRecordStores: [
+        {blocking:true}, {ret:'string[]'},
+        function listRecordStores() {
+        },
+      ],
       openRecordStore: [
         [
-          {ret:'./RecordStore'}, 'string', 'boolean',
-          function(storeName, orCreate) {
+          {blocking:true}, {ret:'./RecordStore'}, 'string', 'boolean',
+          function openRecordStore(storeName, orCreate) {
           },
         ],
         [
-          {ret:'./RecordStore'}, 'string', 'boolean', 'i32', 'boolean',
-          function(storeName, orCreate, authMode, writable) {
+          {blocking:true}, {ret:'./RecordStore'}, 'string', 'boolean', 'i32', 'boolean',
+          function openRecordStore(storeName, orCreate, authMode, writable) {
           },
         ],
         [
-          {ret:'./RecordStore'}, 'string', 'string', 'string',
-          function(storeName, vendorName, suiteName) {
+          {blocking:true}, {ret:'./RecordStore'}, 'string', 'string', 'string',
+          function openRecordStore(storeName, vendorName, suiteName) {
           },
         ],
       ],
     },
     methods: {
-      addRecord: [{ret:'i32'}, 'i8[]', 'i32', 'i32', function(bytes, offset, length) {
-      }],
-      addRecordListener: ['./RecordListener', function(listener) {
-      }],
-      closeRecordStore: [function() {
-      }],
-      deleteRecord: ['i32', function(id) {
-      }],
-      enumerateRecords: [
-        {ret:'./RecordEnumeration'}, './RecordFilter', './RecordComparator', 'boolean',
-        function(filter, comparator, keepUpdated) {
+      addRecord: [
+        {blocking:true}, {ret:'i32'}, 'i8[]', 'i32', 'i32',
+        function addRecord(bytes, offset, length) {
         },
       ],
-      getLastModified: [{ret:'i64'}, function() {
-      }],
-      getName: [{ret:'string'}, function() {
-      }],
-      getNextRecordID: [{ret:'i32'}, function() {
-      }],
-      getNumRecords: [{ret:'i32'}, function() {
-      }],
-      getRecord: [
-        [{ret:'i8[]'}, 'i32', function(id) {
-        }],
-        [{ret:'i32'}, 'i32', 'i8[]', 'i32', function(id, bytes, offset) {
-        }],
+      addRecordListener: [
+        './RecordListener',
+        function addRecordListener(listener) {
+        },
       ],
-      getRecordSize: [{ret:'i32'}, 'i32', function(id) {
-      }],
-      getSize: [{ret:'i32'}, function() {
-      }],
-      getSizeAvailable: [{ret:'i32'}, function() {
-      }],
-      getVersion: [{ret:'i32'}, function() {
-      }],
-      removeRecordListener: ['./RecordListener', function(listener) {
-      }],
-      setMode: ['i32', 'boolean', function(authMode, writable) {
-      }],
-      setRecord: ['i32', 'i8[]', 'i32', 'i32', function(id, data, offset, length) {
-      }],
+      removeRecordListener: [
+        './RecordListener',
+        function removeRecordListener(listener) {
+        },
+      ],
+      closeRecordStore: [
+        function closeRecordStore() {
+        },
+      ],
+      deleteRecord: [
+        {blocking:true}, 'i32',
+        function deleteRecord(id) {
+        },
+      ],
+      enumerateRecords: [
+        {blocking:true}, {ret:'./RecordEnumeration'}, './RecordFilter', './RecordComparator', 'boolean',
+        function enumerateRecords(filter, comparator, keepUpdated) {
+        },
+      ],
+      getLastModified: [
+        {blocking:true}, {ret:'i64'},
+        function getLastModified() {
+        },
+      ],
+      getName: [
+        {blocking:true}, {ret:'string'},
+        function getName() {
+        },
+      ],
+      getNextRecordID: [
+        {blocking:true}, {ret:'i32'},
+        function getNextRecordID() {
+        },
+      ],
+      getNumRecords: [
+        {blocking:true}, {ret:'i32'},
+        function getNumRecords() {
+        },
+      ],
+      getRecord: [
+        [
+          {blocking:true}, {ret:'i8[]'}, 'i32',
+          function getRecord(id) {
+          },
+        ],
+        [
+          {ret:'i32'}, 'i32', 'i8[]', 'i32',
+          function getRecord(id, bytes, offset) {
+          },
+        ],
+      ],
+      getRecordSize: [
+        {blocking:true}, {ret:'i32'}, 'i32',
+        function getRecordSize(id) {
+        },
+      ],
+      getSize: [
+        {blocking:true}, {ret:'i32'},
+        function getSize() {
+        },
+      ],
+      getSizeAvailable: [
+        {blocking:true}, {ret:'i32'},
+        function getSizeAvailable() {
+        },
+      ],
+      getVersion: [
+        {blocking:true}, {ret:'i32'},
+        function getVersion() {
+        },
+      ],
+      setMode: [
+        'i32', 'boolean',
+        function setMode(authMode, writable) {
+        },
+      ],
+      setRecord: [
+        {blocking:true}, 'i32', 'i8[]', 'i32', 'i32',
+        function setRecord(id, data, offset, length) {
+        },
+      ],
     },
   });
 
