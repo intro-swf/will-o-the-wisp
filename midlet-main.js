@@ -82,9 +82,20 @@ require(['java', 'z'], function(java, z) {
       var uncompressed;
       switch (compressionMethod) {
         case 0: uncompressed = compressed; break;
-        case 8: uncompressed = z.inflateRaw(compressed); break;
+        case 8:
+          try {
+            uncompressed = z.inflateRaw(compressed);
+          }
+          catch (e) {
+            console.error('failed to decode '+filename, e);
+            continue;
+          }
+          break;
       }
-      if (uncompressed.length !== uncompressedLen) throw new Error('bad decompression');
+      if (uncompressed.length !== uncompressedLen) {
+        console.error('failed to decode '+filename+': length mismatch');
+        continue;
+      }
       files[filename] = uncompressed;
     }
     loadFiles(files, path.replace(/^.*\//, ''));
