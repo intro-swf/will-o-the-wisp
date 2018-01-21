@@ -5,7 +5,13 @@ requirejs.config({
 
 require(['java', 'z'], function(java, z) {
   
+  const utf8 = new TextDecoder('utf-8');
+  
   function loadFiles(files, containerFilename) {
+    var manifest = files['META_INF/MANIFEST.MF'];
+    manifest = utf8.decode(manifest);
+    console.log(manifest);
+    return;
     var classes = {};
     for (var filename in files) {
       if (/\.class$/i.test(filename)) {
