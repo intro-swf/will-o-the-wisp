@@ -29,9 +29,9 @@ define(['java'], function(java) {
       }],
       getHeight: [{ret:'i32'}, function getHeight() {
       }],
-      sizeChanged: ['i32', 'i32', function(width, height) {
+      sizeChanged: ['i32', 'i32', function sizeChanged(width, height) {
       }],
-      isShown: [{ret:'boolean'}, function() {
+      isShown: [{ret:'boolean'}, function isShown() {
       }],
     },
     
