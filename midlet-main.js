@@ -34,6 +34,29 @@ require(['java', 'z'], function(java, z) {
       }
       midlets.push({name:info[0], icon:info[1], className:info[2]});
     }
+    if (midlets.length === 0) {
+      throw new Error('no midlets found');
+    }
+    else if (midlets.length > 1) {
+      console.warn(midlets.length + ' midlets defined, ignoring all but the first');
+    }
+    var midlet = midlets[0];
+    var icon = (midlet.icon || manifest['midlet-icon'] || '').replace(/^\//, '');
+    var title = midlet.name;
+    if ('midlet-version' in manifest) {
+      title += ' ' + manifest['midlet-title'];
+    }
+    document.title = title;
+    if (icon) {
+      var bytes = files[icon];
+      if (!bytes) throw new Error('icon not found: ' + icon);
+      var blob = new File([bytes], icon, {type:'image/png'});
+      var favicon = document.createElement('LINK');
+      favicon.setAttribute('rel', 'icon');
+      favicon.setAttribute('type', 'image/png');
+      favicon.setAttribute('href', URL.createObjectURL(blob));
+      document.head.appendChild(favicon);
+    }
     console.log(midlets);
     console.log(files);
     return;
