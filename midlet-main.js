@@ -48,14 +48,18 @@ require(['java', 'z'], function(java, z) {
     }
     document.title = title;
     if (icon) {
-      var bytes = files[icon];
-      if (!bytes) throw new Error('icon not found: ' + icon);
-      var blob = new File([bytes], icon, {type:'image/png'});
-      var favicon = document.createElement('LINK');
-      favicon.setAttribute('rel', 'icon');
-      favicon.setAttribute('type', 'image/png');
-      favicon.setAttribute('href', URL.createObjectURL(blob));
-      document.head.appendChild(favicon);
+      if (icon in files) {
+        var bytes = files[icon];
+        var blob = new File([bytes], icon, {type:'image/png'});
+        var favicon = document.createElement('LINK');
+        favicon.setAttribute('rel', 'icon');
+        favicon.setAttribute('type', 'image/png');
+        favicon.setAttribute('href', URL.createObjectURL(blob));
+        document.head.appendChild(favicon);
+      }
+      else {
+        console.error('icon not found: ' + icon);
+      }
     }
     console.log(midlets);
     console.log(files);
