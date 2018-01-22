@@ -44,7 +44,7 @@ require(['java', 'z'], function(java, z) {
     var icon = (midlet.icon || manifest[0]['midlet-icon'] || '').replace(/^\//, '');
     var title = midlet.name;
     if ('midlet-version' in manifest[0]) {
-      title += ' ' + manifest[0]['midlet-title'];
+      title += ' ' + manifest[0]['midlet-version'];
     }
     document.title = title;
     if (icon) {
