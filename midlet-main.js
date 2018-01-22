@@ -41,7 +41,7 @@ require(['java', 'z'], function(java, z) {
       console.warn(midlets.length + ' midlets defined, ignoring all but the first');
     }
     var midlet = midlets[0];
-    var icon = (midlet.icon || manifest['midlet-icon'] || '').replace(/^\//, '');
+    var icon = (midlet.icon || manifest[0]['midlet-icon'] || '').replace(/^\//, '');
     var title = midlet.name;
     if ('midlet-version' in manifest) {
       title += ' ' + manifest['midlet-title'];
