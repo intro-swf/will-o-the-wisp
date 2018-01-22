@@ -1756,7 +1756,7 @@ define(function() {
         for (var i = 0; i < list.length; i++) {
           var header = list[i].match(/^([a-z0-9][a-z0-9_\-]*): (.*)$/i);
           if (!header) throw new Error('invalid manifest');
-          map[header[1].toLowerCase()] = header[2];
+          map[header[1].toLowerCase()] = header[2].trim();
         }
         return map;
       });
