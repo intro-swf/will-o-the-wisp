@@ -43,8 +43,8 @@ require(['java', 'z'], function(java, z) {
     var midlet = midlets[0];
     var icon = (midlet.icon || manifest[0]['midlet-icon'] || '').replace(/^\//, '');
     var title = midlet.name;
-    if ('midlet-version' in manifest) {
-      title += ' ' + manifest['midlet-title'];
+    if ('midlet-version' in manifest[0]) {
+      title += ' ' + manifest[0]['midlet-title'];
     }
     document.title = title;
     if (icon) {
