@@ -63,6 +63,13 @@ require(['java', 'z'], function(java, z) {
     }
     console.log(midlets);
     console.log(files);
+    var mainClassPath = midlet.className.replace(/\//g, '.') + '.class';
+    var mainClass = files[mainClassPath];
+    if (!mainClass) {
+      throw new Error('not found: ' + mainClassPath);
+    }
+    mainClass = new java.ClassView(mainClass.buffer, mainClass.byteOffset, mainClass.byteLength);
+    console.log(mainClass);
     return;
     var classes = {};
     for (var filename in files) {
