@@ -1762,7 +1762,7 @@ define(function() {
       });
   }
   
-  return {
+  var java = {
     parseManifestSections: parseManifestSections,
     
     ClassView: ClassView,
@@ -1783,5 +1783,106 @@ define(function() {
     Serializable: JSerializable,
     initClass: initClass,
   };
+  
+  function Thread(vm, priority, body) {
+    this.vm = vm;
+    this.priority = priority;
+    var self = this;
+    this.terminated = new Promise(function(resolve, reject) {
+      self.terminate = function() {
+        self.terminate = null;
+        self.mode = 'terminated';
+        self.vm.threads.splice(self.vm.threads.indexOf(self), 1);
+        self.vm.notifyThreadTerminated(self);
+        resolve();
+      };
+    });
+    this.wake = function() {
+      this.status = 'running';
+      this.wake = null;
+      var self = this;
+      if (typeof body === 'function') body = body();
+      return Promise.resolve(body).then(function() {
+        self.terminate();
+      });
+    };
+  }
+  Thread.prototype = {
+    status: 'pending',
+    suspend: function(condition, interruptable) {
+      if (this.status !== 'running') {
+        console.warn('suspend intended to be called from thread body');
+      }
+      if (typeof condition === 'function') {
+        condition = condition();
+      }
+      this.status = 'suspended';
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        if (interruptable) {
+          self.interrupt = function() {
+            self.status = 'pending';
+            self.interrupt = null;
+            self.wake = function() {
+              self.status = 'running';
+              self.wake = null;
+              reject(/* interrupt exception? */);
+            };
+          };
+        }
+        Promise.resolve(condition).then(
+          function(value) {
+            self.status = 'pending';
+            self.interrupt = null;
+            self.wake = function() {
+              self.status = 'running';
+              self.wake = null;
+              resolve(value);
+            };
+            self.vm.wake();
+          },
+          function(reason) {
+            self.status = 'pending';
+            self.interrupt = null;
+            self.wake = function() {
+              self.status = 'running';
+              self.wake = null;
+              reject(reason);
+            };
+            self.vm.wake();
+          });
+      });
+    },
+  };
+  
+  function VM() {
+    this.threads = [];
+  }
+  VM.prototype = {
+    createThread: function(priority, body) {
+      var thread = new Thread(this, priority, body);
+      this.threads.push(thread);
+      this.sortThreads();
+    },
+    sortThreads: function() {
+      this.threads.sort(function(a, b) {
+        return a.priority - b.priority;
+      });
+    },
+    wake: function() {
+      for (var i = 0; i < this.threads.length; i++) {
+        var t = this.threads[i];
+        if (t.status === 'pending') {
+          t.wake();
+          break;
+        }
+      }
+    },
+  };
+  
+  java.VM = VM;
+  java.Thread = Thread;
+  
+  return java;
 
 });
