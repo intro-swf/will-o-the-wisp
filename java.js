@@ -1797,6 +1797,7 @@ define(function() {
         resolve();
       };
     });
+    this.status = 'pending';
     this.wake = function() {
       this.status = 'running';
       this.wake = null;
@@ -1808,7 +1809,6 @@ define(function() {
     };
   }
   Thread.prototype = {
-    status: 'pending',
     suspend: function(condition, interruptable) {
       if (this.status !== 'running') {
         console.warn('suspend intended to be called from thread body');
