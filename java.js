@@ -1858,7 +1858,7 @@ define(function() {
   function VM() {
     this.threads = [];
     this.classStore = Object.create(null);
-    this.classLoaders = [this.loadClass_fromStore];
+    this.classLoaders = [];
   }
   VM.prototype = {
     createThread: function(priority, body) {
@@ -1923,9 +1923,6 @@ define(function() {
         return store[className] = loaded;
       }
       return store[className] = nextLoader(this.classLoaders, 0);
-    },
-    loadClass_fromStore: function(className) {
-      return this.classStore[className];
     },
   };
   
