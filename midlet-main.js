@@ -70,6 +70,26 @@ require(['java', 'z'], function(java, z) {
     }
     mainClass = new java.ClassView(mainClass.buffer, mainClass.byteOffset, mainClass.byteLength);
     console.log(mainClass);
+    
+    var vm = new java.VM();
+    vm.classLoaders.push(function(className) {
+      var path = className + '.class';
+      if (path in files) {
+        var classDef = files[path];
+        classDef = new java.ClassView(classDef.buffer, classDef.byteOffset, classDef.byteLength);
+        return vm.makeClass(classDef);
+      }
+      return null;
+    });
+    vm.classLoaders.push(function(className) {
+      return new Promise(function(resolve, reject) {
+        require(['jlib/' + className], resolve, reject);
+      });
+    });
+    (vm.classStore[mainClass.name] = vm.makeClass(mainClass))
+    .then(function(mainCtor) {
+      console.log(mainCtor);
+    });
     return;
     var classes = {};
     for (var filename in files) {
