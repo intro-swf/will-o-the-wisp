@@ -1857,6 +1857,8 @@ define(function() {
   
   function VM() {
     this.threads = [];
+    this.classStore = Object.create(null);
+    this.classLoaders = [this.loadClass_fromStore];
   }
   VM.prototype = {
     createThread: function(priority, body) {
@@ -1877,6 +1879,53 @@ define(function() {
           break;
         }
       }
+    },
+    makeClass: function(classDef) {
+      var promises = [];
+      var def = {};
+      if (classDef.isInterface) {
+        def.base = 'interface';
+      }
+      else {
+        promises.push(this.loadClass(classDef.extendsName).then(function(baseClass) {
+          def.base = baseClass;
+        }));
+      }
+      def.interfaces = [];
+      for (var i = 0; i < classDef.interfaces.length; i++) {
+        promises.push(this.loadClass(classDef.interfaces[i]).then(function(iface) {
+          def.interfaces.push(iface);
+        }));
+      }
+      return Promise.all(promises).then(function() {
+        return java.define(classDef.name, def);
+      });
+    },
+    loadClass: function(className) {
+      const store = this.classStore;
+      if (className in store) {
+        return store[className];
+      }
+      function nextLoader(loaders, i) {
+        var loaded;
+        do {
+          if (i >= loaders.length) {
+            return Promise.reject('class not found');
+          }
+          loaded = loaders[i++](className);
+        } while (!loaded);
+        if (loaded instanceof Promise) {
+          return loaded.then(function(loaded) {
+            if (!loaded) return nextLoader(loaders, i);
+            return store[className] = loaded;
+          });
+        }
+        return store[className] = loaded;
+      }
+      return store[className] = nextLoader(this.classLoaders, 0);
+    },
+    loadClass_fromStore: function(className) {
+      return this.classStore[className];
     },
   };
   
