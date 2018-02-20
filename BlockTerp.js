@@ -56,9 +56,8 @@ define(function() {
   });
 
   BlockTerp.defaultSteps = Object.assign(Object.create(null), {
-    constant: function(block) {
-      if (block.length !== 2) throw new Error('constant expects 1 argument');
-      return block[1];
+    constant: function(value) {
+      return value;
     },
   });
   
