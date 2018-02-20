@@ -59,6 +59,11 @@ define(function() {
     constant: function(value) {
       return value;
     },
+    sleep: function(ms) {
+      return new Promise(function(resolve) {
+        setTimeout(resolve, ms);
+      });
+    },
   });
   
   return BlockTerp;
