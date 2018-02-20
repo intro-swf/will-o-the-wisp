@@ -5,6 +5,7 @@ define(function() {
   function BlockTerp() {
     this.macros = Object.create(BlockTerp.defaultMacros);
     this.steps = Object.create(BlockTerp.defaultSteps);
+    this.stack = [];
   }
   BlockTerp.prototype = {
     preprocess: function(block) {
@@ -63,6 +64,12 @@ define(function() {
       return new Promise(function(resolve) {
         setTimeout(resolve, ms);
       });
+    },
+    push: function(value) {
+      this.stack.push(value);
+    },
+    pop: function() {
+      return this.stack.pop();
     },
   });
   
