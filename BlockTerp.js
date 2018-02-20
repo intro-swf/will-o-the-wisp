@@ -27,8 +27,16 @@ define(function() {
           }
           return result;
         }
-        if (block.length === 0) return undefined;
+        if (block.length === 0) return void 0;
         throw new Error('invalid block');
+      }
+      if (block.length > 1) {
+        block = block.slice();
+        for (var i = 1; i < block.length; i++) {
+          if (Array.isArray(block[i])) {
+            block[i] = await this.run(block[i]);
+          }
+        }
       }
       if (block[0] in this.steps) {
         return this.steps[block[0]].apply(this, block.slice(1));
