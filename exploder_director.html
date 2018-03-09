@@ -61,6 +61,7 @@
           var chunkLength = bytes.readUint32BE();
           console.log(chunkLabel, chunkLength);
           var chunk = bytes.readSubarray(chunkLength);
+          if (chunk.length % 2) bytes.offset++;
         }
       }
       
