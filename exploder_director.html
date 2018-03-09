@@ -4,23 +4,36 @@
     <title>Exploder: Director</title>
     <script>
       
-      Blob.prototype.readBytesAsync = function() {
-        const self = this;
-        return new Promise(function(resolve, reject) {
-          var fr = new FileReader;
-          fr.onload = function(e) {
-            resolve(new Uint8Array(this.result));
-          };
-          fr.onerror = function(e) {
-            reject(this.error);
-          };
-          fr.readAsArrayBuffer(self);
-        });
-      }
+      Object.assign(Blob.prototype, {
+        readBytesAsync: function() {
+          const self = this;
+          return new Promise(function(resolve, reject) {
+            var fr = new FileReader;
+            fr.onload = function(e) {
+              resolve(new Uint8Array(this.result));
+            };
+            fr.onerror = function(e) {
+              reject(this.error);
+            };
+            fr.readAsArrayBuffer(self);
+          });
+        },
+      });
+      
+      Object.assign(Uint8Array.prototype, {
+        offset: 0,
+        readByteString: function(n) {
+          var str = String.fromCharCode.apply(null, this.subarray(this.offset, this.offset + n));
+          this.offset += n;
+          return str;
+        },
+      });
       
       async function explode(file) {
         var bytes = await file.readBytesAsync();
-        console.log(bytes);
+        if (bytes.readByteString(4) !== 'RIFX') {
+          throw new Error('invalid header');
+        }
       }
       
       window.onload = function() {
