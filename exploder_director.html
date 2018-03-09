@@ -4,8 +4,23 @@
     <title>Exploder: Director</title>
     <script>
       
-      function explode(file) {
-        console.log(file);
+      Blob.prototype.readBytesAsync = function() {
+        const self = this;
+        return new Promise(function(resolve, reject) {
+          var fr = new FileReader;
+          fr.onload = function(e) {
+            resolve(new Uint8Array(this.result));
+          };
+          fr.onerror = function(e) {
+            reject(this.error);
+          };
+          fr.readAsArrayBuffer(self);
+        });
+      }
+      
+      async function explode(file) {
+        var bytes = await file.readBytesAsync();
+        console.log(bytes);
       }
       
       window.onload = function() {
