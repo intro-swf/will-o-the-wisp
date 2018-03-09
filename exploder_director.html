@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Exploder: Director</title>
+    <script>
+      
+      function explode(file) {
+        console.log(file);
+      }
+      
+      window.onload = function() {
+        var dropzone = document.getElementById('dropzone');
+        dropzone.ondragover = function(e) {
+          e.preventDefault();
+        };
+        dropzone.ondrop = function(e) {
+          e.preventDefault();
+          for (var i = 0; i < e.dataTransfer.items.length; i++) {
+            if (e.dataTransfer.items[i].kind === 'file') {
+              explode(e.dataTransfer.items[i].getAsFile());
+              break;
+            }
+          }
+        };
+      };
+      
+    </script>
+    <style>
+      #dropzone {
+        border: 5px dashed #888;
+      }
+      #dropzone.dropping {
+        border-color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='dropzone'>Drop</div>
+  </body>
+</html>
