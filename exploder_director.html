@@ -28,7 +28,10 @@
           return str;
         },
         readUint32BE: function() {
-          var v = (this[this.offset] << 24) | (this[this.offset+1] << 16) (this[this.offset+2] << 8) | this[this.offset+3];
+          var v = (this[this.offset  ] << 24)
+                | (this[this.offset+1] << 16)
+                | (this[this.offset+2] <<  8)
+                |  this[this.offset+3]       ;
           this.offset += 4;
           return v;
         },
