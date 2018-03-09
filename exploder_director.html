@@ -28,7 +28,7 @@
           return arr;
         },
         readByteString: function(n) {
-          var str = String.fromCharCode.apply(null, this.readSubarray(n));
+          return String.fromCharCode.apply(null, this.readSubarray(n));
         },
         readUint32BE: function() {
           var v = (this[this.offset  ] << 24)
