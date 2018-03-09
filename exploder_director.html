@@ -22,10 +22,13 @@
       
       Object.assign(Uint8Array.prototype, {
         offset: 0,
-        readByteString: function(n) {
-          var str = String.fromCharCode.apply(null, this.subarray(this.offset, this.offset + n));
+        readSubarray: function(n) {
+          var arr = this.subarray(this.offset, this.offset + n);
           this.offset += n;
-          return str;
+          return arr;
+        },
+        readByteString: function(n) {
+          var str = String.fromCharCode.apply(null, this.readSubarray(n));
         },
         readUint32BE: function() {
           var v = (this[this.offset  ] << 24)
