@@ -27,12 +27,34 @@
           this.offset += n;
           return str;
         },
+        readUint32BE: function() {
+          var v = (this[this.offset] << 24) | (this[this.offset+1] << 16) (this[this.offset+2] << 8) | this[this.offset+3];
+          this.offset += 4;
+          return v;
+        },
+        getRemaining: function() {
+          return this.length - this.offset;
+        },
       });
       
       async function explode(file) {
         var bytes = await file.readBytesAsync();
         if (bytes.readByteString(4) !== 'RIFX') {
           throw new Error('invalid header');
+        }
+        var len = bytes.readUint32BE();
+        if (len < bytes.getRemaining()) {
+          throw new Error('invalid length');
+        }
+        bytes = bytes.readSubarray(len);
+        if (bytes.readByteString(4) !== 'MV93') {
+          throw new Error('not an MV93 file');
+        }
+        while (bytes.offset < bytes.length) {
+          var chunkLabel = bytes.readByteString(4);
+          var chunkLength = bytes.readUint32BE();
+          console.log(chunkLabel, chunkLength);
+          var chunk = bytes.readSubarray(chunkLength);
         }
       }
       
