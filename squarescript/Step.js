@@ -117,7 +117,7 @@ s          run = run.parentRun;
         }
         break;
       }
-      return run.jump(this.valueStep.exec(run));
+      return run.jump(await this.valueStep.exec(run));
     },
     eachSubStep: function*() {
       yield this.valueStep;
