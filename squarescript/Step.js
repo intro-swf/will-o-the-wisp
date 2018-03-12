@@ -163,6 +163,7 @@ define(function() {
   Step.Sequence = StepSequence;
   Step.Breakable = BreakableStep;
   Step.Repeatable = RepeatableStep;
+  Step.Jump = JumpStep;
   
   return Step;
 
