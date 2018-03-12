@@ -138,7 +138,7 @@ define(function() {
   }
   PushStep.prototype = Object.create(Step.prototype);
   Object.assign(PushStep.prototype, {
-    exec: await function(run) {
+    exec: async function(run) {
       run.stack.push(await this.step.exec(run));
     },
     eachSubStep: function*() {
