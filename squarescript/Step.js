@@ -160,7 +160,7 @@ define(function() {
 
   Step.Push = PushStep;
   Step.Pop = PopStep;
-  Step.Sequence = SequenceStep;
+  Step.Sequence = StepSequence;
   Step.Breakable = BreakableStep;
   Step.Repeatable = RepeatableStep;
   
