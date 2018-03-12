@@ -116,7 +116,7 @@ define(function() {
         }
         break;
       }
-      return d.jump();
+      return run.jump();
     },
   });
 
