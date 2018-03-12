@@ -164,6 +164,7 @@ define(function() {
   Step.Breakable = BreakableStep;
   Step.Repeatable = RepeatableStep;
   Step.Jump = JumpStep;
+  Step.Run = Run;
   
   return Step;
 
