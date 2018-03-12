@@ -26,6 +26,9 @@ define(function() {
     this.stack = [];
   }
   Run.prototype = {
+    spawn: function() {
+      return new Run(this);
+    },
   };
 
   function StepSequence(steps) {
