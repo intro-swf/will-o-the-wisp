@@ -98,16 +98,17 @@ define(function() {
     },	
   });
 
-  function JumpStep(depth) {
+  function JumpStep(depth, valueSource) {
     this.depth = depth;
+    this.valueStep = Step.from(valueSource);
   }
   JumpStep.prototype = Object.create(Step.prototype);
   Object.assign(JumpStep.prototype, {
-    exec: function(run) {
+    exec: async function(run) {
       var d = this.depth;
       for (;;) {
         while (run && typeof run.jump !== 'function') {
-          run = run.parentRun;
+s          run = run.parentRun;
         }
         if (!run) throw new Error('invalid jump context');
         if (d > 0) {
@@ -116,7 +117,10 @@ define(function() {
         }
         break;
       }
-      return run.jump();
+      return run.jump(this.valueStep.exec(run));
+    },
+    eachSubStep: function*() {
+      yield this.valueStep;
     },
   });
 
